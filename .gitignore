@@ -19,8 +19,8 @@ Thumbs.db
 # Logs
 *.log
 
-# Prisma
-prisma/migrations/
+# Prisma (keep migrations for production deploy)
+# prisma/migrations/
 
 # Plans
 PLAN.md
