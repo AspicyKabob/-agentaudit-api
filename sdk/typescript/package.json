@@ -1,0 +1,39 @@
+{
+  "name": "@agentaudit/sdk",
+  "version": "1.0.0",
+  "description": "Audit \u0026 Compliance SDK for AI Agents (TypeScript)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "jest"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "audit",
+    "compliance",
+    "monitoring",
+    "langchain",
+    "typescript"
+  ],
+  "author": "AgentAudit Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "langchain": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "langchain": {
+      "optional": true
+    }
+  }
+}

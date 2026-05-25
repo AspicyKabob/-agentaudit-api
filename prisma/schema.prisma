@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password      String
+  plan          String   @default("free")
+  apiQuota      Int      @default(1000)
+  apiUsed       Int      @default(0)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  apiKeys       ApiKey[]
+  agents        Agent[]
+  auditLogs     AuditLog[]
+  complianceRules ComplianceRule[]
+  reports       ComplianceReport[]
+  alerts        Alert[]
+}
+
+model ApiKey {
+  id            String   @id @default(uuid())
+  organizationId String
+  name          String
+  keyHash       String   @unique
+  lastUsedAt    DateTime?
+  createdAt     DateTime @default(now())
+  revokedAt     DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Agent {
+  id            String   @id @default(uuid())
+  organizationId String
+  name          String
+  type          String
+  description   String?
+  config        Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  auditLogs     AuditLog[]
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  organizationId String
+  agentId       String?
+  action        String
+  prompt        String?
+  response      String?
+  metadata      Json?
+  complianceFlags String[]
+  createdAt     DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agent        Agent?       @relation(fields: [agentId], references: [id], onDelete: SetNull)
+}
+
+model ComplianceRule {
+  id            String   @id @default(uuid())
+  organizationId String
+  name          String
+  ruleType      String
+  condition     Json
+  severity      String   @default("warning")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  alerts       Alert[]
+}
+
+model ComplianceReport {
+  id            String   @id @default(uuid())
+  organizationId String
+  name          String
+  format        String
+  dateRangeStart DateTime
+  dateRangeEnd  DateTime
+  status        String   @default("pending")
+  downloadUrl   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+model Alert {
+  id            String   @id @default(uuid())
+  organizationId String
+  ruleId        String?
+  auditLogId    String?
+  severity      String
+  message       String
+  details       Json?
+  isResolved    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  resolvedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rule         ComplianceRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+}

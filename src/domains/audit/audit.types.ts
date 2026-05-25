@@ -1,0 +1,31 @@
+import { z } from 'zod';
+
+export const submitAuditSchema = z.object({
+  body: z.object({
+    agentId: z.string().uuid().optional(),
+    action: z.string().min(1).max(200),
+    prompt: z.string().max(10000).optional(),
+    response: z.string().max(10000).optional(),
+    metadata: z.record(z.any()).optional(),
+  }),
+});
+
+export const queryAuditSchema = z.object({
+  query: z.object({
+    action: z.string().optional(),
+    agentId: z.string().uuid().optional(),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
+    page: z.string().transform(Number).default('1'),
+    limit: z.string().transform(Number).default('20'),
+  }),
+});
+
+export const auditIdSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type SubmitAuditBody = z.infer<typeof submitAuditSchema>['body'];
+export type QueryAuditQuery = z.infer<typeof queryAuditSchema>['query'];

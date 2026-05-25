@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "AgentAudit API",
+    "description": "Audit \u0026 Compliance API for AI Agents",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Organization",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Organization\",\n  \"email\": \"team@company.com\",\n  \"password\": \"securePassword123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "url": "{{base_url}}/api/v1/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"team@company.com\",\n  \"password\": \"securePassword123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create API Key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": "{{base_url}}/api/v1/auth/api-keys",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Production Key\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agents",
+      "item": [
+        {
+          "name": "List Agents",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": "{{base_url}}/api/v1/agents"
+          }
+        },
+        {
+          "name": "Create Agent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{access_token}}"}
+            ],
+            "url": "{{base_url}}/api/v1/agents",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Customer Support Bot\",\n  \"type\": \"langchain\",\n  \"description\": \"Handles customer support queries\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit Logs",
+      "item": [
+        {
+          "name": "Submit Audit Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "X-API-Key", "value": "{{api_key}}"}
+            ],
+            "url": "{{base_url}}/api/v1/audit-logs",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"prompt_submitted\",\n  \"prompt\": \"What is the weather?\",\n  \"response\": \"It is sunny today.\",\n  \"metadata\": {\n    \"model\": \"gpt-4\",\n    \"tokens\": 150\n  }\n}"
+            }
+          }
+        },
+        {
+          "name": "Query Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{access_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/audit-logs?page=1&limit=20",
+              "query": [
+                {"key": "page", "value": "1"},
+                {"key": "limit", "value": "20"}
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8080"},
+    {"key": "access_token", "value": ""},
+    {"key": "api_key", "value": ""}
+  ]
+}

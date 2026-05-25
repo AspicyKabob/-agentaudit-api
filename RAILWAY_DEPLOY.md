@@ -1,0 +1,104 @@
+# AgentAudit API — Railway Deploy Guide
+
+This project is configured for one-click Railway deployment.
+
+## Prerequisites
+
+1. GitHub account with this repo pushed
+2. [Railway](https://railway.app) account (free tier available)
+3. Stripe account (for billing)
+
+## Step 1: Push to GitHub
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/YOUR_USERNAME/agentaudit-api.git
+git push -u origin main
+```
+
+## Step 2: Create Railway Project
+
+1. Go to [railway.app/dashboard](https://railway.app/dashboard)
+2. Click **"New Project"** → **"Deploy from GitHub repo"**
+3. Select `agentaudit-api`
+4. Railway auto-detects `railway.json` and `Dockerfile`
+
+## Step 3: Add PostgreSQL
+
+1. In your Railway project, click **"New"** → **"Database"** → **"Add PostgreSQL"**
+2. Railway injects `DATABASE_URL` automatically — no manual config needed
+
+## Step 4: Set Environment Variables
+
+In Railway Dashboard → Settings → Variables, add:
+
+| Variable | Value | How to generate |
+|----------|-------|---------------|
+| `JWT_SECRET` | 64-char hex | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
+| `API_KEY_SALT` | 32-char random | `node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"` |
+| `STRIPE_SECRET_KEY` | `sk_live_...` | [Stripe Dashboard](https://dashboard.stripe.com/apikeys) |
+| `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | Stripe Dashboard |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe CLI or Dashboard |
+| `STRIPE_PRICE_PRO` | `price_...` | Create in Stripe Products |
+| `STRIPE_PRICE_BUSINESS` | `price_...` | Create in Stripe Products |
+| `STRIPE_PRICE_ENTERPRISE` | `price_...` | Create in Stripe Products |
+
+## Step 5: Deploy
+
+Railway auto-deploys on every git push. First deploy:
+
+1. Click **"Deploy"** in Railway dashboard
+2. Wait for build (~2-3 min)
+3. Railway assigns a public URL: `https://agentaudit-api.up.railway.app`
+
+## Step 6: Run Migrations
+
+After first deploy, open Railway's **"Deployments"** tab, click on the running deployment, then **"Shell"**:
+
+```bash
+npx prisma migrate deploy
+```
+
+Or add it to `railway.json` startCommand if you want auto-migrate on boot (not recommended for production, but acceptable for MVP):
+
+```json
+"startCommand": "npx prisma migrate deploy && npm run start"
+```
+
+## Step 7: Verify
+
+```bash
+curl https://YOUR_RAILWAY_URL/health
+curl https://YOUR_RAILWAY_URL/mcp/v1/schema
+```
+
+## Custom Domain
+
+1. Railway Dashboard → Settings → Domains
+2. Click **"Generate Domain"** or add your own
+3. Update `website/index.html` API_BASE_URL to your domain
+
+## Monitoring
+
+- Railway has built-in logs and metrics
+- Add [UptimeRobot](https://uptimerobot.com) free tier for external health checks
+- Add `SENTRY_DSN` env var for error tracking (optional)
+
+## Troubleshooting
+
+### Build fails
+Check Railway build logs. Common issues:
+- `DATABASE_URL` missing → add PostgreSQL service first
+- Prisma generate fails → ensure `prisma/schema.prisma` is committed
+
+### 500 on first request
+Migrations haven't run. Execute `npx prisma migrate deploy` via Railway shell.
+
+### Stripe webhook fails locally
+Use Stripe CLI to forward webhooks:
+```bash
+stripe listen --forward-to https://YOUR_RAILWAY_URL/api/v1/billing/webhook
+```
