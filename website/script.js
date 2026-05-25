@@ -1,6 +1,6 @@
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:8080'
-  : 'https://api.agentaudit.io';
+  : 'https://agentaudit-api-production.up.railway.app';
 
 function api(path) {
   return `${API_BASE}${path}`;
