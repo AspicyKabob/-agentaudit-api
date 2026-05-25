@@ -5,8 +5,6 @@
     "buildCommand": "npm ci && npx prisma generate && npm run build"
   },
   "deploy": {
-    "preDeployCommand": "npx prisma migrate deploy",
-    "startCommand": "npm run start",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",
