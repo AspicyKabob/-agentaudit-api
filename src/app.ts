@@ -17,6 +17,8 @@ import { config } from './config';
 export function createApp() {
   const app = express();
 
+  app.set('trust proxy', 1);
+
   // Security middleware
   app.use(helmet());
 
@@ -37,7 +39,7 @@ export function createApp() {
 
   // Health check (outside rate limit so monitoring works)
   app.get('/health', (_req, res) => {
-    res.status(200).json({ status: 'ok', service: 'agentaudit-api', version: '1.0.0' });
+    res.status(200).json({ status: 'ok', service: 'agentaudit-api', version: '1.0.1' });
   });
 
   app.use('/docs', swaggerUiHandler, swaggerUiSetup);
