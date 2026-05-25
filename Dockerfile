@@ -25,10 +25,12 @@ RUN npm ci --only=production
 # Install OpenSSL + curl for Prisma engine and healthcheck
 RUN apk add --no-cache openssl curl
 
-# Copy built artifacts + generated Prisma client + engine binaries
+# Copy built artifacts + generated Prisma client + engine binaries + CLI
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
 COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 8080
