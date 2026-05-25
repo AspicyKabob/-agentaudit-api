@@ -31,7 +31,9 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/.bin ./node_modules/.bin
-COPY --from=builder /app/prisma ./prisma
+
+# Copy prisma files from build context (not cached builder) to ensure migrations exist
+COPY prisma ./prisma
 
 EXPOSE 8080
 
