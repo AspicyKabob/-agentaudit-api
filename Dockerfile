@@ -6,6 +6,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
+# Install OpenSSL so Prisma generates engine matching production stage
+RUN apk add --no-cache openssl
+
 COPY . .
 RUN npx prisma generate
 RUN npm run build
