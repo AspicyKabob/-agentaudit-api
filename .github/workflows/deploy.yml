@@ -18,7 +18,9 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-      - run: npm install -g @railway/cli
-      - run: railway up --service agentaudit-api
+      - name: Deploy to Railway
+        uses: railway/action@v1
+        with:
+          service: agentaudit-api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
