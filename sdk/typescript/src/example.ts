@@ -5,23 +5,22 @@ const audit = new AgentAudit({
 });
 
 async function main() {
-  // Log an action
-  await audit.log({
+  const userInput = 'Tell me about John Doe, SSN 123-45-6789';
+  const agentOutput = 'John Doe is a person with SSN 123-45-6789...';
+
+  const result = await audit.guardrail({
     action: 'prompt_submitted',
-    prompt: 'What is the weather?',
-    response: 'It is sunny.',
-    metadata: { model: 'gpt-4', tokens: 150 },
+    prompt: userInput,
+    response: agentOutput,
   });
 
-  // Register an agent
-  const agent = await audit.registerAgent({
-    name: 'Support Bot',
-    type: 'langchain',
-  });
+  if (!result.allowed) {
+    console.error('BLOCKED:', result.violations);
+    process.exit(1);
+  }
 
-  // Query logs
-  const logs = await audit.queryLogs({ limit: 10 });
-  console.log(logs.data);
+  console.log('ALLOWED:', result.action);
+  console.log('Audit log:', result.auditLogId);
 }
 
 main();

@@ -21,18 +21,19 @@ class AuditLog:
     created_at: str
 
 
+@dataclass
+class GuardrailResult:
+    """Result of a compliance guardrail check."""
+    allowed: bool
+    action: str
+    violations: List[str]
+    severity: str
+    audit_log_id: Optional[str] = None
+
+
 class AgentAudit:
     """
     AgentAudit client for submitting audit logs and managing agents.
-    
-    Example:
-        audit = AgentAudit(api_key="aa_your_key_here")
-        audit.log(
-            action="prompt_submitted",
-            prompt="What is the weather?",
-            response="It is sunny.",
-            metadata={"model": "gpt-4", "tokens": 150}
-        )
     """
     
     def __init__(
@@ -49,6 +50,57 @@ class AgentAudit:
             "X-API-Key": api_key,
             "Content-Type": "application/json"
         })
+    
+    def guardrail(
+        self,
+        action: str,
+        prompt: Optional[str] = None,
+        response: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        agent_id: Optional[str] = None
+    ) -> GuardrailResult:
+        """
+        Real-time compliance check. Intercepts agent output before delivery.
+        
+        Usage:
+            result = audit.guardrail(
+                action="prompt_submitted",
+                prompt=user_input,
+                response=agent_output
+            )
+            if not result.allowed:
+                raise ValueError(f"Blocked: {result.violations}")
+        """
+        payload = {
+            "action": action,
+            "agentId": agent_id or self.agent_id,
+            "checkType": "realtime"
+        }
+        if prompt:
+            payload["prompt"] = prompt
+        if response:
+            payload["response"] = response
+        if metadata:
+            payload["metadata"] = metadata
+        
+        resp = self.session.post(
+            f"{self.base_url}/audit-logs",
+            json=payload
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        
+        flags = data.get("complianceFlags", [])
+        severity = "critical" if any("PII" in f or "block" in f.lower() for f in flags) else "warning"
+        action_result = "block" if severity == "critical" and flags else ("flag" if flags else "allow")
+        
+        return GuardrailResult(
+            allowed=action_result != "block",
+            action=action_result,
+            violations=flags,
+            severity=severity,
+            audit_log_id=data.get("id")
+        )
     
     def log(
         self,

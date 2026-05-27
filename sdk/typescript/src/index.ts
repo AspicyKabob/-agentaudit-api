@@ -42,6 +42,14 @@ export interface Alert {
   resolvedAt?: string;
 }
 
+export interface GuardrailResult {
+  allowed: boolean;
+  action: 'allow' | 'block' | 'flag';
+  violations: string[];
+  severity: 'warning' | 'critical';
+  auditLogId?: string;
+}
+
 export interface AgentAuditConfig {
   apiKey: string;
   baseUrl?: string;
@@ -153,6 +161,44 @@ export class AgentAudit {
   async resolveAlert(alertId: string): Promise<Alert> {
     const { data } = await this.client.patch<Alert>(`/alerts/${alertId}/resolve`);
     return data;
+  }
+
+  async guardrail(options: {
+    action: string;
+    prompt?: string;
+    response?: string;
+    metadata?: Record<string, any>;
+    agentId?: string;
+  }): Promise<GuardrailResult> {
+    const payload: Record<string, any> = {
+      action: options.action,
+      checkType: 'realtime',
+    };
+
+    const agentId = options.agentId || this.agentId;
+    if (agentId) payload.agentId = agentId;
+    if (options.prompt) payload.prompt = options.prompt;
+    if (options.response) payload.response = options.response;
+    if (options.metadata) payload.metadata = options.metadata;
+
+    const { data } = await this.client.post<AuditLog>('/audit-logs', payload);
+    const flags = data.complianceFlags || [];
+    const severity = flags.some((f: string) => f.includes('PII') || f.toLowerCase().includes('block'))
+      ? 'critical'
+      : 'warning';
+    const actionResult: GuardrailResult['action'] = severity === 'critical' && flags.length > 0
+      ? 'block'
+      : flags.length > 0
+        ? 'flag'
+        : 'allow';
+
+    return {
+      allowed: actionResult !== 'block',
+      action: actionResult,
+      violations: flags,
+      severity,
+      auditLogId: data.id,
+    };
   }
 }
 
