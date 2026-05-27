@@ -12,6 +12,8 @@ jobs:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure' }}
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,8 +21,7 @@ jobs:
           node-version: 20
           cache: 'npm'
       - name: Deploy to Railway
-        uses: railway/action@v1
-        with:
-          service: agentaudit-api
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          npm install -g @railway/cli@3.20.0
+          railway login --token "$RAILWAY_TOKEN"
+          railway up --service agentaudit-api --yes
