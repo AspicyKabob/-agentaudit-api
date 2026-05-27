@@ -39,7 +39,7 @@ export function createApp() {
 
   // Health check (outside rate limit so monitoring works)
   app.get('/health', (_req, res) => {
-    res.status(200).json({ status: 'ok', service: 'agentaudit-api', version: '1.0.1' });
+    res.status(200).json({ status: 'ok', service: 'agentaudit-api', version: '1.1.0-trace' });
   });
 
   app.use('/docs', swaggerUiHandler, swaggerUiSetup);
