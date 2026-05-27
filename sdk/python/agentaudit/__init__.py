@@ -39,7 +39,7 @@ class AgentAudit:
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://api.agentaudit.io/api/v1",
+        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
         agent_id: Optional[str] = None
     ):
         self.api_key = api_key

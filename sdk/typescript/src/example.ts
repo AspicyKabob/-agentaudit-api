@@ -1,26 +1,26 @@
 import { AgentAudit } from '@agentaudit/sdk';
 
 const audit = new AgentAudit({
-  apiKey: 'aa_your_key_here',
+  apiKey: 'aa_62123721bb54e38475c748f69efe35d58431a1b0c93ceb9b59df552937e2c606',
 });
 
 async function main() {
-  const userInput = 'Tell me about John Doe, SSN 123-45-6789';
-  const agentOutput = 'John Doe is a person with SSN 123-45-6789...';
-
   const result = await audit.guardrail({
     action: 'prompt_submitted',
-    prompt: userInput,
-    response: agentOutput,
+    prompt: 'Tell me about John Doe, SSN 123-45-6789',
+    response: 'John Doe is a person',
   });
+
+  console.log('Allowed:', result.allowed);
+  console.log('Action:', result.action);
+  console.log('Violations:', result.violations);
 
   if (!result.allowed) {
     console.error('BLOCKED:', result.violations);
     process.exit(1);
   }
 
-  console.log('ALLOWED:', result.action);
-  console.log('Audit log:', result.auditLogId);
+  console.log('ALLOWED:', result.auditLogId);
 }
 
 main();
