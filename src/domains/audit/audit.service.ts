@@ -2,10 +2,13 @@ import { prisma } from '../../db/prisma';
 import { Prisma } from '@prisma/client';
 import { SubmitAuditBody, QueryAuditQuery } from './audit.types';
 import { logger } from '../../utils/logger';
+import { evaluateSentiment } from './sentiment-evaluator';
+import { evaluateCustomValidator } from './custom-validator';
 
 interface QueryOptions {
   action?: string;
   agentId?: string;
+  traceId?: string;
   startDate?: Date;
   endDate?: Date;
   page: number;
@@ -26,6 +29,8 @@ export const auditService = {
         response: data.response,
         metadata: data.metadata ?? Prisma.JsonNull,
         complianceFlags: flags,
+        traceId: data.traceId ?? null,
+        parentSpanId: data.parentSpanId ?? null,
       },
     });
 
@@ -53,12 +58,13 @@ export const auditService = {
   },
 
   async query(organizationId: string, options: QueryOptions) {
-    const { action, agentId, startDate, endDate, page, limit } = options;
+    const { action, agentId, traceId, startDate, endDate, page, limit } = options;
     const skip = (page - 1) * limit;
 
     const where: any = { organizationId };
     if (action) where.action = action;
     if (agentId) where.agentId = agentId;
+    if (traceId) where.traceId = traceId;
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = startDate;
@@ -102,7 +108,7 @@ export const auditService = {
     });
 
     if (format === 'csv') {
-      const headers = ['id', 'action', 'agentId', 'agentName', 'prompt', 'response', 'complianceFlags', 'metadata', 'createdAt'];
+      const headers = ['id', 'action', 'agentId', 'agentName', 'prompt', 'response', 'complianceFlags', 'metadata', 'traceId', 'parentSpanId', 'createdAt'];
       const rows = logs.map((log) => [
         log.id,
         log.action,
@@ -112,12 +118,64 @@ export const auditService = {
         (log.response || '').replace(/\n/g, ' '),
         log.complianceFlags.join(';'),
         log.metadata ? JSON.stringify(log.metadata).replace(/\n/g, ' ') : '',
+        log.traceId || '',
+        log.parentSpanId || '',
         log.createdAt.toISOString(),
       ]);
       return [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
     }
 
     return JSON.stringify(logs, null, 2);
+  },
+
+  async getTrace(organizationId: string, traceId: string, page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [logs, total] = await Promise.all([
+      prisma.auditLog.findMany({
+        where: { organizationId, traceId },
+        orderBy: { createdAt: 'asc' },
+        skip,
+        take: limit,
+        include: { agent: { select: { name: true, type: true } } },
+      }),
+      prisma.auditLog.count({ where: { organizationId, traceId } }),
+    ]);
+
+    return {
+      data: logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  },
+
+  async getChain(organizationId: string, id: string) {
+    const root = await prisma.auditLog.findFirst({
+      where: { id, organizationId },
+      include: { agent: { select: { name: true, type: true } } },
+    });
+    if (!root) return null;
+
+    const descendants: typeof root[] = [];
+    const queue = [root.id];
+
+    while (queue.length > 0) {
+      const parentId = queue.shift()!;
+      const children = await prisma.auditLog.findMany({
+        where: { organizationId, parentSpanId: parentId },
+        orderBy: { createdAt: 'asc' },
+        include: { agent: { select: { name: true, type: true } } },
+      });
+      for (const child of children) {
+        descendants.push(child);
+        queue.push(child.id);
+      }
+    }
+
+    return { root, descendants };
   },
 };
 
@@ -144,6 +202,18 @@ async function evaluateComplianceRules(
         break;
       case 'rate_limit':
         triggered = await checkRateLimit(organizationId, condition.maxRequests, condition.windowMinutes);
+        break;
+      case 'regex_match':
+        triggered = checkRegex(data.prompt || '', condition.pattern) ||
+                   checkRegex(data.response || '', condition.pattern);
+        break;
+      case 'sentiment_analysis':
+        triggered = evaluateSentiment(data.prompt || '', condition) ||
+                   evaluateSentiment(data.response || '', condition);
+        break;
+      case 'custom_validator':
+        triggered = evaluateCustomValidator(data.prompt || '', data.prompt, data.response, condition) ||
+                   evaluateCustomValidator(data.response || '', data.prompt, data.response, condition);
         break;
     }
 
@@ -183,4 +253,14 @@ async function checkRateLimit(
     },
   });
   return count > maxRequests;
+}
+
+function checkRegex(text: string, pattern: string): boolean {
+  if (!text || !pattern || pattern.length > 500) return false;
+  try {
+    const regex = new RegExp(pattern);
+    return regex.test(text);
+  } catch {
+    return false;
+  }
 }

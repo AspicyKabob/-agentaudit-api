@@ -181,4 +181,48 @@ describe('CrewAI Integration', () => {
     expect(queryRes.body.data).toHaveLength(5);
     expect(queryRes.body.data[0].action).toBe('crewai_crew_end'); // Most recent first
   });
+
+  it('should detect PII in crew outputs and flag compliance violations', async () => {
+    // Create a PII detection rule
+    const ruleRes = await request(app)
+      .post('/api/v1/compliance-rules')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({
+        name: 'SSN Detector',
+        ruleType: 'pii_detect',
+        condition: {},
+        severity: 'critical',
+      });
+
+    expect(ruleRes.status).toBe(201);
+
+    // Submit a crew task output that contains an SSN
+    const res = await request(app)
+      .post('/api/v1/audit-logs')
+      .set('X-API-Key', apiKey)
+      .send({
+        action: 'crewai_task_end',
+        prompt: 'Summarize user profile',
+        response: 'User profile: John Doe, SSN 123-45-6789, lives in NY.',
+        metadata: {
+          crew: 'Research Crew',
+          task_id: 'task_pii_001',
+          event: 'task_end',
+        },
+      });
+
+    expect(res.status).toBe(201);
+    expect(res.body.complianceFlags).toBeInstanceOf(Array);
+    expect(res.body.complianceFlags.length).toBeGreaterThan(0);
+    expect(res.body.complianceFlags.some((f: string) => f.includes('pii_detect'))).toBe(true);
+
+    // Verify an alert was created for the violation
+    const alertsRes = await request(app)
+      .get('/api/v1/alerts')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(alertsRes.status).toBe(200);
+    expect(alertsRes.body.length).toBeGreaterThan(0);
+    expect(alertsRes.body[0].severity).toBe('critical');
+  });
 });

@@ -60,6 +60,7 @@ jest.mock('../../src/db/prisma', () => ({
     alert: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
+      create: jest.fn(),
       update: jest.fn(),
     },
   },
@@ -362,6 +363,124 @@ describe('AgentAudit API Full Integration', () => {
       expect(res.body.action).toBe('prompt_submitted');
     });
 
+    it('POST /api/v1/audit-logs evaluates regex_match rules → 201 with flags', async () => {
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Corp',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+        },
+      });
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([
+        { id: 'rule-regex-1', name: 'SSN Detection', ruleType: 'regex_match', condition: { pattern: '\\b\\d{3}-\\d{2}-\\d{4}\\b' }, severity: 'critical', isActive: true },
+      ]);
+      mockedPrisma.auditLog.create.mockImplementation((args: any) =>
+        Promise.resolve({
+          id: 'log-regex-1',
+          ...args.data,
+          createdAt: new Date().toISOString(),
+        })
+      );
+      mockedPrisma.organization.update.mockResolvedValue({ id: 'org-1' });
+
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', 'aa_test_api_key_12345')
+        .send({
+          action: 'prompt_submitted',
+          prompt: 'My SSN is 123-45-6789',
+          response: 'Okay',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.complianceFlags).toContain('CRITICAL_regex_match_SSN Detection');
+    });
+
+    it('POST /api/v1/audit-logs evaluates sentiment_analysis rules → 201 with flags', async () => {
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Corp',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+        },
+      });
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([
+        { id: 'rule-sentiment-1', name: 'Toxicity Guard', ruleType: 'sentiment_analysis', condition: { threshold: -0.3, minTokens: 3 }, severity: 'critical', isActive: true },
+      ]);
+      mockedPrisma.auditLog.create.mockImplementation((args: any) =>
+        Promise.resolve({
+          id: 'log-sentiment-1',
+          ...args.data,
+          createdAt: new Date().toISOString(),
+        })
+      );
+      mockedPrisma.organization.update.mockResolvedValue({ id: 'org-1' });
+
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', 'aa_test_api_key_12345')
+        .send({
+          action: 'prompt_submitted',
+          prompt: 'You are worthless and pathetic, nobody cares about you',
+          response: 'I understand your frustration',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.complianceFlags).toContain('CRITICAL_sentiment_analysis_Toxicity Guard');
+    });
+
+    it('POST /api/v1/audit-logs evaluates custom_validator rules → 201 with flags', async () => {
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Corp',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+        },
+      });
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([
+        { id: 'rule-custom-1', name: 'Length Guard', ruleType: 'custom_validator', condition: { code: 'return text.length > 200;' }, severity: 'warning', isActive: true },
+      ]);
+      mockedPrisma.auditLog.create.mockImplementation((args: any) =>
+        Promise.resolve({
+          id: 'log-custom-1',
+          ...args.data,
+          createdAt: new Date().toISOString(),
+        })
+      );
+      mockedPrisma.organization.update.mockResolvedValue({ id: 'org-1' });
+
+      const longText = 'A'.repeat(250);
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', 'aa_test_api_key_12345')
+        .send({
+          action: 'prompt_submitted',
+          prompt: longText,
+          response: 'Okay',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.complianceFlags).toContain('WARNING_custom_validator_Length Guard');
+    });
+
     it('POST /api/v1/audit-logs without API key → 401', async () => {
       const res = await request(app)
         .post('/api/v1/audit-logs')
@@ -384,6 +503,50 @@ describe('AgentAudit API Full Integration', () => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
       expect(res.body).toHaveProperty('pagination');
+    });
+
+    it('GET /api/v1/audit-logs/trace/:traceId → 200', async () => {
+      const token = getAuthToken();
+      const traceId = 'trace-abc-123';
+      mockedPrisma.auditLog.findMany.mockResolvedValue([
+        { id: 'log-1', action: 'crewai_crew_start', traceId, parentSpanId: null, createdAt: new Date().toISOString() },
+        { id: 'log-2', action: 'crewai_task_start', traceId, parentSpanId: 'log-1', createdAt: new Date().toISOString() },
+      ]);
+      mockedPrisma.auditLog.count.mockResolvedValue(2);
+
+      const res = await request(app)
+        .get(`/api/v1/audit-logs/trace/${traceId}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(2);
+      expect(res.body.data[0].traceId).toBe(traceId);
+    });
+
+    it('GET /api/v1/audit-logs/:id/chain → 200', async () => {
+      const token = getAuthToken();
+      const rootId = 'log-root-1';
+      mockedPrisma.auditLog.findFirst.mockResolvedValue({
+        id: rootId,
+        action: 'crewai_crew_start',
+        traceId: 'trace-abc-123',
+        parentSpanId: null,
+        createdAt: new Date().toISOString(),
+      });
+      mockedPrisma.auditLog.findMany
+        .mockResolvedValueOnce([
+          { id: 'log-child-1', action: 'crewai_task_start', traceId: 'trace-abc-123', parentSpanId: rootId, createdAt: new Date().toISOString() },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const res = await request(app)
+        .get(`/api/v1/audit-logs/${rootId}/chain`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.root.id).toBe(rootId);
+      expect(res.body.descendants).toHaveLength(1);
+      expect(res.body.descendants[0].parentSpanId).toBe(rootId);
     });
   });
 

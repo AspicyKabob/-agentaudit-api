@@ -57,7 +57,9 @@ class AgentAudit:
         prompt: Optional[str] = None,
         response: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        agent_id: Optional[str] = None
+        agent_id: Optional[str] = None,
+        trace_id: Optional[str] = None,
+        parent_span_id: Optional[str] = None
     ) -> GuardrailResult:
         """
         Real-time compliance check. Intercepts agent output before delivery.
@@ -82,6 +84,10 @@ class AgentAudit:
             payload["response"] = response
         if metadata:
             payload["metadata"] = metadata
+        if trace_id:
+            payload["traceId"] = trace_id
+        if parent_span_id:
+            payload["parentSpanId"] = parent_span_id
         
         resp = self.session.post(
             f"{self.base_url}/audit-logs",
@@ -108,7 +114,9 @@ class AgentAudit:
         prompt: Optional[str] = None,
         response: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        agent_id: Optional[str] = None
+        agent_id: Optional[str] = None,
+        trace_id: Optional[str] = None,
+        parent_span_id: Optional[str] = None
     ) -> AuditLog:
         """
         Submit an audit log entry.
@@ -119,6 +127,8 @@ class AgentAudit:
             response: The output response (optional)
             metadata: Additional structured data (optional)
             agent_id: Override the default agent ID (optional)
+            trace_id: Trace ID for agent-to-agent audit trails (optional)
+            parent_span_id: Parent span ID for chain tracking (optional)
             
         Returns:
             AuditLog: The created audit log entry
@@ -134,6 +144,10 @@ class AgentAudit:
             payload["response"] = response
         if metadata is not None:
             payload["metadata"] = metadata
+        if trace_id is not None:
+            payload["traceId"] = trace_id
+        if parent_span_id is not None:
+            payload["parentSpanId"] = parent_span_id
         
         resp = self.session.post(
             f"{self.base_url}/audit-logs",

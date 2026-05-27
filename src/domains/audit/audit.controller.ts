@@ -50,6 +50,37 @@ export const auditController = {
     res.status(200).json(log);
   }),
 
+  getTrace: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { traceId } = req.params;
+    const { page, limit } = req.query as {
+      page?: string;
+      limit?: string;
+    };
+
+    const result = await auditService.getTrace(
+      organizationId,
+      traceId,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20
+    );
+
+    res.status(200).json(result);
+  }),
+
+  getChain: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { id } = req.params;
+    const chain = await auditService.getChain(organizationId, id);
+
+    if (!chain) {
+      res.status(404).json({ error: 'Audit log not found' });
+      return;
+    }
+
+    res.status(200).json(chain);
+  }),
+
   exportLogs: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
     const { format } = req.query as { format?: string };

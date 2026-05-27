@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AgentAudit — The Audit Layer AI Agents Need</title>
-  <meta name="description" content="Drop-in audit logging for AI agents. Real-time compliance monitoring. One-click reports.">
+  <title>AgentAudit — Stop AI Compliance Violations Before They Happen</title>
+  <meta name="description" content="Real-time guardrails for AI agents. Block PII, policy violations, and risky outputs before they reach users. Drop-in SDK for LangChain, CrewAI, and custom agents.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
@@ -19,7 +19,11 @@
           <div class="logo-icon">
             <svg viewBox="0 0 32 32" fill="none">
               <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <g stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 26 L16 5 L23 26"/>
+                <path d="M11 17 L21 17" stroke-width="2.8"/>
+                <path d="M16 14 L16 20" stroke-width="2.8"/>
+              </g>
               <defs>
                 <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
                   <stop stop-color="#6366f1"/>
@@ -28,13 +32,13 @@
               </defs>
             </svg>
           </div>
-          <span class="logo-text">AgentAudit</span>
-        </a>
-        <div class="nav-links">
-          <a href="#features" class="nav-link">Features</a>
-          <a href="#pricing" class="nav-link">Pricing</a>
-          <a href="#docs" class="nav-link">Docs</a>
-          <a href="https://github.com/agentaudit" target="_blank" class="nav-link nav-icon">
+            <span class="logo-text">AgentAudit</span>
+          </a>
+          <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#demo" class="nav-link">Demo</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="https://github.com/agentaudit" target="_blank" class="nav-link nav-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           </a>
         </div>
@@ -52,15 +56,15 @@
       <div class="hero-content">
         <div class="hero-badge animate-in">
           <span class="badge-pulse"></span>
-          <span class="badge-text">MCP Compatible — Built for the Agent Economy</span>
+          <span class="badge-text">Real-Time Guardrails — Intercept Before Delivery</span>
         </div>
         <h1 class="hero-title animate-in" data-delay="100">
-          The Audit Layer<br>
-          <span class="gradient-text">AI Agents Desperately Need</span>
+          Stop AI Compliance<br>
+          <span class="gradient-text">Violations Before They Happen</span>
         </h1>
         <p class="hero-subtitle animate-in" data-delay="200">
-          Drop-in audit logging for LangChain, CrewAI, and custom agents.
-          Real-time compliance monitoring. SOC 2-ready reports in one click.
+          Block PII, forbidden keywords, and policy violations in real-time.
+          Drop-in SDK for LangChain, CrewAI, and custom agents. One line to guard every output.
         </p>
         <div class="hero-cta animate-in" data-delay="300">
           <a href="#signup" class="btn btn-primary btn-lg">
@@ -75,7 +79,7 @@
         <div class="hero-stats animate-in" data-delay="400">
           <div class="stat">
             <div class="stat-value"><span class="counter" data-target="50">0</span>ms</div>
-            <div class="stat-label">Audit Latency</div>
+            <div class="stat-label">Guardrail Latency</div>
           </div>
           <div class="stat-divider"></div>
           <div class="stat">
@@ -97,7 +101,7 @@
           </div>
           <div class="terminal-title">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-            agent-audit-demo
+            guardrail-demo
           </div>
         </div>
         <div class="terminal-body">
@@ -117,16 +121,31 @@
             audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span>)
           </div>
           <div class="terminal-line code">
-            audit.log(action=<span class="code-str">"prompt"</span>, prompt=<span class="code-str">"Hello!"</span>, response=<span class="code-str">"Hi!"</span>)
+            <span class="code-kw">result</span> = audit.guardrail(
+          </div>
+          <div class="terminal-line code">
+            &nbsp;&nbsp;&nbsp;&nbsp;action=<span class="code-str">"prompt_submitted"</span>,
+          </div>
+          <div class="terminal-line code">
+            &nbsp;&nbsp;&nbsp;&nbsp;prompt=<span class="code-str">"User: My SSN is 123-45-6789"</span>,
+          </div>
+          <div class="terminal-line code">
+            &nbsp;&nbsp;&nbsp;&nbsp;response=<span class="code-str">"Here is your account info..."</span>
+          </div>
+          <div class="terminal-line code">
+            )
           </div>
           <div class="terminal-line">
             <span class="prompt">$</span> <span class="command">"</span>
           </div>
           <div class="terminal-line output">
-            <span class="success">✓</span> Log submitted. ID: <span class="id">550e8400-e29b-41d4-a716-446655440000</span>
+            <span class="error">✗ BLOCKED</span> PII detected in response
           </div>
           <div class="terminal-line output">
-            <span class="success">✓</span> Compliance scan: <span class="pass">CLEAN</span> (0 flags)
+            <span class="error">✗</span> Violations: [<span class="code-str">'CRITICAL_pii_detect_SSN'</span>]
+          </div>
+          <div class="terminal-line output">
+            <span class="success">→</span> Output was intercepted. Alert sent. Agent halted.
           </div>
           <div class="terminal-line">
             <span class="cursor"></span>
@@ -136,52 +155,39 @@
     </div>
   </section>
 
-  <!-- Auth Modal -->
-  <div class="modal-overlay" id="auth-modal">
-    <div class="modal">
-      <button class="modal-close" id="modal-close">&times;</button>
-      <div class="modal-tabs">
-        <button class="modal-tab active" data-tab="signup">Sign Up</button>
-        <button class="modal-tab" data-tab="login">Log In</button>
+  <section class="guardrail-demo" id="demo">
+    <div class="container">
+      <div class="demo-header">
+        <span class="section-badge">Live Demo</span>
+        <h2>Try the guardrail — <span class="gradient-text">no signup required</span></h2>
+        <p>Paste agent output below. Our client-side simulator runs the same PII and keyword checks as the real API.</p>
       </div>
-
-      <!-- Signup Form -->
-      <form class="auth-form" id="signup-form">
-        <div class="form-group">
-          <label>Organization Name</label>
-          <input type="text" id="signup-name" placeholder="Acme Corp" required minlength="1">
+      <div class="demo-grid">
+        <div class="demo-input">
+          <label for="demo-text">Agent Output / Response</label>
+          <textarea id="demo-text" rows="6" placeholder="Paste text to check... Try: 'User SSN is 123-45-6789' or 'The password is secret123' or 'Regex match: ABC-12345' or 'You are worthless' or paste 200+ chars for custom length rule"></textarea>
+          <div class="demo-actions">
+            <button class="btn btn-primary" id="demo-check">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Run Guardrail Check
+            </button>
+            <button class="btn btn-glass btn-sm" id="demo-clear">Clear</button>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="signup-email" placeholder="you@company.com" required>
+        <div class="demo-output" id="demo-output">
+          <div class="demo-output-placeholder">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <p>Results will appear here</p>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="signup-password" placeholder="Min 8 characters" required minlength="8">
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">
-          <span id="signup-btn-text">Create Account</span>
-        </button>
-        <p class="form-error" id="signup-error"></p>
-      </form>
-
-      <!-- Login Form -->
-      <form class="auth-form hidden" id="login-form">
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="login-email" placeholder="you@company.com" required>
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" id="login-password" placeholder="Your password" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">
-          <span id="login-btn-text">Log In</span>
-        </button>
-        <p class="form-error" id="login-error"></p>
-      </form>
+      </div>
+      <div class="demo-legend">
+        <span><span class="demo-dot allowed"></span> Clean — no violations</span>
+        <span><span class="demo-dot flagged"></span> Flagged — warning, review required</span>
+        <span><span class="demo-dot blocked"></span> Blocked — critical violation, output halted</span>
+      </div>
     </div>
-  </div>
+  </section>
 
   <section class="trust">
     <div class="container">
@@ -225,8 +231,8 @@
               <path d="M12 6v6l4 2"/>
             </svg>
           </div>
-          <h3>Real-Time Compliance</h3>
-          <p>PII detection, keyword matching, rate limiting — evaluated on every request. Violations trigger instant alerts.</p>
+          <h3>Real-Time Guardrails</h3>
+          <p>Intercept agent outputs before they reach users. Block PII, forbidden keywords, and policy violations in milliseconds. Not just log them after the fact.</p>
           <a href="#docs" class="feature-link">Learn more →</a>
         </div>
         <div class="feature-card">
@@ -237,8 +243,8 @@
               <path d="M13.73 21a2 2 0 01-3.46 0"/>
             </svg>
           </div>
-          <h3>Instant Alerts</h3>
-          <p>Slack, email, or webhook notifications when agents violate compliance rules. No surprises at audit time.</p>
+          <h3>Instant Blocking + Alerts</h3>
+          <p>When a violation is detected, the output is stopped in its tracks. Slack, email, or webhook notifications sent instantly — no surprises at audit time.</p>
           <a href="#docs" class="feature-link">Learn more →</a>
         </div>
         <div class="feature-card">
@@ -287,8 +293,8 @@
       <div class="code-grid">
         <div class="code-text">
           <span class="section-badge">5-Minute Setup</span>
-          <h2>Drop-in integration for <br><span class="gradient-text">any agent framework</span></h2>
-          <p>One line of code. Zero configuration. Automatic logging for every agent action.</p>
+          <h2>Drop-in integration for <br><span class="gradient-text">real-time guardrails</span></h2>
+          <p>One line of code. Automatic interception. Block violations before they reach users.</p>
           <div class="code-tabs">
             <button class="code-tab active" data-tab="python">Python</button>
             <button class="code-tab" data-tab="typescript">TypeScript</button>
@@ -308,16 +314,17 @@
 <span class="code-comment"># Initialize with your API key</span>
 audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span>)
 
-<span class="code-comment"># Log any agent action</span>
-audit.log(
+<span class="code-comment"># Guardrail: intercept and block violations before delivery</span>
+<span class="code-kw">result</span> = audit.guardrail(
     action=<span class="code-str">"prompt_submitted"</span>,
-    prompt=<span class="code-str">"Analyze Q3 data"</span>,
-    response=<span class="code-str">"Q3 revenue up 23%"</span>,
-    metadata={<span class="code-str">"model"</span>: <span class="code-str">"gpt-4"</span>, <span class="code-str">"tokens"</span>: <span class="code-num">150</span>}
+    prompt=<span class="code-str">"User: My SSN is 123-45-6789"</span>,
+    response=<span class="code-str">"Here is your account info..."</span>
 )
 
-<span class="code-comment"># Done. Compliance scan ran automatically.</span>
-<span class="code-comment"># Alert fired if PII was detected.</span></code>
+<span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
+    <span class="code-kw">raise</span> <span class="code-str">ValueError</span>(<span class="code-str">"Output blocked: "</span> + result.violations)
+
+<span class="code-comment"># Violations blocked. Clean output delivered to user.</span></code>
 
 <code class="tab-content" data-tab="typescript"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'@agentaudit/sdk'</span>;
 
@@ -326,28 +333,31 @@ audit.log(
     apiKey: <span class="code-str">'aa_live_...'</span>
 });
 
-<span class="code-comment">// Log any agent action</span>
-<span class="code-kw">await</span> audit.log({
+<span class="code-comment">// Guardrail: intercept and block violations before delivery</span>
+<span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
     action: <span class="code-str">'prompt_submitted'</span>,
-    prompt: <span class="code-str">'Analyze Q3 data'</span>,
-    response: <span class="code-str">'Q3 revenue up 23%'</span>,
-    metadata: { model: <span class="code-str">'gpt-4'</span>, tokens: <span class="code-num">150</span> }
+    prompt: <span class="code-str">'User: My SSN is 123-45-6789'</span>,
+    response: <span class="code-str">'Here is your account info...'</span>
 });
 
-<span class="code-comment">// Done. Compliance scan ran automatically.</span>
-<span class="code-comment">// Alert fired if PII was detected.</span></code>
+<span class="code-kw">if</span> (!result.allowed) {
+    <span class="code-kw">throw</span> <span class="code-kw">new</span> <span class="code-str">Error</span>(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
+}
+
+<span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code>
 
 <code class="tab-content" data-tab="curl"><span class="code-kw">curl</span> -X POST https://api.agentaudit.io/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d '{
     <span class="code-str">"action"</span>: <span class="code-str">"prompt_submitted"</span>,
-    <span class="code-str">"prompt"</span>: <span class="code-str">"Analyze Q3 data"</span>,
-    <span class="code-str">"response"</span>: <span class="code-str">"Q3 revenue up 23%"</span>,
-    <span class="code-str">"metadata"</span>: {<span class="code-str">"model"</span>: <span class="code-str">"gpt-4"</span>, <span class="code-str">"tokens"</span>: <span class="code-num">150</span>}
+    <span class="code-str">"prompt"</span>: <span class="code-str">"User: My SSN is 123-45-6789"</span>,
+    <span class="code-str">"response"</span>: <span class="code-str">"Here is your account info..."</span>,
+    <span class="code-str">"checkType"</span>: <span class="code-str">"realtime"</span>
   }'
 
-<span class="code-comment"># Response: {"id": "550e8400...", "complianceFlags": []}</span></code></pre>
+<span class="code-comment"># Response: {"id": "...", "complianceFlags": ["CRITICAL_pii_detect_SSN"]}</span>
+<span class="code-comment"># Your code checks complianceFlags and blocks before delivery.</span></code></pre>
           </div>
         </div>
       </div>
@@ -366,7 +376,7 @@ audit.log(
           <div class="pricing-header">
             <h3>Free</h3>
             <div class="pricing-price">$0<span>/mo</span></div>
-            <p>For solo developers exploring agent auditing</p>
+            <p>For solo developers exploring agent guardrails</p>
           </div>
           <ul class="pricing-features">
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>1,000 audit logs/month</li>
@@ -408,7 +418,7 @@ audit.log(
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>SSO & SCIM</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Dedicated support</li>
           </ul>
-          <button class="btn btn-secondary btn-full" data-plan="business" data-price="STRIPE_PRICE_BUSINESS">Contact Sales</button>
+          <button class="btn btn-secondary btn-full" data-plan="business" data-price="STRIPE_PRICE_BUSINESS">Get Started</button>
         </div>
         <div class="pricing-card">
           <div class="pricing-header">
@@ -433,8 +443,8 @@ audit.log(
     <div class="cta-glow"></div>
     <div class="container">
       <div class="cta-content">
-        <h2>Stop flying blind <br><span class="gradient-text">with your AI agents</span></h2>
-        <p>Join 500+ teams who audit every agent decision. Free forever for side projects.</p>
+        <h2>Block violations before they reach users</span></h2>
+        <p>Start guarding every agent output in under 60 seconds. Free for side projects.</p>
         <div class="hero-cta">
           <button class="btn btn-primary btn-lg" id="cta-signup">
             <span>Create Free Account</span>
@@ -451,18 +461,22 @@ audit.log(
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="logo">
-            <div class="logo-icon">
-              <svg viewBox="0 0 32 32" fill="none">
-                <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                <defs>
-                  <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
-                    <stop stop-color="#6366f1"/>
-                    <stop offset="1" stop-color="#a855f7"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
+          <div class="logo-icon">
+            <svg viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
+              <g stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 26 L16 5 L23 26"/>
+                <path d="M11 17 L21 17" stroke-width="2.8"/>
+                <path d="M16 14 L16 20" stroke-width="2.8"/>
+              </g>
+              <defs>
+                <linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32">
+                  <stop stop-color="#6366f1"/>
+                  <stop offset="1" stop-color="#a855f7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
             <span class="logo-text">AgentAudit</span>
           </div>
           <p>The audit layer AI agents desperately need. Built for the $47B agent economy.</p>
@@ -477,6 +491,7 @@ audit.log(
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
           <a href="#docs">Documentation</a>
+          <a href="docs/self-hosting.md">Self-Host</a>
           <a href="#">Changelog</a>
           <a href="#">Roadmap</a>
         </div>

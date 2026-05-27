@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const createRuleSchema = z.object({
   body: z.object({
     name: z.string().min(1).max(100),
-    ruleType: z.enum(['pii_detect', 'keyword_match', 'rate_limit']),
+    ruleType: z.enum(['pii_detect', 'keyword_match', 'rate_limit', 'regex_match', 'sentiment_analysis', 'custom_validator']),
     condition: z.record(z.any()),
     severity: z.enum(['warning', 'critical']).default('warning'),
   }),

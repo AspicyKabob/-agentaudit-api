@@ -6,12 +6,13 @@ A production-ready REST API for AI agent audit logging and compliance monitoring
 
 - **Agent Management**: Register and manage AI agents (LangChain, CrewAI, AutoGPT, custom)
 - **Audit Logging**: Submit structured audit logs with prompts, responses, and metadata
-- **Compliance Rules**: Configure rules for PII detection, keyword matching, and rate limiting
+- **Compliance Rules**: Configure rules for PII detection, keyword matching, rate limiting, regex matching, sentiment analysis, and custom validators
 - **Compliance Reports**: Generate and download audit reports (JSON, CSV)
 - **Alert System**: Real-time compliance violation alerts
 - **MCP Compatible**: Machine-consumable API schema for AI agents
 - **API Key Authentication**: Service-to-service authentication for agents
 - **JWT Authentication**: Dashboard authentication for organizations
+- **Self-Hostable**: Deploy on your own infrastructure with Docker or bare-metal
 
 ## Tech Stack
 
@@ -99,11 +100,28 @@ curl -X GET "http://localhost:3000/api/v1/audit-logs?page=1&limit=10" \
 
 ### Compliance Rules
 
-The API supports three types of compliance rules:
+The API supports six types of compliance rules:
 
 1. **PII Detection**: Automatically detects social security numbers, emails, credit cards, phone numbers
 2. **Keyword Matching**: Flags prompts/responses containing specific keywords
 3. **Rate Limiting**: Alerts when agent exceeds configured request thresholds
+4. **Regex Matching**: Custom regular expression patterns for any text format
+5. **Sentiment Analysis**: Flags overly negative, toxic, or hostile text in prompts/responses
+6. **Custom Validators**: User-defined JavaScript functions evaluated in a sandboxed environment
+
+### Self-Hosting
+
+Deploy AgentAudit on your own infrastructure:
+
+```bash
+# Quick start with Docker Compose
+cp .env.example .env
+# Edit .env with your secrets
+docker-compose up -d
+docker-compose exec api npx prisma migrate deploy
+```
+
+See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering Docker, bare-metal, reverse proxies, SSL, and configuration options.
 
 ### Running Tests
 

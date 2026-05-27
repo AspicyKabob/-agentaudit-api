@@ -2,8 +2,28 @@
 
 ## Quick Deploy Options
 
-### Option 1: Railway (Recommended for API)
+### Option 1: Self-Host with Docker (Recommended for Control)
 
+Deploy AgentAudit on your own infrastructure in under 5 minutes:
+
+```bash
+cp .env.example .env
+# Generate secrets and fill in .env
+docker-compose up -d
+docker-compose exec api npx prisma migrate deploy
+```
+
+See [docs/self-hosting.md](docs/self-hosting.md) for the complete guide including:
+- Docker Compose setup
+- Bare-metal / VPS deployment
+- Reverse proxy & SSL configuration
+- Updating and troubleshooting
+
+### Option 2: Railway (Managed Platform)
+
+See [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) for detailed Railway-specific instructions.
+
+**Quick steps:**
 1. Push code to GitHub
 2. Go to [railway.app](https://railway.app)
 3. Click "New Project" → "Deploy from GitHub repo"
@@ -14,7 +34,7 @@
 
 **Cost:** Free tier available. Pro ~$5/month.
 
-### Option 2: Render
+### Option 3: Render
 
 1. Push code to GitHub
 2. Go to [render.com](https://render.com)
@@ -23,17 +43,6 @@
 5. Set start command: `npm start`
 6. Add PostgreSQL database
 7. Deploy!
-
-### Option 3: Docker (Anywhere)
-
-```bash
-# Local development
-docker-compose up -d
-
-# Production
-docker build -t agentaudit-api .
-docker run -p 8080:8080 -e DATABASE_URL=... agentaudit-api
-```
 
 ### Option 4: Vercel (Frontend + Serverless API)
 
@@ -56,6 +65,8 @@ docker run -p 8080:8080 -e DATABASE_URL=... agentaudit-api
 | `PORT` | No | Defaults to 8080 |
 | `REDIS_URL` | No | For background jobs |
 
+See `.env.example` for the complete list including optional Stripe billing variables.
+
 ## Domain Setup
 
 1. Buy domain: `agentaudit.io` (or your choice)
@@ -68,7 +79,7 @@ docker run -p 8080:8080 -e DATABASE_URL=... agentaudit-api
 ```bash
 # Using Traefik or Nginx proxy
 # Automatic SSL certificates
-# See docker-compose.prod.yml for full setup
+# See docs/self-hosting.md for full Nginx/Caddy/Traefik examples
 ```
 
 ## Monitoring (Post-Deploy)

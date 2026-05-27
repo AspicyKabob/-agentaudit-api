@@ -55,6 +55,8 @@ CREATE TABLE "AuditLog" (
     "response" TEXT,
     "metadata" JSONB,
     "complianceFlags" TEXT[] DEFAULT ARRAY[]::TEXT[],
+    "traceId" TEXT,
+    "parentSpanId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")

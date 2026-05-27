@@ -81,6 +81,8 @@ export class AgentAudit {
     response?: string;
     metadata?: Record<string, any>;
     agentId?: string;
+    traceId?: string;
+    parentSpanId?: string;
   }): Promise<AuditLog> {
     const payload: Record<string, any> = {
       action: options.action,
@@ -91,6 +93,8 @@ export class AgentAudit {
     if (options.prompt) payload.prompt = options.prompt;
     if (options.response) payload.response = options.response;
     if (options.metadata) payload.metadata = options.metadata;
+    if (options.traceId) payload.traceId = options.traceId;
+    if (options.parentSpanId) payload.parentSpanId = options.parentSpanId;
 
     const { data } = await this.client.post<AuditLog>('/audit-logs', payload);
     return data;

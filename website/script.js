@@ -357,5 +357,135 @@ window.addEventListener('scroll', () => {
   }
 });
 
+const demoText = document.getElementById('demo-text');
+const demoCheck = document.getElementById('demo-check');
+const demoClear = document.getElementById('demo-clear');
+const demoOutput = document.getElementById('demo-output');
+
+const PII_PATTERNS = [
+  { name: 'SSN', pattern: /\b\d{3}-\d{2}-\d{4}\b/, severity: 'critical' },
+  { name: 'Email', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, severity: 'warning' },
+  { name: 'Credit Card', pattern: /\b(?:\d[ -]*?){13,16}\b/, severity: 'critical' },
+  { name: 'Phone', pattern: /\b\d{3}-\d{3}-\d{4}\b/, severity: 'warning' },
+];
+
+const KEYWORD_RULES = [
+  { keywords: ['password', 'secret', 'token', 'api_key', 'apikey'], severity: 'warning' },
+  { keywords: ['ssn', 'social security', 'credit card', 'cvv'], severity: 'critical' },
+];
+
+const REGEX_RULES = [
+  { name: 'Custom SSN', pattern: /\b\d{3}-\d{2}-\d{4}\b/, severity: 'critical' },
+];
+
+const CUSTOM_RULES = [
+  {
+    name: 'Length Check',
+    check: (text) => text.length > 200,
+    severity: 'warning',
+  },
+];
+
+function evaluateGuardrail(text) {
+  const violations = [];
+  for (const pii of PII_PATTERNS) {
+    if (pii.pattern.test(text)) {
+      violations.push({ type: 'PII', detail: pii.name, severity: pii.severity });
+    }
+  }
+  for (const rule of REGEX_RULES) {
+    if (rule.pattern.test(text)) {
+      violations.push({ type: 'Regex', detail: rule.name, severity: rule.severity });
+    }
+  }
+  for (const rule of SENTIMENT_RULES) {
+    if (rule.check(text)) {
+      violations.push({ type: 'Sentiment', detail: rule.name, severity: rule.severity });
+    }
+  }
+  for (const rule of CUSTOM_RULES) {
+    if (rule.check(text)) {
+      violations.push({ type: 'Custom', detail: rule.name, severity: rule.severity });
+    }
+  }
+  const lower = text.toLowerCase();
+  for (const rule of KEYWORD_RULES) {
+    for (const kw of rule.keywords) {
+      if (lower.includes(kw)) {
+        violations.push({ type: 'Keyword', detail: `Forbidden keyword: "${kw}"`, severity: rule.severity });
+        break;
+      }
+    }
+  }
+  return violations;
+}
+
+function renderResult(violations) {
+  if (violations.length === 0) {
+    demoOutput.innerHTML = `
+      <div class="demo-result">
+        <div class="demo-status allowed">
+          <div class="demo-status-icon">✓</div>
+          <div>CLEAN — No violations detected</div>
+        </div>
+        <div class="demo-violations">
+          <div class="demo-violations-title">Scan Summary</div>
+          <p style="color: var(--text-secondary); font-size: 13px;">PII patterns checked: 4 · Regex rules checked: 1 · Sentiment rules checked: 1 · Custom rules checked: 1 · Keyword rules checked: 2 · All clear.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const hasCritical = violations.some(v => v.severity === 'critical');
+  const statusClass = hasCritical ? 'blocked' : 'flagged';
+  const statusText = hasCritical ? 'BLOCKED — Critical violations found' : 'FLAGGED — Warnings detected';
+  const statusIcon = hasCritical ? '✗' : '!';
+
+  const listItems = violations.map(v =>
+    `<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> [${v.type}] ${v.detail}</li>`
+  ).join('');
+
+  demoOutput.innerHTML = `
+    <div class="demo-result">
+      <div class="demo-status ${statusClass}">
+        <div class="demo-status-icon">${statusIcon}</div>
+        <div>${statusText}</div>
+      </div>
+      <div class="demo-violations">
+        <div class="demo-violations-title">Violations (${violations.length})</div>
+        <ul class="demo-violations-list">${listItems}</ul>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+        In production: output halted, alert fired, audit log created.
+      </div>
+    </div>`;
+}
+
+demoCheck?.addEventListener('click', () => {
+  const text = demoText?.value?.trim();
+  if (!text) {
+    showToast('Paste some text first!', 'error');
+    return;
+  }
+  demoOutput.innerHTML = `
+    <div class="demo-scanning">
+      <div class="demo-scanning-spinner"></div>
+      <span>Running guardrail check...</span>
+    </div>`;
+  setTimeout(() => {
+    const violations = evaluateGuardrail(text);
+    renderResult(violations);
+  }, 600);
+});
+
+demoClear?.addEventListener('click', () => {
+  if (demoText) demoText.value = '';
+  demoOutput.innerHTML = `
+    <div class="demo-output-placeholder">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <p>Results will appear here</p>
+    </div>`;
+});
+
 console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;');
-console.log('%cThe audit layer AI agents desperately need.', 'font-size: 14px; color: #94a3b8;');
+console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #94a3b8;');

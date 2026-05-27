@@ -7,6 +7,18 @@ export const submitAuditSchema = z.object({
     prompt: z.string().max(10000).optional(),
     response: z.string().max(10000).optional(),
     metadata: z.record(z.any()).optional(),
+    traceId: z.string().optional(),
+    parentSpanId: z.string().optional(),
+  }),
+});
+
+export const traceAuditSchema = z.object({
+  params: z.object({
+    traceId: z.string(),
+  }),
+  query: z.object({
+    page: z.string().transform(Number).default('1'),
+    limit: z.string().transform(Number).default('20'),
   }),
 });
 
