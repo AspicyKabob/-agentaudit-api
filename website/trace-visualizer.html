@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentAudit — Trace Visualizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #a855f7;
+      --bg: #030712;
+      --bg-elevated: #0f172a;
+      --bg-card: #1e293b;
+      --text: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --border: rgba(148, 163, 184, 0.1);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --radius: 12px;
+      --font-sans: 'Inter', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 14px;
+    }
+    .search-input::placeholder { color: var(--text-muted); }
+    .btn {
+      padding: 12px 24px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: var(--radius);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .trace-tree {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      min-height: 400px;
+    }
+    .trace-node {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .trace-node::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: -16px;
+      width: 2px;
+      background: var(--border);
+    }
+    .trace-node:last-child::before { display: none; }
+    .node-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .node-icon.crew { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
+    .node-icon.task { background: rgba(168, 85, 247, 0.2); color: var(--accent); }
+    .node-icon.action { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .node-icon.blocked { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+    .node-content {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .node-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .node-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .node-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .node-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .flag-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    .flag-badge.critical { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+    .flag-badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="index.html" class="logo">
+      <div class="logo-icon">A</div>
+      AgentAudit
+    </a>
+    <div style="color: var(--text-muted); font-size: 14px;">Trace Visualizer</div>
+  </header>
+
+  <main class="main">
+    <div class="search-bar">
+      <input type="text" class="search-input" id="trace-input" placeholder="Enter trace ID (e.g., trace-abc-123)" />
+      <button class="btn" id="load-trace">Load Trace</button>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background: var(--primary)"></div> Crew Start</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--accent)"></div> Task</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--success)"></div> Agent Action</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--error)"></div> Blocked</div>
+    </div>
+
+    <div class="trace-tree" id="trace-tree">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <p>Enter a trace ID above to visualize the agent chain</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = window.location.hostname === 'localhost'
+      ? 'http://localhost:8080'
+      : 'https://agentaudit-api-production.up.railway.app';
+
+    function getToken() { return localStorage.getItem('aa_token'); }
+
+    document.getElementById('load-trace').addEventListener('click', async () => {
+      const traceId = document.getElementById('trace-input').value.trim();
+      if (!traceId) return alert('Enter a trace ID');
+
+      const token = getToken();
+      if (!token) return alert('Please log in first');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/v1/audit-logs/trace/${encodeURIComponent(traceId)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load trace');
+
+        renderTrace(data.data || []);
+      } catch (err) {
+        document.getElementById('trace-tree').innerHTML = `
+          <div class="empty-state" style="color: var(--error)">
+            <p>Error: ${err.message}</p>
+          </div>`;
+      }
+    });
+
+    function renderTrace(logs) {
+      if (!logs.length) {
+        document.getElementById('trace-tree').innerHTML = `
+          <div class="empty-state">
+            <p>No logs found for this trace ID</p>
+          </div>`;
+        return;
+      }
+
+      const html = logs.map(log => {
+        const iconClass = log.action.includes('crew') ? 'crew' :
+                          log.action.includes('task') ? 'task' :
+                          log.action.includes('action') ? 'action' : 'action';
+        const icon = log.action.includes('crew') ? 'C' :
+                     log.action.includes('task') ? 'T' : 'A';
+
+        const flags = (log.complianceFlags || []).map(f => {
+          const severity = f.includes('CRITICAL') ? 'critical' : 'warning';
+          return `<span class="flag-badge ${severity}">${f}</span>`;
+        }).join('');
+
+        return `
+          <div class="trace-node">
+            <div class="node-icon ${iconClass}">${icon}</div>
+            <div class="node-content">
+              <div class="node-header">
+                <span class="node-title">${log.action}</span>
+                <span class="node-time">${new Date(log.createdAt).toLocaleString()}</span>
+              </div>
+              <div class="node-meta">
+                ${log.agentId ? `<span>Agent: ${log.agentId.slice(0, 8)}...</span>` : ''}
+                ${log.traceId ? `<span>Trace: ${log.traceId.slice(0, 12)}...</span>` : ''}
+                ${log.parentSpanId ? `<span>Parent: ${log.parentSpanId.slice(0, 8)}...</span>` : ''}
+              </div>
+              ${log.prompt ? `<div style="margin-top:8px;font-size:13px;color:var(--text-secondary)">Prompt: ${log.prompt.slice(0, 100)}${log.prompt.length > 100 ? '...' : ''}</div>` : ''}
+              ${flags}
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('trace-tree').innerHTML = html;
+    }
+  </script>
+</body>
+</html>
