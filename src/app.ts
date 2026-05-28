@@ -78,7 +78,7 @@ export function createApp() {
     });
   });
 
-  app.use(express.static(path.join(__dirname, '../website'), { index: ['index.html'] }));
+  app.use(express.static(path.join(__dirname, 'website'), { index: ['index.html'] }));
 
   // 404 handler
   app.use((_req, res) => {
