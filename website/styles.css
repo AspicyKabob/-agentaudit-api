@@ -277,8 +277,10 @@ body {
 .hero-stats {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 48px;
   flex-wrap: wrap;
+  margin-top: 8px;
 }
 
 .stat {
@@ -1493,7 +1495,7 @@ body {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--text-secondary);
-  margin-top: 16px;
+  margin-top: 8px;
 }
 .deploy-banner .cmd {
   color: var(--text);
