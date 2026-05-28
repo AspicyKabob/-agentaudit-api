@@ -386,6 +386,17 @@ const CUSTOM_RULES = [
   },
 ];
 
+const SENTIMENT_RULES = [
+  {
+    name: 'Toxic Language',
+    check: (text) => {
+      const toxicWords = ['worthless', 'pathetic', 'stupid', 'idiot', 'hate', 'kill', 'die'];
+      return toxicWords.some(w => text.toLowerCase().includes(w));
+    },
+    severity: 'critical',
+  },
+];
+
 function evaluateGuardrail(text) {
   const violations = [];
   for (const pii of PII_PATTERNS) {

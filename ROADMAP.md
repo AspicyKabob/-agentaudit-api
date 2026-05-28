@@ -14,11 +14,11 @@ AgentAudit records everything. Every prompt, every response, every action. It al
 
 **Where We Are Now:**
 
-The core product works. You can sign up, connect your AI agents, and start tracking everything they do. It's like having a security camera for your AI — but instead of video, it captures data.
+The core product is live. You can sign up, connect your AI agents, and start tracking everything they do. Real-time guardrails block violations before they reach users. Agent-to-agent audit trails track multi-agent workflows. It's like having a security camera for your AI — but instead of video, it captures data.
 
 **Where We're Going:**
 
-Month 1–2: Make it dead simple to connect popular AI frameworks (LangChain, CrewAI)
+Month 1–2: Polish developer experience and get first 100 users
 Month 3–4: Get security certifications (SOC 2) so big companies trust us
 Month 5–6: Build advanced analytics — "Show me which of my agents makes the most mistakes"
 Month 7–12: Scale to 1,000+ paying customers and become the default audit tool for AI agents
@@ -29,33 +29,37 @@ Month 7–12: Scale to 1,000+ paying customers and become the default audit tool
 
 ### Phase 1: Foundation ✅ COMPLETE
 
-**Status:** The API is built, tested, and compiles cleanly.
+**Status:** The API is built, tested, deployed, and compiles cleanly.
 
 What's Done:
 - Organization accounts with JWT authentication
 - API key system for service-to-service authentication
 - Agent registration and management
 - Audit log submission with real-time compliance evaluation
-- Compliance rules (PII detection, keyword matching, rate limiting)
+- 6 compliance rule types (PII, keywords, rate limit, regex, sentiment, custom validators)
+- Real-time guardrails — block violations before delivery
+- Agent-to-agent audit trails with traceId/parentSpanId
 - Alert system with resolution workflow
 - Report generation (JSON/CSV export)
 - MCP-compatible schema endpoint
 - Full test suite
-- Landing page website
+- Landing page website with live demo
+- Self-hosting documentation and Dockerfile
+- Stripe billing integration (Pro $29/mo, Business $79/mo)
 
-### Phase 2: Developer Experience (Month 1–2)
+### Phase 2: Developer Experience ✅ MOSTLY COMPLETE
 
 **Goal:** Make integration so easy that developers choose us over building their own audit log.
 
-| Feature | Why It Matters | Effort |
-|---------|---------------|--------|
-| OpenAPI/Swagger Documentation | Interactive "Try it" buttons in docs reduce time-to-first-call from hours to minutes | 2 days |
-| Python SDK (`pip install agentaudit`) | Drop-in integration for the #1 AI language. One line to start logging | 1 week |
-| TypeScript SDK (`npm install @agentaudit/sdk`) | Native support for Node.js AI applications | 1 week |
-| LangChain Callback Handler | `AgentAuditCallbackHandler(api_key="...")` — zero config logging | 3 days |
-| CrewAI Observer | Automatic task-level auditing for CrewAI agents | 3 days |
-| Postman Collection | One-click import for API evaluators | 1 day |
-| Quickstart Guides | Step-by-step tutorials for each major framework | 3 days |
+| Feature | Status | Why It Matters |
+|---------|--------|---------------|
+| OpenAPI/Swagger Documentation | ✅ Live at `/docs` | Interactive "Try it" buttons reduce time-to-first-call |
+| Python SDK | ✅ `pip install agentaudit` | Drop-in integration for the #1 AI language |
+| TypeScript SDK | ✅ `npm install @agentaudit/sdk` | Native support for Node.js AI applications |
+| CrewAI Observer | ✅ With trace tracking + guardrails | Automatic task-level auditing for CrewAI agents |
+| LangChain Callback Handler | 🔄 Planned | `AgentAuditCallbackHandler(api_key="...")` — zero config logging |
+| Postman Collection | 🔄 Planned | One-click import for API evaluators |
+| Quickstart Guides | 🔄 Planned | Step-by-step tutorials for each major framework |
 
 **Success Metric:** Developer can go from "discovering AgentAudit" to "first audit log submitted" in under 5 minutes.
 
