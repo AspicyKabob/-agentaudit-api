@@ -444,29 +444,27 @@ function evaluateGuardrail(text) {
 }
 
 function renderResult(violations) {
-  if (violations.length === 0) {
-    demoOutput.innerHTML = `
-      <div class="demo-result">
-        <div class="demo-status allowed">
-          <div class="demo-status-icon">✓</div>
-          <div>CLEAN — No violations detected</div>
-        </div>
-        <div class="demo-violations">
-          <div class="demo-violations-title">Scan Summary</div>
-          <p style="color: var(--text-secondary); font-size: 13px;">PII patterns checked: 4 · Regex rules checked: 1 · Sentiment rules checked: 1 · Custom rules checked: 1 · Keyword rules checked: 2 · All clear.</p>
-        </div>
-      </div>`;
-    return;
-  }
-
   const hasCritical = violations.some(v => v.severity === 'critical');
-  const statusClass = hasCritical ? 'blocked' : 'flagged';
-  const statusText = hasCritical ? 'BLOCKED — Critical violations found' : 'FLAGGED — Warnings detected';
-  const statusIcon = hasCritical ? '✗' : '!';
+  const statusClass = hasCritical ? 'blocked' : violations.length > 0 ? 'flagged' : 'allowed';
+  const statusText = hasCritical ? 'BLOCKED — Critical violations found' : violations.length > 0 ? 'FLAGGED — Warnings detected' : 'CLEAN — No violations detected';
+  const statusIcon = hasCritical ? '✗' : violations.length > 0 ? '!' : '✓';
 
   const listItems = violations.map(v =>
     `<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> [${v.type}] ${v.detail}</li>`
   ).join('');
+
+  const flags = violations.map(v => `${v.severity.toUpperCase()}_${v.type.toLowerCase()}_${v.detail.replace(/\s+/g, '_').substring(0, 20)}`);
+  const apiResponse = {
+    id: 'log_' + Math.random().toString(36).substring(2, 10),
+    action: 'prompt_submitted',
+    complianceFlags: flags,
+    createdAt: new Date().toISOString()
+  };
+
+  const curlCmd = `curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \\
+  -H "X-API-Key: aa_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"action":"prompt_submitted","prompt":"${demoText.value.substring(0, 50).replace(/'/g, "\\'")}..."}'`;
 
   demoOutput.innerHTML = `
     <div class="demo-result">
@@ -474,14 +472,44 @@ function renderResult(violations) {
         <div class="demo-status-icon">${statusIcon}</div>
         <div>${statusText}</div>
       </div>
+      ${violations.length > 0 ? `
       <div class="demo-violations">
         <div class="demo-violations-title">Violations (${violations.length})</div>
         <ul class="demo-violations-list">${listItems}</ul>
+      </div>` : ''}
+      
+      <div class="demo-api-section">
+        <div class="demo-api-header">
+          <span>API Response Preview</span>
+          <span class="demo-api-badge">JSON</span>
+        </div>
+        <pre class="demo-api-json">${JSON.stringify(apiResponse, null, 2)}</pre>
+        <div class="demo-api-actions">
+          <button class="btn btn-glass btn-sm" onclick="copyToClipboard(this, '${curlCmd.replace(/'/g, "\\'")}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy cURL
+          </button>
+          <a href="#signup" class="btn btn-primary btn-sm" id="demo-signup">Get API Key →</a>
+        </div>
       </div>
       <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">
-        In production: output halted, alert fired, audit log created.
+        Client-side simulation. In production: real-time guardrail with audit log persistence.
       </div>
     </div>`;
+  
+  document.getElementById('demo-signup')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    openModal('signup');
+  });
+}
+
+function copyToClipboard(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy cURL`;
+    }, 2000);
+  });
 }
 
 demoCheck?.addEventListener('click', () => {

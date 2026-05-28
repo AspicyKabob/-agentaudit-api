@@ -1359,6 +1359,54 @@ body {
   font-weight: 700;
 }
 
+/* ─── API Playground Styles ─────────────────────────────────────── */
+.demo-api-section {
+  margin-top: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.demo-api-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.demo-api-badge {
+  padding: 2px 6px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary-light);
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.demo-api-json {
+  padding: 12px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  background: var(--bg);
+  overflow-x: auto;
+}
+.demo-api-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border);
+}
+.demo-api-actions .btn {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
 /* ─── Framework Integrations Section ─────────────────────────────── */
 .frameworks {
   padding: 100px 0;
