@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './domains/auth/auth.routes';
@@ -76,6 +77,8 @@ export function createApp() {
       },
     });
   });
+
+  app.use(express.static(path.join(__dirname, '../website')));
 
   // 404 handler
   app.use((_req, res) => {
