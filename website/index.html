@@ -76,6 +76,10 @@
             <span>View Docs</span>
           </a>
         </div>
+        <div class="deploy-banner animate-in" data-delay="350">
+          <span class="badge">60s Setup</span>
+          <span class="cmd">pip install agentaudit && python -c "import agentaudit; print('Ready')"</span>
+        </div>
         <div class="hero-stats animate-in" data-delay="400">
           <div class="stat">
             <div class="stat-value"><span class="counter" data-target="50">0</span>ms</div>
@@ -363,6 +367,85 @@ audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span
     </div>
   </section>
 
+  <section class="frameworks">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">Zero-Config Integrations</span>
+        <h2>Drop-in SDKs for every stack</h2>
+        <p>One line of code. No refactoring. Works with whatever framework you already use.</p>
+      </div>
+      <div class="framework-tabs">
+        <div class="framework-tabs-header">
+          <button class="fw-tab active" data-fw="langchain">LangChain</button>
+          <button class="fw-tab" data-fw="crewai">CrewAI</button>
+          <button class="fw-tab" data-fw="autogpt">AutoGPT</button>
+          <button class="fw-tab" data-fw="openai">OpenAI</button>
+        </div>
+        <div class="framework-code">
+          <pre class="fw-content active" data-fw="langchain"><code><span class="code-kw">from</span> langchain.callbacks <span class="code-kw">import</span> AgentAuditCallbackHandler
+<span class="code-kw">from</span> langchain.llms <span class="code-kw">import</span> OpenAI
+
+<span class="code-comment"># One line to audit all LangChain calls</span>
+llm = OpenAI(callbacks=[AgentAuditCallbackHandler(
+    api_key=<span class="code-str">"aa_your_key_here"</span>
+)])
+llm.predict(<span class="code-str">"What is the weather?"</span>)
+<span class="code-comment"># Automatically logged + guarded</span></code></pre>
+
+          <pre class="fw-content" data-fw="crewai"><code><span class="code-kw">from</span> crewai <span class="code-kw">import</span> Crew, Agent, Task
+<span class="code-kw">from</span> agentaudit_crewai <span class="code-kw">import</span> AgentAuditObserver
+
+<span class="code-comment"># One line to audit entire crew execution</span>
+observer = AgentAuditObserver(
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
+    crew_name=<span class="code-str">"Research Crew"</span>,
+    guard=<span class="code-kw">True</span>  <span class="code-comment"># Block violations automatically</span>
+)
+
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[task1, task2],
+    callbacks=[observer]
+)
+crew.kickoff()
+<span class="code-comment"># Every task traced, violations blocked</span></code></pre>
+
+          <pre class="fw-content" data-fw="autogpt"><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAudit
+
+<span class="code-comment"># Wrap AutoGPT actions</span>
+audit = AgentAudit(api_key=<span class="code-str">"aa_your_key_here"</span>)
+
+<span class="code-comment"># Guard every thought and action</span>
+<span class="code-kw">for</span> thought <span class="code-kw">in</span> agent.thoughts:
+    result = audit.guardrail(
+        action=<span class="code-str">"autogpt_thought"</span>,
+        prompt=thought,
+        agent_id=agent.id
+    )
+    <span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
+        agent.halt()  <span class="code-comment"># Stop before bad action</span></code></pre>
+
+          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'@agentaudit/sdk'</span>;
+
+<span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({ apiKey: <span class="code-str">'aa_your_key_here'</span> });
+
+<span class="code-comment">// Intercept every OpenAI call</span>
+<span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
+    action: <span class="code-str">'openai_chat'</span>,
+    prompt: userInput,
+    response: completion
+});
+
+<span class="code-kw">if</span> (!result.allowed) {
+    <span class="code-kw">return</span> { error: <span class="code-str">'Blocked by compliance'</span> };
+}
+<span class="code-comment">// Clean output delivered to user</span></code></pre>
+        </div>
+        <div class="framework-note"><span class="badge">Copy. Paste. Done.</span> Zero configuration required.</div>
+      </div>
+    </div>
+  </section>
+
   <section id="pricing" class="pricing">
     <div class="container">
       <div class="section-header">
@@ -413,9 +496,9 @@ audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>100,000 audit logs/month</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited agents</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>7-year retention</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>SOC 2 reports</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>SSO & SCIM</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Dedicated support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced analytics</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom integrations</li>
           </ul>
           <button class="btn btn-secondary btn-full" data-plan="business" data-price="STRIPE_PRICE_BUSINESS">Get Started</button>
         </div>
@@ -433,6 +516,51 @@ audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Annual contracts</li>
           </ul>
           <button class="btn btn-secondary btn-full" data-plan="enterprise">Get Started</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rule-packs" id="packs">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">One-Click Compliance</span>
+        <h2>Pre-built rule packs</h2>
+        <p>No configuration required. Pick your industry, click activate, done.</p>
+      </div>
+      <div class="packs-grid">
+        <div class="pack-card">
+          <h3>Healthcare (HIPAA)</h3>
+          <div class="pack-rules">
+            <span>SSN</span>
+            <span>PHI</span>
+            <span>Medical IDs</span>
+            <span>HIPAA keywords</span>
+          </div>
+          <p>Detects patient identifiers, medical record numbers, and HIPAA-sensitive terms.</p>
+          <button class="btn btn-primary btn-sm">Activate Pack</button>
+        </div>
+        <div class="pack-card">
+          <h3>Finance (SOX/PCI)</h3>
+          <div class="pack-rules">
+            <span>Credit cards</span>
+            <span>Bank accounts</span>
+            <span>Insider trading</span>
+            <span>SOX keywords</span>
+          </div>
+          <p>Flags payment data, account numbers, and financial compliance violations.</p>
+          <button class="btn btn-primary btn-sm">Activate Pack</button>
+        </div>
+        <div class="pack-card">
+          <h3>Data Protection (GDPR/CCPA)</h3>
+          <div class="pack-rules">
+            <span>Emails</span>
+            <span>Phone numbers</span>
+            <span>Addresses</span>
+            <span>GDPR keywords</span>
+          </div>
+          <p>Protects PII and flags data privacy policy violations automatically.</p>
+          <button class="btn btn-primary btn-sm">Activate Pack</button>
         </div>
       </div>
     </div>

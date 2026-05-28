@@ -337,6 +337,18 @@ document.querySelectorAll('.code-tab').forEach(tab => {
   });
 });
 
+// Framework integration tabs
+document.querySelectorAll('.fw-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetFw = tab.dataset.fw;
+    document.querySelectorAll('.fw-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.fw-content').forEach(content => {
+      content.classList.toggle('active', content.dataset.fw === targetFw);
+    });
+  });
+});
+
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     e.preventDefault();
