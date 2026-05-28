@@ -206,12 +206,46 @@ body {
   animation: pulse 4s ease-in-out infinite;
 }
 
+.hero-logo-3d {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 600px;
+  font-weight: 900;
+  font-family: var(--font-sans);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 2px rgba(99, 102, 241, 0.3);
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+  animation: logoFloat 8s ease-in-out infinite, logoHue 12s linear infinite;
+  text-shadow: 0 0 120px rgba(99, 102, 241, 0.4), 0 0 240px rgba(168, 85, 247, 0.2);
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0px) rotateX(5deg) rotateY(-5deg); }
+  50% { transform: translate(-50%, -50%) translateY(-20px) rotateX(-5deg) rotateY(5deg); }
+}
+
+@keyframes logoHue {
+  0% { filter: hue-rotate(0deg) blur(1px); }
+  50% { filter: hue-rotate(30deg) blur(1px); }
+  100% { filter: hue-rotate(0deg) blur(1px); }
+}
+
 @keyframes pulse {
   0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
   50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
 }
 
 .hero-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
   max-width: 800px;
   margin: 0 auto;
