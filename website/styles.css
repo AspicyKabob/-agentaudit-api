@@ -1545,6 +1545,7 @@ body {
   font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 16px;
+  min-height: 3em;
 }
 .pack-card .pack-rules span {
   display: inline-block;
