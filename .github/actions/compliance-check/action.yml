@@ -1,0 +1,137 @@
+name: 'AgentAudit Compliance Check'
+description: 'Run compliance checks on AI agent outputs in CI/CD pipelines'
+branding:
+  icon: 'shield'
+  color: 'purple'
+
+inputs:
+  api-key:
+    description: 'AgentAudit API key (required)'
+    required: true
+  base-url:
+    description: 'AgentAudit API base URL'
+    required: false
+    default: 'https://agentaudit-api-production.up.railway.app/api/v1'
+  rules:
+    description: 'Comma-separated list of rules to check (pii,keywords,sentiment,regex,custom,rate_limit)'
+    required: false
+    default: 'pii,keywords'
+  fail-on-critical:
+    description: 'Fail the build if critical violations are found'
+    required: false
+    default: 'true'
+  file-pattern:
+    description: 'Glob pattern for files to scan'
+    required: false
+    default: '**/*.{md,txt,prompt}'
+  check-type:
+    description: 'Type of check to perform (realtime, passive)'
+    required: false
+    default: 'passive'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        pip install requests
+
+    - name: Run compliance check
+      shell: python
+      env:
+        AA_API_KEY: ${{ inputs.api-key }}
+        AA_BASE_URL: ${{ inputs.base-url }}
+        AA_RULES: ${{ inputs.rules }}
+        AA_FAIL_ON_CRITICAL: ${{ inputs.fail-on-critical }}
+        AA_FILE_PATTERN: ${{ inputs.file-pattern }}
+        AA_CHECK_TYPE: ${{ inputs.check-type }}
+      run: |
+        import os
+        import sys
+        import glob
+        import json
+        import requests
+
+        api_key = os.environ['AA_API_KEY']
+        base_url = os.environ['AA_BASE_URL'].rstrip('/')
+        rules = [r.strip() for r in os.environ['AA_RULES'].split(',')]
+        fail_on_critical = os.environ['AA_FAIL_ON_CRITICAL'].lower() == 'true'
+        file_pattern = os.environ['AA_FILE_PATTERN']
+        check_type = os.environ['AA_CHECK_TYPE']
+
+        headers = {
+            'X-API-Key': api_key,
+            'Content-Type': 'application/json'
+        }
+
+        files = glob.glob(file_pattern, recursive=True)
+        if not files:
+            print(f"::notice::No files matching '{file_pattern}' found")
+            sys.exit(0)
+
+        print(f"::group::Scanning {len(files)} files for compliance violations")
+        
+        violations_found = 0
+        critical_found = 0
+
+        for filepath in files:
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                if not content.strip():
+                    continue
+
+                payload = {
+                    'action': 'ci_compliance_check',
+                    'prompt': content[:10000],  # API limit
+                    'metadata': {
+                        'source': 'github-action',
+                        'file': filepath,
+                        'rules': rules,
+                        'check_type': check_type
+                    }
+                }
+
+                resp = requests.post(
+                    f'{base_url}/audit-logs',
+                    headers=headers,
+                    json=payload,
+                    timeout=30
+                )
+                
+                if resp.status_code != 201:
+                    print(f"::warning::Failed to check {filepath}: HTTP {resp.status_code}")
+                    continue
+
+                data = resp.json()
+                flags = data.get('complianceFlags', [])
+                
+                if flags:
+                    violations_found += len(flags)
+                    for flag in flags:
+                        if 'CRITICAL' in flag:
+                            critical_found += 1
+                            print(f"::error::[{filepath}] CRITICAL: {flag}")
+                        else:
+                            print(f"::warning::[{filepath}] {flag}")
+
+            except Exception as e:
+                print(f"::warning::Error scanning {filepath}: {e}")
+
+        print("::endgroup::")
+
+        print(f"\n{'='*50}")
+        print(f"Compliance Check Complete")
+        print(f"Files scanned: {len(files)}")
+        print(f"Total violations: {violations_found}")
+        print(f"Critical violations: {critical_found}")
+        print(f"{'='*50}")
+
+        if fail_on_critical and critical_found > 0:
+            print("\n::error::Build failed due to critical compliance violations")
+            sys.exit(1)
+        
+        if violations_found > 0:
+            print("\n::warning::Compliance violations detected but build continuing")
