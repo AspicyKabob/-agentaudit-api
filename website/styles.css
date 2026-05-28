@@ -270,7 +270,7 @@ body {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin-bottom: 64px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
