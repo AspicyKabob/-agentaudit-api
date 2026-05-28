@@ -30,3 +30,11 @@ export const revokeApiKeySchema = z.object({
 export type RegisterBody = z.infer<typeof registerSchema>['body'];
 export type LoginBody = z.infer<typeof loginSchema>['body'];
 export type CreateApiKeyBody = z.infer<typeof createApiKeySchema>['body'];
+
+export const updateProfileSchema = z.object({
+  body: z.object({
+    webhookUrl: z.string().url().optional(),
+  }),
+});
+
+export type UpdateProfileBody = z.infer<typeof updateProfileSchema>['body'];

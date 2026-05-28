@@ -26,7 +26,16 @@ export const authController = {
       plan: req.organization!.plan,
       apiQuota: req.organization!.apiQuota,
       apiUsed: req.organization!.apiUsed,
+      webhookUrl: req.organization!.webhookUrl,
     });
+  }),
+
+  updateProfile: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { webhookUrl } = req.body;
+    const updated = await authService.updateProfile(organizationId, { webhookUrl });
+    logger.info({ organizationId }, 'Profile updated');
+    res.status(200).json(updated);
   }),
 
   createApiKey: asyncHandler(async (req: Request, res: Response) => {

@@ -1,4 +1,5 @@
 import { prisma } from '../../db/prisma';
+import { logger } from '../../utils/logger';
 
 interface ListFilters {
   isResolved?: boolean;
@@ -50,5 +51,42 @@ export const alertService = {
         resolvedAt: new Date(),
       },
     });
+  },
+
+  async deliverWebhook(alert: any): Promise<void> {
+    try {
+      const org = await prisma.organization.findUnique({
+        where: { id: alert.organizationId },
+        select: { webhookUrl: true },
+      });
+
+      if (!org?.webhookUrl) return;
+
+      const payload = {
+        event: 'compliance.violation',
+        alert: {
+          id: alert.id,
+          severity: alert.severity,
+          message: alert.message,
+          details: alert.details,
+          createdAt: alert.createdAt,
+        },
+      };
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      await fetch(org.webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+      logger.info({ alertId: alert.id }, 'Webhook delivered');
+    } catch (err) {
+      logger.warn({ alertId: alert.id, error: (err as Error).message }, 'Webhook delivery failed');
+    }
   },
 };

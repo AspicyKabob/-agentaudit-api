@@ -110,4 +110,18 @@ export const authService = {
       data: { revokedAt: new Date() },
     });
   },
+
+  async updateProfile(organizationId: string, data: { webhookUrl?: string }) {
+    return prisma.organization.update({
+      where: { id: organizationId },
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        plan: true,
+        webhookUrl: true,
+      },
+    });
+  },
 };

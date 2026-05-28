@@ -4,6 +4,7 @@ import { SubmitAuditBody, QueryAuditQuery } from './audit.types';
 import { logger } from '../../utils/logger';
 import { evaluateSentiment } from './sentiment-evaluator';
 import { evaluateCustomValidator } from './custom-validator';
+import { alertService } from '../alerts/alert.service';
 
 interface QueryOptions {
   action?: string;
@@ -34,10 +35,10 @@ export const auditService = {
       },
     });
 
-    // Create alerts for critical flags
+    // Create alerts for critical flags and deliver webhooks
     for (const flag of flags) {
       const severity = flag.startsWith('CRITICAL') ? 'critical' : 'warning';
-      await prisma.alert.create({
+      const alert = await prisma.alert.create({
         data: {
           organizationId,
           auditLogId: log.id,
@@ -46,6 +47,8 @@ export const auditService = {
           details: { action: data.action, agentId: data.agentId },
         },
       });
+      // Deliver webhook asynchronously (non-blocking)
+      alertService.deliverWebhook(alert).catch(() => {});
     }
 
     // Increment API usage
