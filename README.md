@@ -46,17 +46,14 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 <div align="center">
 
 ### Landing Page
-![Landing Page](https://via.placeholder.com/800x450/030712/6366f1?text=Landing+Page+Preview)
+![Landing Page](docs/assets/landing-hero.png)
 
 ### Trace Visualizer
-![Trace Visualizer](https://via.placeholder.com/800x450/030712/a855f7?text=Trace+Visualizer+Preview)
-
-### API Playground
-![API Playground](https://via.placeholder.com/800x450/030712/10b981?text=API+Playground+Preview)
+![Trace Visualizer](docs/assets/trace-visualizer.png)
 
 </div>
 
-> **Note:** Replace placeholder images with actual screenshots once available.
+> **Tip:** Try the live demo at [agentaudit-api-production.up.railway.app](https://agentaudit-api-production.up.railway.app/)
 
 - [Features](#-features)
 - [Architecture](#%EF%B8%8F-architecture)
