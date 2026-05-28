@@ -270,7 +270,7 @@ body {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
@@ -278,9 +278,9 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 48px;
+  gap: 64px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .stat {
@@ -1496,6 +1496,7 @@ body {
   font-size: 13px;
   color: var(--text-secondary);
   margin-top: 8px;
+  margin-bottom: 24px;
 }
 .deploy-banner .cmd {
   color: var(--text);
