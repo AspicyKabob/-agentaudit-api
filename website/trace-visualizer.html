@@ -86,100 +86,18 @@
       font-weight: 600;
       cursor: pointer;
       font-size: 14px;
+      transition: opacity 0.2s;
     }
-    .trace-tree {
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      min-height: 400px;
-    }
-    .trace-node {
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .stats-bar {
       display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      margin-bottom: 16px;
-      position: relative;
-    }
-    .trace-node::before {
-      content: '';
-      position: absolute;
-      left: 15px;
-      top: 32px;
-      bottom: -16px;
-      width: 2px;
-      background: var(--border);
-    }
-    .trace-node:last-child::before { display: none; }
-    .node-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      flex-shrink: 0;
-      z-index: 1;
-    }
-    .node-icon.crew { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
-    .node-icon.task { background: rgba(168, 85, 247, 0.2); color: var(--accent); }
-    .node-icon.action { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-    .node-icon.blocked { background: rgba(239, 68, 68, 0.2); color: var(--error); }
-    .node-content {
-      flex: 1;
-      padding: 12px 16px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-    }
-    .node-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .node-title {
-      font-weight: 600;
-      font-size: 14px;
-    }
-    .node-time {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-    }
-    .node-meta {
-      display: flex;
-      gap: 12px;
-      font-size: 12px;
+      gap: 24px;
+      margin-bottom: 24px;
+      font-size: 13px;
       color: var(--text-secondary);
     }
-    .node-meta span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .flag-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      margin-top: 8px;
-    }
-    .flag-badge.critical { background: rgba(239, 68, 68, 0.15); color: var(--error); }
-    .flag-badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
-    .empty-state {
-      text-align: center;
-      padding: 80px 20px;
-      color: var(--text-muted);
-    }
-    .empty-state svg {
-      width: 64px;
-      height: 64px;
-      margin-bottom: 16px;
-      opacity: 0.5;
-    }
+    .stats-bar span { display: flex; align-items: center; gap: 6px; }
     .legend {
       display: flex;
       gap: 20px;
@@ -196,6 +114,137 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
+    }
+    .trace-tree {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      min-height: 400px;
+    }
+    .tree-level {
+      position: relative;
+    }
+    .tree-connector {
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .trace-node {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .trace-node:last-child { margin-bottom: 0; }
+    .node-indent {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .node-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .node-icon.crew { background: rgba(99, 102, 241, 0.2); color: var(--primary); }
+    .node-icon.task { background: rgba(168, 85, 247, 0.2); color: var(--accent); }
+    .node-icon.action { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+    .node-icon.blocked { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+    .node-content {
+      flex: 1;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: border-color 0.2s;
+    }
+    .node-content.blocked {
+      border-color: rgba(239, 68, 68, 0.4);
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .node-title {
+      font-weight: 600;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .node-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+    .node-meta {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    .node-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .node-preview {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: rgba(148, 163, 184, 0.05);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .node-preview-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .flag-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+      margin-right: 4px;
+    }
+    .flag-badge.critical { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+    .flag-badge.warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state svg {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
     }
   </style>
 </head>
@@ -214,11 +263,17 @@
       <button class="btn" id="load-trace">Load Trace</button>
     </div>
 
+    <div class="stats-bar" id="stats-bar" style="display:none">
+      <span><strong id="stat-count">0</strong> logs</span>
+      <span><strong id="stat-duration">0s</strong> duration</span>
+      <span style="color: var(--error); display:none" id="stat-flags"><strong id="stat-flags-count">0</strong> violations</span>
+    </div>
+
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background: var(--primary)"></div> Crew Start</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--primary)"></div> Crew</div>
       <div class="legend-item"><div class="legend-dot" style="background: var(--accent)"></div> Task</div>
-      <div class="legend-item"><div class="legend-dot" style="background: var(--success)"></div> Agent Action</div>
-      <div class="legend-item"><div class="legend-dot" style="background: var(--error)"></div> Blocked</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--success)"></div> Action</div>
+      <div class="legend-item"><div class="legend-dot" style="background: var(--error)"></div> Violation</div>
     </div>
 
     <div class="trace-tree" id="trace-tree">
@@ -243,6 +298,10 @@
       const token = getToken();
       if (!token) return alert('Please log in first');
 
+      const btn = document.getElementById('load-trace');
+      btn.disabled = true;
+      btn.textContent = 'Loading...';
+
       try {
         const res = await fetch(`${API_BASE}/api/v1/audit-logs/trace/${encodeURIComponent(traceId)}`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -256,8 +315,35 @@
           <div class="empty-state" style="color: var(--error)">
             <p>Error: ${err.message}</p>
           </div>`;
+        document.getElementById('stats-bar').style.display = 'none';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Load Trace';
       }
     });
+
+    function buildTree(logs) {
+      const map = new Map();
+      logs.forEach(log => map.set(log.id, { ...log, children: [] }));
+      const roots = [];
+      logs.forEach(log => {
+        const node = map.get(log.id);
+        if (log.parentSpanId && map.has(log.parentSpanId)) {
+          map.get(log.parentSpanId).children.push(node);
+        } else {
+          roots.push(node);
+        }
+      });
+      // Sort by createdAt
+      const sortFn = (a, b) => new Date(a.createdAt) - new Date(b.createdAt);
+      roots.sort(sortFn);
+      const sortChildren = (node) => {
+        node.children.sort(sortFn);
+        node.children.forEach(sortChildren);
+      };
+      roots.forEach(sortChildren);
+      return roots;
+    }
 
     function renderTrace(logs) {
       if (!logs.length) {
@@ -265,41 +351,80 @@
           <div class="empty-state">
             <p>No logs found for this trace ID</p>
           </div>`;
+        document.getElementById('stats-bar').style.display = 'none';
         return;
       }
 
-      const html = logs.map(log => {
-        const iconClass = log.action.includes('crew') ? 'crew' :
-                          log.action.includes('task') ? 'task' :
-                          log.action.includes('action') ? 'action' : 'action';
-        const icon = log.action.includes('crew') ? 'C' :
-                     log.action.includes('task') ? 'T' : 'A';
+      // Stats
+      const times = logs.map(l => new Date(l.createdAt).getTime()).sort((a, b) => a - b);
+      const duration = ((times[times.length - 1] - times[0]) / 1000).toFixed(1);
+      const flagsCount = logs.reduce((sum, l) => sum + (l.complianceFlags?.length || 0), 0);
+      document.getElementById('stat-count').textContent = logs.length;
+      document.getElementById('stat-duration').textContent = duration + 's';
+      document.getElementById('stat-flags-count').textContent = flagsCount;
+      document.getElementById('stat-flags').style.display = flagsCount > 0 ? 'flex' : 'none';
+      document.getElementById('stats-bar').style.display = 'flex';
 
-        const flags = (log.complianceFlags || []).map(f => {
+      const tree = buildTree(logs);
+      document.getElementById('trace-tree').innerHTML = renderNodes(tree, 0);
+    }
+
+    function renderNodes(nodes, depth) {
+      return nodes.map(node => {
+        const hasFlags = (node.complianceFlags || []).length > 0;
+        const iconClass = hasFlags ? 'blocked' :
+                          node.action.includes('crew') ? 'crew' :
+                          node.action.includes('task') ? 'task' : 'action';
+        const icon = node.action.includes('crew') ? 'C' :
+                     node.action.includes('task') ? 'T' : 'A';
+
+        const flags = (node.complianceFlags || []).map(f => {
           const severity = f.includes('CRITICAL') ? 'critical' : 'warning';
           return `<span class="flag-badge ${severity}">${f}</span>`;
         }).join('');
 
+        const time = new Date(node.createdAt);
+        const timeStr = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // Preview: response if available, else prompt
+        let preview = '';
+        if (node.response) {
+          preview = `<div class="node-preview-label">Response</div><div class="node-preview">${escapeHtml(node.response.slice(0, 200))}${node.response.length > 200 ? '...' : ''}</div>`;
+        } else if (node.prompt) {
+          preview = `<div class="node-preview-label">Prompt</div><div class="node-preview">${escapeHtml(node.prompt.slice(0, 200))}${node.prompt.length > 200 ? '...' : ''}</div>`;
+        }
+
+        const meta = [];
+        if (node.metadata?.crew) meta.push(`Crew: ${node.metadata.crew}`);
+        if (node.metadata?.agent_role) meta.push(`Role: ${node.metadata.agent_role}`);
+        if (node.metadata?.task_id) meta.push(`Task: ${node.metadata.task_id}`);
+
+        const childrenHtml = node.children.length ? renderNodes(node.children, depth + 1) : '';
+
+        const indentStyle = depth > 0 ? `margin-left: ${depth * 40}px;` : '';
+
         return `
-          <div class="trace-node">
+          <div class="trace-node" style="${indentStyle}">
             <div class="node-icon ${iconClass}">${icon}</div>
-            <div class="node-content">
+            <div class="node-content ${hasFlags ? 'blocked' : ''}">
               <div class="node-header">
-                <span class="node-title">${log.action}</span>
-                <span class="node-time">${new Date(log.createdAt).toLocaleString()}</span>
+                <span class="node-title">${node.action}${hasFlags ? ' <span style="color:var(--error)">●</span>' : ''}</span>
+                <span class="node-time">${timeStr}</span>
               </div>
               <div class="node-meta">
-                ${log.agentId ? `<span>Agent: ${log.agentId.slice(0, 8)}...</span>` : ''}
-                ${log.traceId ? `<span>Trace: ${log.traceId.slice(0, 12)}...</span>` : ''}
-                ${log.parentSpanId ? `<span>Parent: ${log.parentSpanId.slice(0, 8)}...</span>` : ''}
+                ${meta.map(m => `<span>${m}</span>`).join('')}
               </div>
-              ${log.prompt ? `<div style="margin-top:8px;font-size:13px;color:var(--text-secondary)">Prompt: ${log.prompt.slice(0, 100)}${log.prompt.length > 100 ? '...' : ''}</div>` : ''}
+              ${preview}
               ${flags}
             </div>
-          </div>`;
+          </div>
+          ${childrenHtml}`;
       }).join('');
+    }
 
-      document.getElementById('trace-tree').innerHTML = html;
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
   </script>
 </body>
