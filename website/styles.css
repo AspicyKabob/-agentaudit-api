@@ -1564,6 +1564,7 @@ body {
 .pack-card p {
   flex: 1;
   margin-bottom: 0;
+  min-height: 4.5em;
 }
 
 
