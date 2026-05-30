@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="agentaudit",
+    name="agentaudit-client",
     version="1.0.0",
     description="Audit \u0026 Compliance SDK for AI Agents",
     long_description=open("README.md").read(),
