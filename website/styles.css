@@ -1219,20 +1219,22 @@ body::before {
   position: fixed;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--text);
   border-radius: 50%;
   pointer-events: none;
   z-index: 10000;
   transform: translate(-50%, -50%);
   transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease, background 0.3s ease;
-  mix-blend-mode: difference;
+  box-shadow: 0 0 0 1px var(--bg), 0 0 20px rgba(220, 38, 38, 0.4);
+  will-change: transform;
 }
 
 .custom-cursor.hover {
   width: 48px;
   height: 48px;
-  background: rgba(220, 38, 38, 0.1);
+  background: rgba(220, 38, 38, 0.15);
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--bg), 0 0 30px rgba(220, 38, 38, 0.6);
 }
 
 .custom-cursor.active {
@@ -1240,18 +1242,21 @@ body::before {
   height: 24px;
   background: var(--accent);
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--bg), 0 0 40px rgba(220, 38, 38, 0.8);
 }
 
 .cursor-dot {
   position: fixed;
-  width: 4px;
-  height: 4px;
+  width: 6px;
+  height: 6px;
   background: var(--accent);
   border-radius: 50%;
   pointer-events: none;
   z-index: 10001;
   transform: translate(-50%, -50%);
   transition: transform 0.15s ease;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.8);
+  will-change: transform;
 }
 
 .cursor-dot.hover {
