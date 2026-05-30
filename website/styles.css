@@ -120,14 +120,15 @@ body::after {
 }
 
 .logo-a {
-  font-family: var(--font-serif);
+  font-family: 'Playfair Display', 'Instrument Serif', Georgia, serif;
   font-size: 28px;
-  font-weight: 400;
+  font-weight: 800;
   line-height: 1;
   color: var(--text);
   display: inline-block;
   vertical-align: baseline;
   margin-right: -2px;
+  letter-spacing: -0.02em;
 }
 
 .nav-links {
@@ -1246,7 +1247,6 @@ body::after {
   z-index: 10000;
   will-change: transform;
   transform: translate(-2px, -2px);
-  mix-blend-mode: normal;
 }
 
 .custom-cursor::before {
@@ -1257,23 +1257,10 @@ body::after {
   width: 0;
   height: 0;
   border-left: 10px solid var(--text);
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-  transform: rotate(-20deg);
-  filter: drop-shadow(0 0 4px rgba(220, 38, 38, 0.6));
-}
-
-.custom-cursor::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 0;
-  width: 0;
-  height: 0;
-  border-left: 8px solid var(--text);
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
-  transform: rotate(-20deg);
+  transform: rotate(-15deg);
+  filter: drop-shadow(0 0 3px rgba(220, 38, 38, 0.5));
 }
 
 .custom-cursor.hover {
@@ -1282,7 +1269,7 @@ body::after {
 
 .custom-cursor.hover::before {
   border-left-color: var(--accent);
-  filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.8));
+  filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.7));
 }
 
 .custom-cursor.active {
