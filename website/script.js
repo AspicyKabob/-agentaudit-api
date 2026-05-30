@@ -538,5 +538,66 @@ demoClear?.addEventListener('click', () => {
     </div>`;
 });
 
-console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;');
-console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #94a3b8;');
+console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; color: #dc2626;');
+console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #78716c;');
+
+const cursor = document.createElement('div');
+cursor.className = 'custom-cursor';
+document.body.appendChild(cursor);
+
+const cursorDot = document.createElement('div');
+cursorDot.className = 'cursor-dot';
+document.body.appendChild(cursorDot);
+
+document.addEventListener('mousemove', (e) => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  cursorDot.style.left = e.clientX + 'px';
+  cursorDot.style.top = e.clientY + 'px';
+});
+
+document.addEventListener('mousedown', () => {
+  cursor.classList.add('active');
+});
+
+document.addEventListener('mouseup', () => {
+  cursor.classList.remove('active');
+});
+
+document.querySelectorAll('a, button, .btn, .fw-tab, .code-tab').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.classList.add('hover');
+    cursorDot.classList.add('hover');
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.classList.remove('hover');
+    cursorDot.classList.remove('hover');
+  });
+});
+
+const counters = document.querySelectorAll('.counter');
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const target = parseInt(entry.target.dataset.target);
+      let current = 0;
+      const duration = 2000;
+      const step = target / (duration / 16);
+      
+      const updateCounter = () => {
+        current += step;
+        if (current < target) {
+          entry.target.textContent = Math.floor(current);
+          requestAnimationFrame(updateCounter);
+        } else {
+          entry.target.textContent = target;
+        }
+      };
+      
+      updateCounter();
+      counterObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+counters.forEach(counter => counterObserver.observe(counter));
