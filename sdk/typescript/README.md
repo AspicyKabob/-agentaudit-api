@@ -5,7 +5,7 @@ Official TypeScript/JavaScript SDK for the AgentAudit API — real-time guardrai
 ## Installation
 
 ```bash
-npm install @agentaudit/sdk
+npm install agentaudit-client
 ```
 
 ## Quick Start

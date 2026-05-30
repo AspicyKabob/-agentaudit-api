@@ -5,12 +5,12 @@ Official Python SDK for the AgentAudit API — audit logging and compliance moni
 ## Installation
 
 ```bash
-pip install agentaudit
+pip install agentaudit-client
 ```
 
 With LangChain support:
 ```bash
-pip install agentaudit[langchain]
+pip install agentaudit-client[langchain]
 ```
 
 ## Quick Start
