@@ -311,7 +311,7 @@ audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span
 
 <span class="code-comment"># Violations blocked. Clean output delivered to user.</span></code>
 
-<code class="tab-content" data-tab="typescript"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'@agentaudit/sdk'</span>;
+<code class="tab-content" data-tab="typescript"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
 <span class="code-comment">// Initialize with your API key</span>
 <span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({
@@ -407,7 +407,7 @@ audit = AgentAudit(api_key=<span class="code-str">"aa_your_key_here"</span>)
     <span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
         agent.halt()  <span class="code-comment"># Stop before bad action</span></code></pre>
 
-          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'@agentaudit/sdk'</span>;
+          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
 <span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({ apiKey: <span class="code-str">'aa_your_key_here'</span> });
 
