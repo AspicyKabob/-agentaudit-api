@@ -127,9 +127,8 @@ body::after {
   color: var(--text);
   display: inline-block;
   vertical-align: baseline;
-  margin-right: -2px;
   text-transform: uppercase;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 
 .nav-links {
