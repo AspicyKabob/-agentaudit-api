@@ -120,15 +120,16 @@ body::after {
 }
 
 .logo-a {
-  font-family: 'Archivo Black', sans-serif;
-  font-size: 26px;
-  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
   line-height: 1;
   color: var(--text);
   display: inline-block;
   vertical-align: baseline;
   margin-right: -2px;
   text-transform: uppercase;
+  letter-spacing: -0.03em;
 }
 
 .nav-links {

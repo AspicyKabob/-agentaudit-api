@@ -220,7 +220,7 @@ const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 
 let streams = [];
-const streamCount = 6;
+const streamCount = 10;
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
 
 function resizeCanvas() {
@@ -236,14 +236,14 @@ class DataStream {
   reset() {
     this.y = Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1);
     this.x = -300;
-    this.speed = 0.15 + Math.random() * 0.25;
-    this.length = 6 + Math.floor(Math.random() * 10);
+    this.speed = 0.2 + Math.random() * 0.3;
+    this.length = 8 + Math.floor(Math.random() * 12);
     this.chars = [];
     for (let i = 0; i < this.length; i++) {
       this.chars.push({
         char: chars[Math.floor(Math.random() * chars.length)],
-        color: Math.random() > 0.92 ? 'rgba(220, 38, 38, 0.2)' : 'rgba(161, 161, 170, 0.12)',
-        size: 8 + Math.floor(Math.random() * 3)
+        color: Math.random() > 0.92 ? 'rgba(220, 38, 38, 0.35)' : 'rgba(161, 161, 170, 0.18)',
+        size: 9 + Math.floor(Math.random() * 3)
       });
     }
   }
