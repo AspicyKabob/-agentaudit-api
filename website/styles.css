@@ -943,6 +943,15 @@ body::after {
   padding: 40px 32px;
   position: relative;
   transition: background 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 520px;
+}
+
+.pricing-card .btn {
+  margin-top: auto;
+  width: 100%;
+  justify-content: center;
 }
 
 .pricing-card:hover {
