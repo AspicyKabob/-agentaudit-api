@@ -1,4 +1,4 @@
-import { AgentAudit } from '@agentaudit/sdk';
+import { AgentAudit } from './index';
 
 const audit = new AgentAudit({
   apiKey: 'aa_62123721bb54e38475c748f69efe35d58431a1b0c93ceb9b59df552937e2c606',
