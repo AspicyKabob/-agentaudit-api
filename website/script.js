@@ -220,7 +220,7 @@ const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 
 let streams = [];
-const streamCount = 15;
+const streamCount = 6;
 const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
 
 function resizeCanvas() {
@@ -234,23 +234,23 @@ class DataStream {
   }
 
   reset() {
-    this.y = Math.random() * (canvas.height * 0.6);
-    this.x = -200;
-    this.speed = 0.3 + Math.random() * 0.5;
-    this.length = 8 + Math.floor(Math.random() * 16);
+    this.y = Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1);
+    this.x = -300;
+    this.speed = 0.15 + Math.random() * 0.25;
+    this.length = 6 + Math.floor(Math.random() * 10);
     this.chars = [];
     for (let i = 0; i < this.length; i++) {
       this.chars.push({
         char: chars[Math.floor(Math.random() * chars.length)],
-        color: Math.random() > 0.9 ? '#dc2626' : 'rgba(161, 161, 170, 0.3)',
-        size: 10 + Math.floor(Math.random() * 4)
+        color: Math.random() > 0.92 ? 'rgba(220, 38, 38, 0.2)' : 'rgba(161, 161, 170, 0.12)',
+        size: 8 + Math.floor(Math.random() * 3)
       });
     }
   }
 
   update() {
     this.x += this.speed;
-    if (this.x > canvas.width + 200) {
+    if (this.x > canvas.width + 300) {
       this.reset();
     }
   }
@@ -261,7 +261,7 @@ class DataStream {
       ctx.font = `${c.size}px 'JetBrains Mono', monospace`;
       ctx.fillStyle = c.color;
       ctx.fillText(c.char, x, this.y);
-      x += c.size * 0.6;
+      x += c.size * 0.55;
     });
   }
 }

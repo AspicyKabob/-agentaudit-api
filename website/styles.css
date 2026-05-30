@@ -120,15 +120,15 @@ body::after {
 }
 
 .logo-a {
-  font-family: 'Playfair Display', 'Instrument Serif', Georgia, serif;
-  font-size: 28px;
-  font-weight: 800;
+  font-family: 'Archivo Black', sans-serif;
+  font-size: 26px;
+  font-weight: 400;
   line-height: 1;
   color: var(--text);
   display: inline-block;
   vertical-align: baseline;
   margin-right: -2px;
-  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
 .nav-links {
