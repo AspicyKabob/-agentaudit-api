@@ -574,30 +574,3 @@ document.querySelectorAll('a, button, .btn, .fw-tab, .code-tab').forEach(el => {
     cursorDot.classList.remove('hover');
   });
 });
-
-const counters = document.querySelectorAll('.counter');
-const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const target = parseInt(entry.target.dataset.target);
-      let current = 0;
-      const duration = 2000;
-      const step = target / (duration / 16);
-      
-      const updateCounter = () => {
-        current += step;
-        if (current < target) {
-          entry.target.textContent = Math.floor(current);
-          requestAnimationFrame(updateCounter);
-        } else {
-          entry.target.textContent = target;
-        }
-      };
-      
-      updateCounter();
-      counterObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.5 });
-
-counters.forEach(counter => counterObserver.observe(counter));
