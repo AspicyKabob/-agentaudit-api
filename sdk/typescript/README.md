@@ -101,3 +101,30 @@ const observer = new AgentAuditObserver({ apiKey: 'aa_key', crewName: 'My Crew' 
 ## License
 
 MIT
+
+---
+
+## Publishing (Maintainers Only)
+
+This package is published automatically via GitHub Actions when you push a version tag:
+
+### Prerequisites
+1. Create an [npm account](https://www.npmjs.com/signup)
+2. Enable 2FA on your npm account (required for publishing)
+3. Generate an Access Token: **npmjs.com → Access Tokens → Generate New Token → Granular Access Token**
+   - Select Packages & Scopes → Publish
+   - Select the scope `@agentaudit` and the package `sdk`
+4. Add the token to your GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**
+   - Name: `NPM_TOKEN`
+   - Value: your npm access token
+
+### Publish a New Version
+```bash
+# Update version in sdk/typescript/package.json
+git add sdk/typescript/package.json
+git commit -m "chore: bump TypeScript SDK to v1.0.1"
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+The `publish-typescript.yml` workflow will automatically build and publish to npm.

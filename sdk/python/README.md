@@ -109,3 +109,27 @@ Full API documentation: https://docs.agentaudit.io
 ## License
 
 MIT
+
+---
+
+## Publishing (Maintainers Only)
+
+This package is published automatically via GitHub Actions when you push a version tag:
+
+### Prerequisites
+1. Create a [PyPI account](https://pypi.org/account/register/)
+2. Generate an API token at [pypi.org/manage/account/token](https://pypi.org/manage/account/token)
+3. Add the token to your GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**
+   - Name: `PYPI_API_TOKEN`
+   - Value: your PyPI API token (starts with `pypi-`)
+
+### Publish a New Version
+```bash
+# Update version in sdk/python/setup.py
+git add sdk/python/setup.py
+git commit -m "chore: bump Python SDK to v1.0.1"
+git tag v1.0.1
+git push origin v1.0.1
+```
+
+The `publish-python.yml` workflow will automatically build and upload to PyPI.
