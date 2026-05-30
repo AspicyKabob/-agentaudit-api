@@ -219,69 +219,72 @@ bindAuthLinks();
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 
-let particles = [];
-const particleCount = 100;
+let streams = [];
+const streamCount = 15;
+const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
 
-class Particle {
+class DataStream {
   constructor() {
-    this.x = Math.random() * canvas.width;
-    this.y = Math.random() * canvas.height;
-    this.size = Math.random() * 2 + 0.5;
-    this.speedX = (Math.random() - 0.5) * 0.5;
-    this.speedY = (Math.random() - 0.5) * 0.5;
-    this.opacity = Math.random() * 0.5 + 0.1;
+    this.reset();
+  }
+
+  reset() {
+    this.y = Math.random() * (canvas.height * 0.6);
+    this.x = -200;
+    this.speed = 0.3 + Math.random() * 0.5;
+    this.length = 8 + Math.floor(Math.random() * 16);
+    this.chars = [];
+    for (let i = 0; i < this.length; i++) {
+      this.chars.push({
+        char: chars[Math.floor(Math.random() * chars.length)],
+        color: Math.random() > 0.9 ? '#dc2626' : 'rgba(161, 161, 170, 0.3)',
+        size: 10 + Math.floor(Math.random() * 4)
+      });
+    }
   }
 
   update() {
-    this.x += this.speedX;
-    this.y += this.speedY;
-    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+    this.x += this.speed;
+    if (this.x > canvas.width + 200) {
+      this.reset();
+    }
   }
 
   draw() {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(99, 102, 241, ${this.opacity})`;
-    ctx.fill();
+    let x = this.x;
+    this.chars.forEach(c => {
+      ctx.font = `${c.size}px 'JetBrains Mono', monospace`;
+      ctx.fillStyle = c.color;
+      ctx.fillText(c.char, x, this.y);
+      x += c.size * 0.6;
+    });
   }
 }
 
-function initParticles() {
-  particles = [];
-  for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+function initStreams() {
+  streams = [];
+  for (let i = 0; i < streamCount; i++) {
+    const s = new DataStream();
+    s.x = Math.random() * canvas.width;
+    streams.push(s);
+  }
 }
 
-function animateParticles() {
+function animateStreams() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => { p.update(); p.draw(); });
-  particles.forEach((a, i) => {
-    particles.slice(i + 1).forEach(b => {
-      const dx = a.x - b.x;
-      const dy = a.y - b.y;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      if (distance < 150) {
-        ctx.beginPath();
-        ctx.strokeStyle = `rgba(99, 102, 241, ${0.1 * (1 - distance / 150)})`;
-        ctx.lineWidth = 0.5;
-        ctx.moveTo(a.x, a.y);
-        ctx.lineTo(b.x, b.y);
-        ctx.stroke();
-      }
-    });
-  });
-  requestAnimationFrame(animateParticles);
+  streams.forEach(s => { s.update(); s.draw(); });
+  requestAnimationFrame(animateStreams);
 }
 
 resizeCanvas();
-initParticles();
-animateParticles();
-window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+initStreams();
+animateStreams();
+window.addEventListener('resize', () => { resizeCanvas(); initStreams(); });
 
 const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
 const observer = new IntersectionObserver(entries => {
