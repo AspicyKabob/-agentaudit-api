@@ -1041,6 +1041,15 @@ body::after {
   background: var(--bg-elevated);
   padding: 40px 32px;
   transition: background 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+.pack-card .btn {
+  margin-top: auto;
+  width: 100%;
+  justify-content: center;
 }
 
 .pack-card:hover {
