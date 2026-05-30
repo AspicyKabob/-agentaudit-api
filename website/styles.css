@@ -122,7 +122,7 @@ body::after {
 .logo-a {
   font-family: 'Inter', sans-serif;
   font-size: 24px;
-  font-weight: 900;
+  font-weight: 500;
   line-height: 1;
   color: var(--text);
   display: inline-block;
