@@ -85,16 +85,8 @@ body::before {
 .logo {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 0;
   text-decoration: none;
-  color: var(--text);
-}
-
-.logo-icon {
-  font-family: var(--font-serif);
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1;
   color: var(--text);
 }
 
@@ -102,9 +94,20 @@ body::before {
   font-family: var(--font-mono);
   font-size: 13px;
   font-weight: 400;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
   color: var(--text);
+  text-transform: lowercase;
+}
+
+.logo-a {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text);
+  display: inline-block;
+  vertical-align: baseline;
+  margin-right: -2px;
 }
 
 .nav-links {
