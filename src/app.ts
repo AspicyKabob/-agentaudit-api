@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './domains/auth/auth.routes';
@@ -40,7 +41,12 @@ export function createApp() {
 
   // Health check (outside rate limit so monitoring works)
   app.get('/health', (_req, res) => {
-    res.status(200).json({ status: 'ok', service: 'agentaudit-api', version: '1.1.0-trace' });
+    res.status(200).json({
+      status: 'ok',
+      service: 'agentaudit-api',
+      version: '1.1.0-trace',
+      commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
+    });
   });
 
   app.use('/docs', swaggerUiHandler, swaggerUiSetup);
@@ -78,11 +84,23 @@ export function createApp() {
     });
   });
 
-  app.use(express.static(path.join(__dirname, 'website'), { index: ['index.html'] }));
+  const websitePath = fs.existsSync(path.join(__dirname, 'website'))
+    ? path.join(__dirname, 'website')
+    : path.join(process.cwd(), 'website');
 
-  // 404 handler
-  app.use((_req, res) => {
-    res.status(404).json({ error: 'Not found' });
+  logger.info(`Serving static files from: ${websitePath}`);
+
+  app.use(express.static(websitePath, { index: ['index.html'] }));
+
+  // Health check (outside rate limit so monitoring works)
+  app.get('/health', (_req, res) => {
+    res.status(200).json({
+      status: 'ok',
+      service: 'agentaudit-api',
+      version: '1.1.0-trace',
+      commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
+      staticPath: websitePath,
+    });
   });
 
   // Global error handler
