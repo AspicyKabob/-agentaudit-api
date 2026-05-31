@@ -370,6 +370,8 @@ See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering:
 | `JWT_REFRESH_EXPIRATION` | Refresh token expiry | `7d` |
 | `API_KEY_SALT` | Salt for API key hashing | — |
 | `LOG_LEVEL` | Logging level | `info` |
+| `RESEND_API_KEY` | Resend API key for transactional email | — |
+| `RESEND_FROM_EMAIL` | Default from address for emails | `AgentAudit <noreply@agentaudit.io>` |
 | `STRIPE_SECRET_KEY` | Stripe secret (for billing) | — |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
 

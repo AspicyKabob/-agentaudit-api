@@ -5,6 +5,7 @@ import { logger } from '../../utils/logger';
 import { evaluateSentiment } from './sentiment-evaluator';
 import { evaluateCustomValidator } from './custom-validator';
 import { alertService } from '../alerts/alert.service';
+import { emailService } from '../../services/email.service';
 
 interface QueryOptions {
   action?: string;
@@ -35,7 +36,11 @@ export const auditService = {
       },
     });
 
-    // Create alerts for critical flags and deliver webhooks
+    // Create alerts for critical flags and deliver webhooks + emails
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { email: true },
+    });
     for (const flag of flags) {
       const severity = flag.startsWith('CRITICAL') ? 'critical' : 'warning';
       const alert = await prisma.alert.create({
@@ -47,8 +52,15 @@ export const auditService = {
           details: { action: data.action, agentId: data.agentId },
         },
       });
-      // Deliver webhook asynchronously (non-blocking)
+      // Deliver webhook and email asynchronously (non-blocking)
       alertService.deliverWebhook(alert).catch(() => {});
+      if (org?.email) {
+        emailService.sendAlert(org.email, {
+          severity,
+          message: `Compliance flag triggered: ${flag}`,
+          action: data.action,
+        }).catch(() => {});
+      }
     }
 
     // Increment API usage

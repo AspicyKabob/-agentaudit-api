@@ -101,6 +101,19 @@ export const config = convict({
     default: 'info',
     env: 'LOG_LEVEL',
   },
+  resendApiKey: {
+    doc: 'Resend API key for transactional email.',
+    format: String,
+    default: '',
+    env: 'RESEND_API_KEY',
+    sensitive: true,
+  },
+  resendFromEmail: {
+    doc: 'Default from address for Resend emails.',
+    format: String,
+    default: 'AgentAudit <noreply@agentaudit.io>',
+    env: 'RESEND_FROM_EMAIL',
+  },
 });
 
 config.validate({ allowed: 'strict' });

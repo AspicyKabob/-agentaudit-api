@@ -2,6 +2,7 @@ import { prisma } from '../../db/prisma';
 import { hashPassword, comparePassword } from '../../utils/password';
 import { signAccessToken, signRefreshToken } from '../../utils/token';
 import { generateApiKey, hashApiKey } from '../../utils/apiKey';
+import { emailService } from '../../services/email.service';
 
 export const authService = {
   async register(name: string, email: string, password: string) {
@@ -25,6 +26,8 @@ export const authService = {
         createdAt: true,
       },
     });
+
+    emailService.sendWelcome(organization.email, organization.name).catch(() => {});
 
     return organization;
   },
