@@ -11,7 +11,7 @@ npm install agentaudit-client
 ## Quick Start
 
 ```typescript
-import { AgentAudit } from '@agentaudit/sdk';
+import { AgentAudit } from 'agentaudit-client';
 
 const audit = new AgentAudit({
   apiKey: 'aa_your_key_here'
@@ -91,7 +91,7 @@ console.log(chain.descendants); // [task_start, task_end, agent_action, ...]
 The [CrewAI observer](../../integrations/crewai/) automatically manages trace IDs and parent span IDs:
 
 ```typescript
-import { AgentAuditObserver } from '@agentaudit/crewai';
+import { AgentAuditObserver } from 'agentaudit-client/crewai';
 
 const observer = new AgentAuditObserver({ apiKey: 'aa_key', crewName: 'My Crew' });
 // trace_id is generated automatically in on_crew_start
@@ -113,7 +113,7 @@ This package is published automatically via GitHub Actions when you push a versi
 2. Enable 2FA on your npm account (required for publishing)
 3. Generate an Access Token: **npmjs.com → Access Tokens → Generate New Token → Granular Access Token**
    - Select Packages & Scopes → Publish
-   - Select the scope `@agentaudit` and the package `sdk`
+   - Select the scope `agentaudit-client` and the package `crewai` (if publishing under scope)
 4. Add the token to your GitHub repo: **Settings → Secrets and variables → Actions → New repository secret**
    - Name: `NPM_TOKEN`
    - Value: your npm access token

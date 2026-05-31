@@ -51,6 +51,6 @@ curl https://YOUR_RAILWAY_URL/mcp/v1/schema
 ## Post-Deploy
 - [ ] Create your first org via the website
 - [ ] Generate an API key
-- [ ] Install the Python SDK: `pip install agentaudit`
+- [ ] Install the Python SDK: `pip install agentaudit-client`
 - [ ] Submit first audit log
 - [ ] Check the dashboard for logs

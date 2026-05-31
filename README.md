@@ -9,8 +9,8 @@
 [<img src="https://img.shields.io/badge/deploy-Railway-purple?style=flat-square">](https://railway.app/template/agentaudit)
 [<img src="https://img.shields.io/badge/status-online-brightgreen?style=flat-square">](https://agentaudit-api-production.up.railway.app/health)
 
-[<img src="https://img.shields.io/badge/Python_SDK-pip%20install%20agentaudit-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://pypi.org/project/agentaudit/)
-[<img src="https://img.shields.io/badge/TypeScript_SDK-npm%20i%20@agentaudit/sdk-3178C6?style=for-the-badge&logo=npm&logoColor=white">](https://www.npmjs.com/package/@agentaudit/sdk)
+[<img src="https://img.shields.io/badge/Python_SDK-pip%20install%20agentaudit--client-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://pypi.org/project/agentaudit-client/)
+[<img src="https://img.shields.io/badge/TypeScript_SDK-npm%20i%20agentaudit--client-3178C6?style=for-the-badge&logo=npm&logoColor=white">](https://www.npmjs.com/package/agentaudit-client)
 
 </div>
 
@@ -84,8 +84,8 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 - 🔌 **OpenAI** — Request/response interception
 
 ### DevEx
-- 🐍 **Python SDK** — `pip install agentaudit`
-- 📘 **TypeScript SDK** — `npm install @agentaudit/sdk`
+- 🐍 **Python SDK** — `pip install agentaudit-client`
+- 📘 **TypeScript SDK** — `npm install agentaudit-client`
 - 🐳 **Self-Hostable** — Docker, Railway, bare-metal
 - 🔑 **API Key + JWT** — Service-to-service + dashboard auth
 
@@ -170,7 +170,7 @@ npm run dev
 ### Python
 
 ```bash
-pip install agentaudit
+pip install agentaudit-client
 ```
 
 ```python
@@ -200,11 +200,11 @@ audit.log(
 ### TypeScript
 
 ```bash
-npm install @agentaudit/sdk
+npm install agentaudit-client
 ```
 
 ```typescript
-import { AgentAudit } from '@agentaudit/sdk';
+import { AgentAudit } from 'agentaudit-client';
 
 const audit = new AgentAudit({ apiKey: 'aa_your_key_here' });
 

@@ -163,7 +163,7 @@
 
   <script src="script.js"></script>
   <script>
-    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://api.agentaudit.io';
+    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://agentaudit-api-production.up.railway.app';
     function api(path) { return `${API_BASE}${path}`; }
     function getToken() { return localStorage.getItem('aa_token'); }
     if (!getToken()) { window.location.href = '/'; }

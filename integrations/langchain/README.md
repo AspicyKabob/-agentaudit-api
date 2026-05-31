@@ -5,7 +5,7 @@ Drop-in callback handler for automatic audit logging with LangChain.
 ## Installation
 
 ```bash
-pip install agentaudit[langchain]
+pip install agentaudit-client[langchain]
 ```
 
 ## Usage

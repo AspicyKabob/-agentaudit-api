@@ -331,7 +331,7 @@ audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span
 
 <span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code>
 
-<code class="tab-content" data-tab="curl"><span class="code-kw">curl</span> -X POST https://api.agentaudit.io/api/v1/audit-logs \
+<code class="tab-content" data-tab="curl"><span class="code-kw">curl</span> -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d '{

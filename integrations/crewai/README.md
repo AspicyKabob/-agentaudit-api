@@ -5,7 +5,7 @@ Real-time guardrails and automatic audit logging for CrewAI task execution.
 ## Installation
 
 ```bash
-pip install agentaudit
+pip install agentaudit-client
 ```
 
 ## Usage — Guardrails Enabled (Default)

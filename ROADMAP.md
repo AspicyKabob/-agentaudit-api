@@ -54,8 +54,8 @@ What's Done:
 | Feature | Status | Why It Matters |
 |---------|--------|---------------|
 | OpenAPI/Swagger Documentation | ✅ Live at `/docs` | Interactive "Try it" buttons reduce time-to-first-call |
-| Python SDK | ✅ `pip install agentaudit` | Drop-in integration for the #1 AI language |
-| TypeScript SDK | ✅ `npm install @agentaudit/sdk` | Native support for Node.js AI applications |
+| Python SDK | ✅ `pip install agentaudit-client` | Drop-in integration for the #1 AI language |
+| TypeScript SDK | ✅ `npm install agentaudit-client` | Native support for Node.js AI applications |
 | CrewAI Observer | ✅ With trace tracking + guardrails | Automatic task-level auditing for CrewAI agents |
 | LangChain Callback Handler | 🔄 Planned | `AgentAuditCallbackHandler(api_key="...")` — zero config logging |
 | Postman Collection | 🔄 Planned | One-click import for API evaluators |
