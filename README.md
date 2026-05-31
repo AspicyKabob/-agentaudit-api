@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛡️ AgentAudit API
+# AgentAudit API
 
 **Real-time guardrails for AI agents. Block PII, policy violations, and risky outputs before they reach users.**
 
@@ -16,7 +16,7 @@
 
 ---
 
-## ✨ Why AgentAudit?
+## Why AgentAudit?
 
 Most AI compliance tools **log violations after they happen**. AgentAudit **blocks them in real-time** — before your agent's output ever reaches a user.
 
@@ -29,7 +29,7 @@ Most AI compliance tools **log violations after they happen**. AgentAudit **bloc
 
 ---
 
-## 🚀 Live Demo
+## Live Demo
 
 **API Base URL:** `https://agentaudit-api-production.up.railway.app`
 
@@ -41,7 +41,7 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 <div align="center">
 
@@ -68,30 +68,30 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 
 ---
 
-## 🎯 Features
+## Features
 
 ### Core
-- 🚫 **Real-Time Guardrails** — Block violations before delivery, not after
-- 🔗 **Agent-to-Agent Audit Trails** — Distributed tracing with `traceId` + `parentSpanId`
-- 📊 **6 Compliance Rule Types** — PII, keywords, rate limits, regex, sentiment, custom validators
-- 🔔 **Webhook Alerts** — Async delivery to your endpoint on every violation
-- 📈 **Compliance Reports** — Export JSON/CSV for any date range
+- **Real-Time Guardrails** — Block violations before delivery, not after
+- **Agent-to-Agent Audit Trails** — Distributed tracing with `traceId` + `parentSpanId`
+- **6 Compliance Rule Types** — PII, keywords, rate limits, regex, sentiment, custom validators
+- **Webhook Alerts** — Async delivery to your endpoint on every violation
+- **Compliance Reports** — Export JSON/CSV for any date range
 
 ### Integrations
-- 🤖 **CrewAI** — Drop-in `AgentAuditObserver` with `guard=True`
-- 🔗 **LangChain** — Callback integration
-- 🤖 **AutoGPT** — Compatible via API
-- 🔌 **OpenAI** — Request/response interception
+- **CrewAI** — Drop-in `AgentAuditObserver` with `guard=True`
+- **LangChain** — Callback integration
+- **AutoGPT** — Compatible via API
+- **OpenAI** — Request/response interception
 
 ### DevEx
-- 🐍 **Python SDK** — `pip install agentaudit-client`
-- 📘 **TypeScript SDK** — `npm install agentaudit-client`
-- 🐳 **Self-Hostable** — Docker, Railway, bare-metal
-- 🔑 **API Key + JWT** — Service-to-service + dashboard auth
+- **Python SDK** — `pip install agentaudit-client`
+- **TypeScript SDK** — `npm install agentaudit-client`
+- **Self-Hostable** — Docker, Railway, bare-metal
+- **API Key + JWT** — Service-to-service + dashboard auth
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
@@ -124,7 +124,7 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 20+
@@ -165,7 +165,7 @@ npm run dev
 
 ---
 
-## 📦 SDKs
+## SDKs
 
 ### Python
 
@@ -228,7 +228,7 @@ await audit.log({
 
 ---
 
-## 🤖 CrewAI Integration
+## CrewAI Integration
 
 ```python
 from crewai import Crew, Agent, Task
@@ -253,7 +253,7 @@ result = crew.kickoff()
 
 ---
 
-## 🛡️ Compliance Rules
+## Compliance Rules
 
 | Rule Type | What It Does | Example |
 |-----------|--------------|---------|
@@ -266,13 +266,13 @@ result = crew.kickoff()
 
 ### Pre-Built Rule Packs
 
-- 🏥 **Healthcare (HIPAA)** — SSN, PHI, Medical IDs, HIPAA keywords
-- 💰 **Finance (SOX/PCI)** — Credit cards, bank accounts, insider trading, SOX keywords
-- 🔒 **Data Protection (GDPR/CCPA)** — Emails, phone numbers, addresses, GDPR keywords
+- **Healthcare (HIPAA)** — SSN, PHI, Medical IDs, HIPAA keywords
+- **Finance (SOX/PCI)** — Credit cards, bank accounts, insider trading, SOX keywords
+- **Data Protection (GDPR/CCPA)** — Emails, phone numbers, addresses, GDPR keywords
 
 ---
 
-## 📚 API Reference
+## API Reference
 
 ### Authentication
 
@@ -333,7 +333,7 @@ curl -X GET "https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/
 
 ---
 
-## 🐳 Self-Hosting
+## Self-Hosting
 
 ### Docker Compose (Recommended)
 
@@ -358,7 +358,7 @@ See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering:
 
 ---
 
-## 🔧 Environment Variables
+## Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -375,7 +375,7 @@ See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -390,7 +390,7 @@ npm run test:watch
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
@@ -417,7 +417,7 @@ git push origin feature/my-feature
 
 ---
 
-## 🔒 Security
+## Security
 
 - API keys are hashed with bcrypt + salt
 - JWT tokens with configurable expiration
@@ -429,7 +429,7 @@ Report security issues privately to: security@agentaudit.dev
 
 ---
 
-## 📜 License
+## License
 
 MIT © [AgentAudit](https://github.com/AspicyKabob/-agentaudit-api)
 
@@ -437,8 +437,8 @@ MIT © [AgentAudit](https://github.com/AspicyKabob/-agentaudit-api)
 
 <div align="center">
 
-**[🌐 Website](https://agentaudit-api-production.up.railway.app/) · [📖 Docs](https://agentaudit-api-production.up.railway.app/) · [🐦 Twitter](https://twitter.com/agentaudit) · [💬 Discord](https://discord.gg/agentaudit)**
+**[Website](https://agentaudit-api-production.up.railway.app/) · [Docs](https://agentaudit-api-production.up.railway.app/) · [Twitter](https://twitter.com/agentaudit) · [Discord](https://discord.gg/agentaudit)**
 
-Built with ❤️ for the AI agent community
+Built for the AI agent community
 
 </div>
