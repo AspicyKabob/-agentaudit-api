@@ -29,13 +29,13 @@ export const subscriptionService = {
         customer = stripeCustomer;
       }
 
-      const baseUrl = 'http://localhost:8080';
+      const baseUrl = config.get('frontendUrl').replace(/\/$/, '');
       const session = await stripe.checkout.sessions.create({
         customer: customer.id,
         line_items: [{ price: priceId, quantity: 1 }],
         mode: 'subscription',
-        success_url: `${baseUrl}/billing?success=true`,
-        cancel_url: `${baseUrl}/pricing?canceled=true`,
+        success_url: `${baseUrl}/dashboard.html?billing=success`,
+        cancel_url: `${baseUrl}/index.html#pricing?billing=canceled`,
         subscription_data: { metadata: { organizationId } },
       });
 
@@ -154,10 +154,10 @@ export const subscriptionService = {
       throw new Error('No Stripe customer found');
     }
 
-    const baseUrl = 'http://localhost:8080';
+    const baseUrl = config.get('frontendUrl').replace(/\/$/, '');
     const session = await stripe.billingPortal.sessions.create({
       customer: org.stripeCustomerId,
-      return_url: `${baseUrl}/billing`,
+      return_url: `${baseUrl}/dashboard.html`,
     });
 
     return session;

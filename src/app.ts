@@ -46,6 +46,8 @@ export function createApp() {
       service: 'agentaudit-api',
       version: '1.1.0-trace',
       commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
+      emailEnabled: !!config.get('resendApiKey'),
+      frontendUrl: config.get('frontendUrl'),
     });
   });
 
