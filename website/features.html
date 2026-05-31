@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features — AgentAudit</title>
+  <meta name="description" content="Deep dive into AgentAudit's features: real-time guardrails, audit trails, compliance monitoring, and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .features-page { padding-top: 80px; }
+    .feature-detail {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 80px 40px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      z-index: 2;
+    }
+    .feature-detail:last-child { border-bottom: none; }
+    .feature-detail .section-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      color: var(--accent);
+    }
+    .feature-detail h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 400;
+      line-height: 1.2;
+      margin-bottom: 24px;
+    }
+    .feature-detail h2 .gradient-text {
+      background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .feature-detail p {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 20px;
+      font-family: var(--font-sans);
+    }
+    .feature-detail ul {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0;
+    }
+    .feature-detail ul li {
+      padding: 8px 0;
+      padding-left: 28px;
+      position: relative;
+      font-size: 16px;
+      color: var(--text-secondary);
+      font-family: var(--font-sans);
+    }
+    .feature-detail ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 14px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .feature-detail .code-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 24px 0;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+    .feature-detail .code-block .comment { color: var(--text-muted); }
+    .feature-detail .code-block .kw { color: #c084fc; }
+    .feature-detail .code-block .str { color: #86efac; }
+    .feature-detail .code-block .fn { color: #60a5fa; }
+    .feature-detail .cta-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .feature-detail .btn-glass {
+      padding: 12px 24px;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: var(--font-sans);
+      background: transparent;
+      cursor: pointer;
+    }
+    .feature-detail .btn-glass:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .feature-detail .btn-primary {
+      padding: 12px 24px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+    .feature-detail .btn-primary:hover { background: #b91c1c; }
+    .feature-hero {
+      text-align: center;
+      padding: 120px 40px 60px;
+      position: relative;
+      z-index: 2;
+    }
+    .feature-hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .feature-hero p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      font-family: var(--font-sans);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-glass">
+      <div class="container nav-inner">
+        <a href="index.html" class="logo">
+          <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
+        </a>
+        <div class="nav-links">
+          <a href="index.html#features" class="nav-link">Features</a>
+          <a href="index.html#demo" class="nav-link">Demo</a>
+          <a href="index.html#pricing" class="nav-link">Pricing</a>
+          <a href="trace-visualizer.html" class="nav-link">Trace Visualizer</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" class="nav-link nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+        <div class="nav-auth">
+          <a href="/dashboard.html" class="btn btn-glass btn-sm">Log In</a>
+          <a href="index.html#signup" class="btn btn-primary btn-sm">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="features-page">
+    <div class="feature-hero">
+      <span class="section-badge">Features</span>
+      <h1>Everything you need for<br><span class="gradient-text">agent compliance</span></h1>
+      <p>Built for teams that take AI governance seriously. Here's how each feature works and why it matters.</p>
+    </div>
+
+    <section id="audit-trails" class="feature-detail">
+      <span class="section-badge">01 — Audit Trails</span>
+      <h2>Agent-to-Agent <span class="gradient-text">Audit Trails</span></h2>
+      <p>When you run a multi-agent system, you don't just have one AI making decisions — you have a whole team. A CrewAI crew might have a researcher, a writer, and an editor. A LangChain chain might call three different tools in sequence. If something goes wrong, you need to know <em>which</em> agent did <em>what</em> at <em>which</em> step.</p>
+      <p>AgentAudit gives every multi-agent workflow a <strong>trace ID</strong>. Every action gets logged with a <strong>parent span ID</strong> linking it to the step that triggered it. The result is a complete tree you can visualize, query, and export.</p>
+      <ul>
+        <li>Automatic trace ID generation per workflow</li>
+        <li>Parent-child span linking across agents</li>
+        <li>Visual tree view in the Trace Visualizer</li>
+        <li>Export full traces as JSON for compliance audits</li>
+      </ul>
+      <div class="code-block">
+<span class="comment"># Each agent action links back to the parent</span>
+audit.log(
+    action=<span class="str">"crewai_task_end"</span>,
+    trace_id=<span class="str">"trace-abc-123"</span>,
+    parent_span_id=<span class="str">"log-parent-456"</span>,
+    response=<span class="str">"Task completed"</span>
+)
+      </div>
+      <div class="cta-row">
+        <a href="trace-visualizer.html" class="btn-primary">Try Trace Visualizer</a>
+        <a href="/docs" class="btn-glass">API Reference</a>
+      </div>
+    </section>
+
+    <section id="guardrails" class="feature-detail">
+      <span class="section-badge">02 — Guardrails</span>
+      <h2>Real-Time <span class="gradient-text">Guardrails</span></h2>
+      <p>Most compliance tools work like a security camera: they record the violation <em>after</em> it happens. AgentAudit works like a security guard: it stops the violation <em>before</em> it reaches the user.</p>
+      <p>When an agent generates output, you send it through the guardrail endpoint. In under 50ms, AgentAudit checks it against your compliance rules — PII detection, forbidden keywords, regex patterns, sentiment thresholds, custom validators. If a violation is found, the output is blocked and you get a detailed report of what was caught and why.</p>
+      <ul>
+        <li>Sub-50ms latency on every guardrail check</li>
+        <li>PII detection for SSN, email, phone, credit cards</li>
+        <li>Custom keyword and regex rule matching</li>
+        <li>Sentiment analysis with AFINN-165 dictionary</li>
+        <li>Custom JavaScript validators with sandboxed execution</li>
+      </ul>
+      <div class="code-block">
+<span class="comment"># Block violations before delivery</span>
+result = audit.guardrail(
+    action=<span class="str">"prompt_submitted"</span>,
+    prompt=<span class="str">"User: My SSN is 123-45-6789"</span>,
+    response=<span class="str">"Here is your account info..."</span>
+)
+
+<span class="kw">if</span> <span class="kw">not</span> result.allowed:
+    <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">f"Blocked: {result.violations}"</span>)
+      </div>
+      <div class="cta-row">
+        <a href="index.html#demo" class="btn-primary">Try Live Demo</a>
+        <a href="/docs" class="btn-glass">Guardrail API</a>
+      </div>
+    </section>
+
+    <section id="alerts" class="feature-detail">
+      <span class="section-badge">03 — Alerts</span>
+      <h2>Instant Blocking <span class="gradient-text">+ Alerts</span></h2>
+      <p>Blocking a violation is only half the battle. You also need to know it happened, who was affected, and how severe it was. AgentAudit sends real-time alerts on every violation with full context.</p>
+      <p>Alerts include the triggering action, the compliance rules that matched, the severity level (warning vs. critical), and the raw input/output that caused the flag. You can route these to Slack, email, or any webhook endpoint. Alerts are also stored in PostgreSQL for historical analysis and reporting.</p>
+      <ul>
+        <li>Real-time webhook notifications on every violation</li>
+        <li>Severity classification: warning vs. critical</li>
+        <li>Slack, email, and custom webhook integrations</li>
+        <li>Historical alert log with resolution tracking</li>
+      </ul>
+      <div class="cta-row">
+        <a href="/docs" class="btn-primary">Alert API Docs</a>
+        <a href="index.html#signup" class="btn-glass">Set Up Notifications</a>
+      </div>
+    </section>
+
+    <section id="reports" class="feature-detail">
+      <span class="section-badge">04 — Reports</span>
+      <h2>One-Click <span class="gradient-text">Reports</span></h2>
+      <p>When the auditor shows up, you need proof. AgentAudit generates audit-ready reports in CSV or JSON format for any date range, any agent, or any compliance rule type.</p>
+      <p>Reports include every log entry with its full metadata, compliance flags, trace IDs, and timestamps. You can filter by agent, action type, severity, date range, or custom metadata fields. Export in seconds, not hours.</p>
+      <ul>
+        <li>CSV and JSON export formats</li>
+        <li>Filter by agent, action, rule type, or date range</li>
+        <li>Full metadata and compliance flag inclusion</li>
+        <li>Programmatic report generation via API</li>
+      </ul>
+      <div class="cta-row">
+        <a href="/docs" class="btn-primary">Reports API</a>
+        <a href="dashboard.html" class="btn-glass">Generate in Dashboard</a>
+      </div>
+    </section>
+
+    <section id="security" class="feature-detail">
+      <span class="section-badge">05 — Security</span>
+      <h2>Enterprise <span class="gradient-text">Security</span></h2>
+      <p>Compliance tools handle sensitive data, so security isn't a feature — it's the foundation. AgentAudit is built on PostgreSQL with row-level organization isolation, meaning your data never mixes with another tenant's.</p>
+      <p>API keys are hashed with bcrypt and a unique salt. JWT tokens have configurable expiration. Rate limiting protects auth and audit endpoints from brute force. Custom JavaScript validators run in sandboxed contexts with 100ms timeouts to prevent ReDoS and infinite loops.</p>
+      <ul>
+        <li>PostgreSQL with row-level organization isolation</li>
+        <li>bcrypt-hashed API keys with unique salt</li>
+        <li>JWT authentication with configurable expiry</li>
+        <li>Rate limiting on all sensitive endpoints</li>
+        <li>Sandboxed custom validators (vm.runInNewContext)</li>
+        <li>500-character regex limit for ReDoS protection</li>
+      </ul>
+      <div class="cta-row">
+        <a href="https://github.com/AspicyKabob/-agentaudit-api#-security" target="_blank" class="btn-primary">Security Details</a>
+        <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/docs/self-hosting.md" target="_blank" class="btn-glass">Self-Hosting Guide</a>
+      </div>
+    </section>
+
+    <section id="mcp" class="feature-detail">
+      <span class="section-badge">06 — MCP</span>
+      <h2>MCP <span class="gradient-text">Compatible</span></h2>
+      <p>The Model Context Protocol (MCP) is becoming the standard for how AI agents communicate structured data. AgentAudit supports MCP out of the box, so your agents can self-report with machine-readable schemas.</p>
+      <p>Instead of manually wrapping every agent action in logging code, you configure the agent to emit MCP-compliant events. AgentAudit ingests them, validates them against your compliance rules, and stores them with full trace context. It's observability built into the protocol layer.</p>
+      <ul>
+        <li>Native MCP event ingestion</li>
+        <li>Structured, machine-readable log schemas</li>
+        <li>Automatic compliance validation on ingest</li>
+        <li>Works with LangChain, CrewAI, and custom agents</li>
+      </ul>
+      <div class="cta-row">
+        <a href="https://github.com/AspicyKabob/-agentaudit-api#-compliance-rules" target="_blank" class="btn-primary">Compliance Rules</a>
+        <a href="/docs" class="btn-glass">API Reference</a>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo">
+            <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
+          </div>
+          <p>The audit layer AI agents desperately need. Built for the $47B agent economy.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>
+            <a href="#" aria-label="Discord"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Product</h4>
+          <a href="index.html#features">Features</a>
+          <a href="index.html#pricing">Pricing</a>
+          <a href="/docs">Documentation</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/docs/self-hosting.md" target="_blank">Self-Host</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/commits/main" target="_blank">Changelog</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
+        </div>
+        <div class="footer-links">
+          <h4>Developers</h4>
+          <a href="/docs">API Reference</a>
+          <a href="https://pypi.org/project/agentaudit-client/" target="_blank">Python SDK</a>
+          <a href="https://www.npmjs.com/package/agentaudit-client" target="_blank">TypeScript SDK</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank">GitHub</a>
+          <a href="/health">Status</a>
+        </div>
+        <div class="footer-links">
+          <h4>Company</h4>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/ROADMAP.md" target="_blank">Blog</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank">About</a>
+          <a href="mailto:support@agentaudit.io?subject=Careers Inquiry">Careers</a>
+          <a href="mailto:support@agentaudit.io">Email support</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/LICENSE" target="_blank">Legal</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 AgentAudit. All rights reserved. Built with care for the agent economy.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
