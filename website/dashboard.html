@@ -4,287 +4,494 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard — AgentAudit</title>
-  <meta name="description" content="AgentAudit Dashboard — manage agents, compliance rules, audit logs, and billing.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://agentaudit-api-production.up.railway.app/dashboard.html">
-  <meta property="og:title" content="Dashboard — AgentAudit">
-  <meta property="og:description" content="Manage agents, compliance rules, audit logs, and billing.">
-  <meta property="og:image" content="https://agentaudit-api-production.up.railway.app/docs/assets/landing-hero.png">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Dashboard — AgentAudit">
-  <meta name="twitter:description" content="Manage agents, compliance rules, audit logs, and billing.">
-  <meta name="twitter:image" content="https://agentaudit-api-production.up.railway.app/docs/assets/landing-hero.png">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%230c0c0c'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-family='Georgia,serif' font-size='60' font-weight='bold' font-style='italic' fill='%23dc2626'%3EA%3C/text%3E%3C/svg%3E">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    .dashboard { padding: 100px 0 40px; }
+    /* ── Layout ── */
+    .dashboard-wrap {
+      padding: 100px 0 60px;
+      min-height: 100vh;
+    }
     .dashboard-header {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: space-between;
       margin-bottom: 40px;
+      gap: 16px;
     }
-    .dashboard-header h1 { font-size: 32px; font-weight: 700; }
-    .dashboard-grid {
+    .dashboard-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .dashboard-org {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+    .dashboard-plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      background: rgba(220, 38, 38, 0.08);
+    }
+    .dashboard-plan-badge.plan-pro   { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.08); }
+    .dashboard-plan-badge.plan-business { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.08); }
+
+    /* ── Stat cards ── */
+    .stat-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 40px;
+      gap: 16px;
+      margin-bottom: 32px;
     }
     .stat-card {
       background: var(--bg-elevated);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 12px;
       padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s;
     }
-    .stat-card h3 {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-bottom: 8px;
+    .stat-card:hover { border-color: var(--border-strong); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(220,38,38,0.3), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
     }
-    .stat-card .value {
-      font-size: 28px;
-      font-weight: 700;
+    .stat-card:hover::before { opacity: 1; }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
       color: var(--text);
+      letter-spacing: -1px;
+      line-height: 1;
     }
+    .stat-value.accent { color: var(--accent); }
+
+    /* ── Panels ── */
     .panel {
       background: var(--bg-elevated);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 24px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 20px;
     }
     .panel-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
     }
-    .panel-header h2 { font-size: 18px; font-weight: 600; }
-    .api-key-row {
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.2px;
+    }
+    .panel-body { padding: 0; }
+
+    /* ── API Keys ── */
+    .key-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 0;
+      padding: 16px 24px;
       border-bottom: 1px solid var(--border);
+      gap: 16px;
+      transition: background 0.15s;
     }
-    .api-key-row:last-child { border: none; }
-    .api-key-info { display: flex; flex-direction: column; gap: 2px; }
-    .api-key-name { font-weight: 500; font-size: 14px; }
-    .api-key-meta { font-size: 12px; color: var(--text-muted); }
-    .api-key-value {
-      font-family: var(--font-mono);
-      font-size: 13px;
-      background: var(--bg);
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-    }
+    .key-row:last-child { border: none; }
+    .key-row:hover { background: rgba(255,255,255,0.02); }
+    .key-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .key-name { font-size: 14px; font-weight: 500; color: var(--text); }
+    .key-meta { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+    .key-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ── Log rows ── */
     .log-row {
       display: grid;
-      grid-template-columns: 180px 1fr 120px 100px;
+      grid-template-columns: 160px 1fr 130px 90px;
       gap: 16px;
-      padding: 12px 0;
+      padding: 14px 24px;
       border-bottom: 1px solid var(--border);
       font-size: 13px;
       align-items: center;
+      transition: background 0.15s;
     }
     .log-row:last-child { border: none; }
-    .log-time { color: var(--text-muted); font-family: var(--font-mono); }
-    .log-action { color: var(--text); }
-    .log-agent { color: var(--text-secondary); }
-    .log-status { text-align: right; }
+    .log-row:hover { background: rgba(255,255,255,0.02); }
+    .log-time  { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+    .log-action { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .log-agent { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+    .log-status { text-align: right; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; }
     .status-clean { color: var(--success); }
-    .status-flag { color: #f59e0b; }
+    .status-flag  { color: #f59e0b; }
+
+    /* ── Empty state ── */
     .empty-state {
+      padding: 48px 24px;
       text-align: center;
-      padding: 40px;
       color: var(--text-muted);
       font-size: 14px;
+      line-height: 1.6;
     }
+    .empty-state p { margin-top: 8px; }
+
+    /* ── API key modal ── */
+    .key-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .key-modal-overlay.active { display: flex; }
+    .key-modal {
+      background: #0f1117;
+      border: 1px solid var(--border-strong);
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 460px;
+      position: relative;
+    }
+    .key-modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .key-modal p  { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+    .key-modal-close {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; color: var(--text-muted);
+      font-size: 24px; cursor: pointer; line-height: 1;
+    }
+    .key-modal-close:hover { color: var(--text); }
+    .new-key-display {
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--accent);
+      word-break: break-all;
+      margin-bottom: 16px;
+    }
+    .key-warning {
+      font-size: 12px;
+      color: #f59e0b;
+      margin-bottom: 20px;
+      padding: 10px 14px;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 8px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 500; color: #a1a1aa; margin-bottom: 6px; }
+    .form-group input {
+      width: 100%; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-strong); border-radius: 8px;
+      padding: 10px 14px; color: var(--text); font-size: 14px;
+      outline: none; box-sizing: border-box; transition: border-color 0.2s;
+    }
+    .form-group input:focus { border-color: var(--accent); }
+    .form-group input::placeholder { color: #52525b; }
+
     @media (max-width: 900px) {
-      .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
-      .log-row { grid-template-columns: 1fr; gap: 4px; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .log-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .log-agent { display: none; }
+    }
+    @media (max-width: 500px) {
+      .stat-grid { grid-template-columns: 1fr 1fr; }
+      .dashboard-org { font-size: 22px; }
     }
   </style>
 </head>
 <body>
+  <canvas id="bg-canvas"></canvas>
+
   <nav class="nav">
     <div class="nav-glass">
       <div class="container nav-inner">
         <a href="/" class="logo">
-          <div class="logo-icon">
-            <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="url(#logoGrad)"/><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M9 12l2 2 4-4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><defs><linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
-          </div>
-          <span class="logo-text">AgentAudit</span>
+          <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
         </a>
         <div class="nav-links">
           <a href="/" class="nav-link">Home</a>
           <a href="/docs" class="nav-link">Docs</a>
+          <a href="trace-visualizer.html" class="nav-link">Trace Visualizer</a>
         </div>
         <div class="nav-auth" id="nav-auth"></div>
       </div>
     </div>
   </nav>
 
-  <div class="container dashboard">
+  <div class="container dashboard-wrap">
     <div class="dashboard-header">
-      <h1>Dashboard</h1>
-      <span class="nav-user-email" id="org-email"></span>
+      <div>
+        <div class="dashboard-title">Dashboard</div>
+        <div class="dashboard-org" id="org-name">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span class="dashboard-plan-badge" id="plan-badge">Free</span>
+        <button class="btn btn-primary btn-sm" id="btn-upgrade" style="display:none">Upgrade</button>
+      </div>
     </div>
 
-    <div class="dashboard-grid">
+    <div class="stat-grid">
       <div class="stat-card">
-        <h3>Total Audit Logs</h3>
-        <div class="value" id="stat-logs">—</div>
+        <div class="stat-label">Audit Logs</div>
+        <div class="stat-value" id="stat-logs">—</div>
       </div>
       <div class="stat-card">
-        <h3>Agents</h3>
-        <div class="value" id="stat-agents">—</div>
+        <div class="stat-label">Agents</div>
+        <div class="stat-value" id="stat-agents">—</div>
       </div>
       <div class="stat-card">
-        <h3>API Calls (Month)</h3>
-        <div class="value" id="stat-api">—</div>
+        <div class="stat-label">API Calls (Month)</div>
+        <div class="stat-value" id="stat-api">—</div>
       </div>
       <div class="stat-card">
-        <h3>Plan</h3>
-        <div class="value" id="stat-plan">—</div>
+        <div class="stat-label">API Keys</div>
+        <div class="stat-value accent" id="stat-keys">—</div>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <h2>API Keys</h2>
+        <span class="panel-title">API Keys</span>
         <button class="btn btn-primary btn-sm" id="btn-create-key">+ New Key</button>
       </div>
-      <div id="api-keys-list"><div class="empty-state">Loading...</div></div>
+      <div class="panel-body" id="api-keys-list">
+        <div class="empty-state">Loading...</div>
+      </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
-        <h2>Recent Audit Logs</h2>
-        <a href="/docs" class="btn btn-glass btn-sm">View All</a>
+        <span class="panel-title">Recent Audit Logs</span>
+        <a href="/docs" class="btn btn-glass btn-sm">View Docs</a>
       </div>
-      <div id="audit-logs-list"><div class="empty-state">Loading...</div></div>
+      <div class="panel-body" id="audit-logs-list">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New key modal -->
+  <div class="key-modal-overlay" id="key-modal">
+    <div class="key-modal">
+      <button class="key-modal-close" id="key-modal-close">&times;</button>
+      <div id="key-modal-create">
+        <h3>New API Key</h3>
+        <p>Give this key a name so you can identify it later.</p>
+        <div class="form-group">
+          <label for="key-name-input">Key name</label>
+          <input id="key-name-input" type="text" placeholder="e.g. Production Agent" />
+        </div>
+        <button class="btn btn-primary btn-full" id="key-modal-submit">Create Key</button>
+      </div>
+      <div id="key-modal-result" style="display:none">
+        <h3>Key Created</h3>
+        <p>Copy this now — it won't be shown again.</p>
+        <div class="new-key-display" id="new-key-value"></div>
+        <div class="key-warning">Store this somewhere safe. You cannot recover it.</div>
+        <button class="btn btn-primary btn-full" id="key-modal-copy">Copy Key</button>
+      </div>
     </div>
   </div>
 
   <script src="script.js"></script>
   <script>
-    const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://agentaudit-api-production.up.railway.app';
-    function api(path) { return `${API_BASE}${path}`; }
-    function getToken() { return localStorage.getItem('aa_token'); }
-    if (!getToken()) { window.location.href = '/'; }
+    if (!getToken()) window.location.href = '/';
 
-    async function apiCall(method, path, body) {
-      const opts = { method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` } };
-      if (body) opts.body = JSON.stringify(body);
-      const res = await fetch(api(path), opts);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      return data;
-    }
-
-    function showToast(message, type = 'info') {
-      const existing = document.querySelector('.toast');
-      if (existing) existing.remove();
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.textContent = message;
-      document.body.appendChild(toast);
-      requestAnimationFrame(() => toast.classList.add('show'));
-      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
-    }
-
-    async function loadDashboard() {
-      try {
-        const me = await apiCall('GET', '/api/v1/auth/me');
-        document.getElementById('org-email').textContent = me.email;
-        document.getElementById('stat-plan').textContent = me.plan.charAt(0).toUpperCase() + me.plan.slice(1);
-        document.getElementById('stat-api').textContent = me.apiUsed.toLocaleString();
-      } catch (err) {
-        if (err.message.includes('401')) { clearToken(); window.location.href = '/'; }
-      }
-
-      try {
-        const agents = await apiCall('GET', '/api/v1/agents');
-        document.getElementById('stat-agents').textContent = Array.isArray(agents) ? agents.length : '0';
-      } catch { document.getElementById('stat-agents').textContent = '0'; }
-
-      try {
-        const logs = await apiCall('GET', '/api/v1/audit-logs?limit=5');
-        const list = document.getElementById('audit-logs-list');
-        if (logs.data && logs.data.length) {
-          document.getElementById('stat-logs').textContent = logs.pagination?.total?.toLocaleString() || logs.data.length;
-          list.innerHTML = logs.data.map(l => `
-            <div class="log-row">
-              <span class="log-time">${new Date(l.createdAt).toLocaleString()}</span>
-              <span class="log-action">${l.action}</span>
-              <span class="log-agent">${l.agentId ? l.agentId.slice(0, 8) : '—'}</span>
-              <span class="log-status ${l.complianceFlags?.length ? 'status-flag' : 'status-clean'}">${l.complianceFlags?.length ? '⚠ Flagged' : '✓ Clean'}</span>
-            </div>`).join('');
-        } else {
-          list.innerHTML = '<div class="empty-state">No audit logs yet. Integrate the SDK to start logging.</div>';
-          document.getElementById('stat-logs').textContent = '0';
-        }
-      } catch {
-        document.getElementById('audit-logs-list').innerHTML = '<div class="empty-state">Unable to load logs.</div>';
-      }
-
-      try {
-        const keys = await apiCall('GET', '/api/v1/auth/api-keys');
-        const list = document.getElementById('api-keys-list');
-        if (keys.length) {
-          list.innerHTML = keys.map(k => `
-            <div class="api-key-row" data-id="${k.id}">
-              <div class="api-key-info">
-                <span class="api-key-name">${k.name}</span>
-                <span class="api-key-meta">Created ${new Date(k.createdAt).toLocaleDateString()}</span>
-              </div>
-              <button class="btn btn-secondary btn-sm" onclick="revokeKey('${k.id}')">Revoke</button>
-            </div>`).join('');
-        } else {
-          list.innerHTML = '<div class="empty-state">No API keys. Create one to integrate your agents.</div>';
-        }
-      } catch {
-        document.getElementById('api-keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>';
-      }
-    }
-
-    document.getElementById('btn-create-key')?.addEventListener('click', async () => {
-      const name = prompt('Name for this API key:');
-      if (!name) return;
-      try {
-        const data = await apiCall('POST', '/api/v1/auth/api-keys', { name });
-        showToast(`Key created! Copy it now: ${data.key}`, 'success');
-        loadDashboard();
-      } catch (err) { showToast(err.message, 'error'); }
-    });
-
-    async function revokeKey(id) {
-      if (!confirm('Revoke this API key? Any agents using it will stop working.')) return;
-      try {
-        await apiCall('DELETE', `/api/v1/auth/api-keys/${id}`);
-        showToast('Key revoked', 'info');
-        loadDashboard();
-      } catch (err) { showToast(err.message, 'error'); }
-    }
-
-    window.revokeKey = revokeKey;
-
+    // Nav
     const navAuth = document.getElementById('nav-auth');
     if (navAuth) {
       navAuth.innerHTML = `
-        <a href="/dashboard.html" class="btn btn-glass btn-sm">Dashboard</a>
         <button class="btn btn-secondary btn-sm" id="nav-logout">Log Out</button>
       `;
       document.getElementById('nav-logout')?.addEventListener('click', () => {
         localStorage.removeItem('aa_token');
         window.location.href = '/';
       });
+    }
+
+    // Key modal
+    const keyModal      = document.getElementById('key-modal');
+    const keyModalClose = document.getElementById('key-modal-close');
+    const keyModalCreate  = document.getElementById('key-modal-create');
+    const keyModalResult  = document.getElementById('key-modal-result');
+    const keyNameInput  = document.getElementById('key-name-input');
+    const newKeyValue   = document.getElementById('new-key-value');
+
+    document.getElementById('btn-create-key')?.addEventListener('click', () => {
+      keyModalCreate.style.display = '';
+      keyModalResult.style.display = 'none';
+      keyNameInput.value = '';
+      keyModal.classList.add('active');
+      keyNameInput.focus();
+    });
+    keyModalClose?.addEventListener('click', () => keyModal.classList.remove('active'));
+    keyModal?.addEventListener('click', e => { if (e.target === keyModal) keyModal.classList.remove('active'); });
+
+    document.getElementById('key-modal-submit')?.addEventListener('click', async () => {
+      const name = keyNameInput.value.trim();
+      if (!name) { keyNameInput.focus(); return; }
+      const btn = document.getElementById('key-modal-submit');
+      btn.disabled = true;
+      btn.textContent = 'Creating...';
+      try {
+        const data = await apiCall('POST', '/api/v1/auth/api-keys', { name });
+        newKeyValue.textContent = data.key;
+        keyModalCreate.style.display = 'none';
+        keyModalResult.style.display = '';
+        loadDashboard();
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Create Key';
+      }
+    });
+
+    document.getElementById('key-modal-copy')?.addEventListener('click', () => {
+      navigator.clipboard.writeText(newKeyValue.textContent).then(() => {
+        const btn = document.getElementById('key-modal-copy');
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy Key'; keyModal.classList.remove('active'); }, 1200);
+      });
+    });
+
+    // Billing
+    document.getElementById('btn-upgrade')?.addEventListener('click', async () => {
+      try {
+        const data = await apiCall('POST', '/api/v1/billing/portal-session', null);
+        if (data.url) window.location.href = data.url;
+      } catch {
+        window.location.href = '/#pricing';
+      }
+    });
+
+    // Check upgrade redirect
+    if (new URLSearchParams(window.location.search).get('billing') === 'success') {
+      showToast('Subscription activated! Welcome to the next level.', 'success');
+      history.replaceState(null, '', '/dashboard.html');
+    }
+
+    async function revokeKey(id) {
+      if (!confirm('Revoke this key? Agents using it will stop working immediately.')) return;
+      try {
+        await apiCall('DELETE', `/api/v1/auth/api-keys/${id}`);
+        showToast('Key revoked', 'info');
+        loadDashboard();
+      } catch (err) { showToast(err.message, 'error'); }
+    }
+    window.revokeKey = revokeKey;
+
+    async function loadDashboard() {
+      // Profile
+      try {
+        const me = await apiCall('GET', '/api/v1/auth/me');
+        document.getElementById('org-name').textContent = me.email;
+        const plan = me.plan || 'free';
+        const badge = document.getElementById('plan-badge');
+        badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+        badge.className = `dashboard-plan-badge plan-${plan}`;
+        document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
+        if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
+      } catch (err) {
+        if (err.message.includes('401')) { clearToken(); window.location.href = '/'; }
+      }
+
+      // Agents
+      try {
+        const agents = await apiCall('GET', '/api/v1/agents');
+        document.getElementById('stat-agents').textContent = Array.isArray(agents) ? agents.length : '0';
+      } catch { document.getElementById('stat-agents').textContent = '0'; }
+
+      // Audit logs
+      try {
+        const logs = await apiCall('GET', '/api/v1/audit-logs?limit=10');
+        const list = document.getElementById('audit-logs-list');
+        if (logs.data && logs.data.length) {
+          document.getElementById('stat-logs').textContent = (logs.pagination?.total || logs.data.length).toLocaleString();
+          list.innerHTML = logs.data.map(l => `
+            <div class="log-row">
+              <span class="log-time">${new Date(l.createdAt).toLocaleString()}</span>
+              <span class="log-action">${l.action}</span>
+              <span class="log-agent">${l.agentId ? l.agentId.slice(0, 8) + '...' : '—'}</span>
+              <span class="log-status ${l.complianceFlags?.length ? 'status-flag' : 'status-clean'}">
+                ${l.complianceFlags?.length ? '⚠ Flagged' : '✓ Clean'}
+              </span>
+            </div>`).join('');
+        } else {
+          document.getElementById('stat-logs').textContent = '0';
+          list.innerHTML = `<div class="empty-state">
+            <div style="font-size:32px;margin-bottom:8px;">◉</div>
+            <p>No audit logs yet.</p>
+            <p style="font-size:12px;margin-top:4px;">Integrate the SDK and your first log will appear here.</p>
+          </div>`;
+        }
+      } catch {
+        document.getElementById('audit-logs-list').innerHTML = '<div class="empty-state">Unable to load logs.</div>';
+      }
+
+      // API keys
+      try {
+        const keys = await apiCall('GET', '/api/v1/auth/api-keys');
+        const list = document.getElementById('api-keys-list');
+        document.getElementById('stat-keys').textContent = keys.length;
+        if (keys.length) {
+          list.innerHTML = keys.map(k => `
+            <div class="key-row" data-id="${k.id}">
+              <div class="key-info">
+                <span class="key-name">${k.name}</span>
+                <span class="key-meta">Created ${new Date(k.createdAt).toLocaleDateString()} &nbsp;·&nbsp; aa_••••••••</span>
+              </div>
+              <div class="key-actions">
+                <button class="btn btn-secondary btn-sm" onclick="revokeKey('${k.id}')">Revoke</button>
+              </div>
+            </div>`).join('');
+        } else {
+          list.innerHTML = `<div class="empty-state">
+            <div style="font-size:32px;margin-bottom:8px;">⬡</div>
+            <p>No API keys yet.</p>
+            <p style="font-size:12px;margin-top:4px;">Create a key above to start integrating your agents.</p>
+          </div>`;
+        }
+      } catch {
+        document.getElementById('api-keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>';
+      }
     }
 
     loadDashboard();

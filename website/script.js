@@ -217,74 +217,69 @@ bindAuthLinks();
 // ─── Existing visual scripts (unchanged) ─────────────────────────
 
 const canvas = document.getElementById('bg-canvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 
-let streams = [];
-const streamCount = 10;
-const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
+if (canvas && ctx) {
+  let streams = [];
+  const streamCount = 10;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-
-class DataStream {
-  constructor() {
-    this.reset();
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
   }
 
-  reset() {
-    this.y = Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1);
-    this.x = -300;
-    this.speed = 0.2 + Math.random() * 0.3;
-    this.length = 8 + Math.floor(Math.random() * 12);
-    this.chars = [];
-    for (let i = 0; i < this.length; i++) {
-      this.chars.push({
-        char: chars[Math.floor(Math.random() * chars.length)],
-        color: Math.random() > 0.92 ? 'rgba(220, 38, 38, 0.35)' : 'rgba(161, 161, 170, 0.18)',
-        size: 9 + Math.floor(Math.random() * 3)
+  class DataStream {
+    constructor() { this.reset(); }
+    reset() {
+      this.y = Math.random() * (canvas.height * 0.8) + (canvas.height * 0.1);
+      this.x = -300;
+      this.speed = 0.2 + Math.random() * 0.3;
+      this.length = 8 + Math.floor(Math.random() * 12);
+      this.chars = [];
+      for (let i = 0; i < this.length; i++) {
+        this.chars.push({
+          char: chars[Math.floor(Math.random() * chars.length)],
+          color: Math.random() > 0.92 ? 'rgba(220, 38, 38, 0.35)' : 'rgba(161, 161, 170, 0.18)',
+          size: 9 + Math.floor(Math.random() * 3)
+        });
+      }
+    }
+    update() {
+      this.x += this.speed;
+      if (this.x > canvas.width + 300) this.reset();
+    }
+    draw() {
+      let x = this.x;
+      this.chars.forEach(c => {
+        ctx.font = `${c.size}px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = c.color;
+        ctx.fillText(c.char, x, this.y);
+        x += c.size * 0.55;
       });
     }
   }
 
-  update() {
-    this.x += this.speed;
-    if (this.x > canvas.width + 300) {
-      this.reset();
+  function initStreams() {
+    streams = [];
+    for (let i = 0; i < streamCount; i++) {
+      const s = new DataStream();
+      s.x = Math.random() * canvas.width;
+      streams.push(s);
     }
   }
 
-  draw() {
-    let x = this.x;
-    this.chars.forEach(c => {
-      ctx.font = `${c.size}px 'JetBrains Mono', monospace`;
-      ctx.fillStyle = c.color;
-      ctx.fillText(c.char, x, this.y);
-      x += c.size * 0.55;
-    });
+  function animateStreams() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    streams.forEach(s => { s.update(); s.draw(); });
+    requestAnimationFrame(animateStreams);
   }
-}
 
-function initStreams() {
-  streams = [];
-  for (let i = 0; i < streamCount; i++) {
-    const s = new DataStream();
-    s.x = Math.random() * canvas.width;
-    streams.push(s);
-  }
+  resizeCanvas();
+  initStreams();
+  animateStreams();
+  window.addEventListener('resize', () => { resizeCanvas(); initStreams(); });
 }
-
-function animateStreams() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  streams.forEach(s => { s.update(); s.draw(); });
-  requestAnimationFrame(animateStreams);
-}
-
-resizeCanvas();
-initStreams();
-animateStreams();
-window.addEventListener('resize', () => { resizeCanvas(); initStreams(); });
 
 const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
 const observer = new IntersectionObserver(entries => {
