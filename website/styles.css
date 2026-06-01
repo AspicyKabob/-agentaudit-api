@@ -173,7 +173,6 @@ body::after {
   border: 1px solid var(--border-strong);
   background: transparent;
   color: var(--text);
-  cursor: pointer;
   transition: all 0.3s ease;
 }
 
@@ -821,7 +820,6 @@ body::after {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
-  cursor: pointer;
   transition: all 0.3s;
 }
 
@@ -924,7 +922,6 @@ body::after {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
-  cursor: pointer;
   transition: all 0.3s;
 }
 
@@ -1344,48 +1341,6 @@ body::after {
   color: var(--text);
 }
 
-/* ─── Custom Cursor ─────────────────────────────────────────────── */
-.custom-cursor {
-  position: fixed;
-  width: 20px;
-  height: 26px;
-  pointer-events: none;
-  z-index: 10000;
-  will-change: transform;
-  transform: translate(-2px, -2px);
-}
-
-.custom-cursor::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  border-left: 10px solid var(--text);
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  transform: rotate(-15deg);
-  filter: drop-shadow(0 0 3px rgba(220, 38, 38, 0.5));
-}
-
-.custom-cursor.hover {
-  transform: translate(-2px, -2px) scale(1.2);
-}
-
-.custom-cursor.hover::before {
-  border-left-color: var(--accent);
-  filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.7));
-}
-
-.custom-cursor.active {
-  transform: translate(-2px, -2px) scale(0.9);
-}
-
-.cursor-dot {
-  display: none;
-}
-
 /* ─── Glitch Badge Effect ───────────────────────────────────────── */
 .hero-badge {
   position: relative;
@@ -1424,7 +1379,6 @@ body::after {
     opacity: 1;
   }
 }
-
 
 ::selection {
   background: var(--accent);
@@ -1522,7 +1476,6 @@ body::after {
   border: none;
   color: var(--text-muted, #78716c);
   font-size: 24px;
-  cursor: pointer;
   line-height: 1;
   padding: 0;
 }
@@ -1551,7 +1504,6 @@ body::after {
   font-size: 14px;
   font-weight: 500;
   border-radius: 6px;
-  cursor: pointer;
   transition: all 0.2s;
 }
 .modal-tab.active {

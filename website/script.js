@@ -539,36 +539,12 @@ demoClear?.addEventListener('click', () => {
 console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; color: #dc2626;');
 console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #78716c;');
 
-const cursor = document.createElement('div');
-cursor.className = 'custom-cursor';
-document.body.appendChild(cursor);
 
-const cursorDot = document.createElement('div');
-cursorDot.className = 'cursor-dot';
-document.body.appendChild(cursorDot);
 
-document.addEventListener('mousemove', (e) => {
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top = e.clientY + 'px';
-  cursorDot.style.left = e.clientX + 'px';
-  cursorDot.style.top = e.clientY + 'px';
-});
-
-document.addEventListener('mousedown', () => {
-  cursor.classList.add('active');
-});
-
-document.addEventListener('mouseup', () => {
-  cursor.classList.remove('active');
-});
-
-document.querySelectorAll('a, button, .btn, .fw-tab, .code-tab').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.classList.add('hover');
-    cursorDot.classList.add('hover');
+setTimeout(function() {
+  document.querySelectorAll('.pack-card .btn-primary').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      alert('Rule packs coming soon! Set up your compliance rules manually in the dashboard for now.');
+    });
   });
-  el.addEventListener('mouseleave', () => {
-    cursor.classList.remove('hover');
-    cursorDot.classList.remove('hover');
-  });
-});
+}, 0);

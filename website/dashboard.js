@@ -164,12 +164,19 @@
       var keysList = document.getElementById('keys-list');
       if (keys.length) {
         keysList.innerHTML = keys.map(function(k) {
-          return '<div class="key-row">' +
+          return '<div class="key-row" data-key-id="' + k.id + '" data-key-name="' + k.name + '" data-key-created="' + k.createdAt + '" draggable="false">' +
             '<div><div class="key-name">' + k.name + '</div>' +
             '<div class="key-meta">Created ' + new Date(k.createdAt).toLocaleDateString() + ' &nbsp;·&nbsp; aa_••••••••</div></div>' +
-            '<button class="btn btn-secondary btn-sm" onclick="revokeKey(\'' + k.id + '\')">Revoke</button>' +
+            '<button class="btn btn-secondary btn-sm revoke-key-btn" data-revoke-id="' + k.id + '" type="button">Revoke</button>' +
             '</div>';
         }).join('');
+        keysList.querySelectorAll('.revoke-key-btn').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var id = btn.getAttribute('data-revoke-id');
+            if (id) revokeKey(id);
+          });
+        });
       } else {
         keysList.innerHTML = '<div class="empty-state">No API keys yet.<br><small>Create one above to start integrating your agents.</small></div>';
       }
@@ -183,45 +190,4 @@
   }
 
   loadDashboard();
-
-  (function() {
-    var canvas = document.getElementById('bg-canvas');
-    var ctx = canvas.getContext('2d');
-    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
-    var streams = [];
-
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-
-    function Stream() {
-      this.reset = function() {
-        this.y = Math.random() * canvas.height;
-        this.x = -200;
-        this.speed = 0.15 + Math.random() * 0.25;
-        this.chars = [];
-        var len = 8 + Math.floor(Math.random() * 10);
-        for (var i = 0; i < len; i++) {
-          this.chars.push({ c: chars[Math.floor(Math.random() * chars.length)], col: Math.random() > 0.92 ? 'rgba(220,38,38,0.3)' : 'rgba(161,161,170,0.15)', sz: 9 + Math.floor(Math.random() * 3) });
-        }
-      };
-      this.reset();
-      this.x = Math.random() * (canvas.width || window.innerWidth);
-    }
-
-    function init() { streams = []; for (var i = 0; i < 10; i++) streams.push(new Stream()); }
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      streams.forEach(function(s) {
-        s.x += s.speed;
-        if (s.x > canvas.width + 200) s.reset();
-        var x = s.x;
-        s.chars.forEach(function(c) { ctx.font = c.sz + "px 'JetBrains Mono',monospace"; ctx.fillStyle = c.col; ctx.fillText(c.c, x, s.y); x += c.sz * 0.55; });
-      });
-      requestAnimationFrame(draw);
-    }
-
-    resize();
-    init();
-    draw();
-    window.addEventListener('resize', function() { resize(); init(); });
-  })();
 })();
