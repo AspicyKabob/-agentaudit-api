@@ -21,25 +21,29 @@ export function createApp() {
 
   app.set('trust proxy', 1);
 
-  // Security middleware
   app.use(helmet());
 
-  // CORS: allow all in dev, restrict in production
   const corsOrigin = config.get('env') === 'production'
     ? (config.get('frontendUrl') || false)
     : true;
   app.use(cors({ origin: corsOrigin, credentials: true }));
 
-  // Body parsing
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true }));
+  // Body parsing — webhook needs raw body for Stripe signature verification
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.originalUrl === '/api/v1/billing/webhook') return next();
+    express.json({ limit: '10mb' })(req, res, next);
+  });
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.originalUrl === '/api/v1/billing/webhook') return next();
+    express.urlencoded({ extended: true })(req, res, next);
+  });
 
-  // ─── Rate Limiting ──────────────────────────────────────────────
+  // Rate limiting
   app.use('/api/v1/auth', authLimiter);
   app.use('/api/v1/audit-logs', auditLimiter);
   app.use('/api/v1', generalLimiter);
 
-  // Health check (outside rate limit so monitoring works)
+  // Health check
   app.get('/health', (_req, res) => {
     res.status(200).json({
       status: 'ok',
@@ -51,6 +55,7 @@ export function createApp() {
     });
   });
 
+  // Docs
   app.use('/docs', swaggerUiHandler, swaggerUiSetup);
   app.get('/docs.json', (_req, res) => {
     res.setHeader('Content-Type', 'application/json');
@@ -66,7 +71,7 @@ export function createApp() {
   app.use('/api/v1/alerts', alertRoutes);
   app.use('/api/v1/billing', billingRoutes);
 
-  // MCP endpoint (placeholder schema endpoint)
+  // MCP schema
   app.get('/mcp/v1/schema', (_req, res) => {
     res.status(200).json({
       name: 'AgentAudit MCP',
@@ -86,26 +91,13 @@ export function createApp() {
     });
   });
 
+  // Static website
   const websitePath = fs.existsSync(path.join(__dirname, 'website'))
     ? path.join(__dirname, 'website')
     : path.join(process.cwd(), 'website');
-
-  logger.info(`Serving static files from: ${websitePath}`);
-
+  logger.info('Serving static files from: ' + websitePath);
   app.use(express.static(websitePath, { index: ['index.html'] }));
 
-  // Health check (outside rate limit so monitoring works)
-  app.get('/health', (_req, res) => {
-    res.status(200).json({
-      status: 'ok',
-      service: 'agentaudit-api',
-      version: '1.1.0-trace',
-      commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
-      staticPath: websitePath,
-    });
-  });
-
-  // Global error handler
   app.use(errorHandler);
 
   return app;
