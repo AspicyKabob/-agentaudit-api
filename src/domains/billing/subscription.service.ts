@@ -29,6 +29,7 @@ export const subscriptionService = {
         customer = stripeCustomer;
       }
 
+      const baseUrl = config.get('frontendUrl').replace(/\/$/, '');
       const session = await stripe.checkout.sessions.create({
         customer: customer.id,
         line_items: [{ price: priceId, quantity: 1 }],
