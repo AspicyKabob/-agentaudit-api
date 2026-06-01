@@ -36,7 +36,10 @@ export const subscriptionService = {
         mode: 'subscription',
         success_url: `${baseUrl}/dashboard.html?billing=success`,
         cancel_url: `${baseUrl}/index.html#pricing?billing=canceled`,
-        subscription_data: { metadata: { organizationId } },
+        subscription_data: { 
+          metadata: { organizationId },
+          trial_period_days: 14,
+        },
       });
 
       logger.info({ organizationId, sessionId: session.id }, 'Checkout session created');
