@@ -30,6 +30,7 @@ export const subscriptionService = {
       }
 
       const baseUrl = config.get('frontendUrl').replace(/\/$/, '');
+      const proPriceId = config.get('stripePricePro');
       const session = await stripe.checkout.sessions.create({
         customer: customer.id,
         line_items: [{ price: priceId, quantity: 1 }],
@@ -38,7 +39,7 @@ export const subscriptionService = {
         cancel_url: `${baseUrl}/index.html#pricing?billing=canceled`,
         subscription_data: { 
           metadata: { organizationId },
-          trial_period_days: 14,
+          trial_period_days: priceId === proPriceId ? 14 : 0,
         },
       });
 
