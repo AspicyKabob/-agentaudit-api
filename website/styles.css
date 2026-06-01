@@ -1425,14 +1425,7 @@ body::after {
   }
 }
 
-/* ─── Hide default cursor ───────────────────────────────────────── */
-@media (pointer: fine) {
-  * {
-    cursor: none !important;
-  }
-}
 
-/* ─── Selection ─────────────────────────────────────────────────── */
 ::selection {
   background: var(--accent);
   color: var(--text);
