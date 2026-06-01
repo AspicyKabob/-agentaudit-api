@@ -1,0 +1,227 @@
+(function() {
+  const API = window.location.hostname === 'localhost'
+    ? 'http://localhost:8080'
+    : 'https://agentaudit-api-production.up.railway.app';
+
+  function getToken() { return localStorage.getItem('aa_token'); }
+  function clearToken() { localStorage.removeItem('aa_token'); }
+
+  // Guard — redirect to home if not logged in
+  if (!getToken()) { window.location.href = '/'; }
+
+  async function api(method, path, body) {
+    const opts = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + getToken(),
+      },
+    };
+    if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
+    const res = await fetch(API + path, opts);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    return data;
+  }
+
+  function toast(msg, type) {
+    const el = document.createElement('div');
+    el.className = 'toast ' + (type || 'info');
+    el.textContent = msg;
+    document.body.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
+  }
+
+  window.addEventListener('error', function(e) {
+    console.error('[Dashboard] Unhandled error:', e.error);
+    document.getElementById('org-name').textContent = 'Error — check console (F12)';
+  });
+  window.addEventListener('unhandledrejection', function(e) {
+    console.error('[Dashboard] Unhandled promise rejection:', e.reason);
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', function() {
+    clearToken();
+    window.location.href = '/';
+  });
+
+  document.getElementById('btn-upgrade').addEventListener('click', async function() {
+    try {
+      var d = await api('POST', '/api/v1/billing/portal-session', null);
+      if (d.url) window.location.href = d.url;
+    } catch(e) { window.location.href = '/#pricing'; }
+  });
+
+  var keyModal = document.getElementById('key-modal');
+  var stepCreate = document.getElementById('modal-step-create');
+  var stepResult = document.getElementById('modal-step-result');
+  var keyNameInput = document.getElementById('key-name');
+  var keyReveal = document.getElementById('key-reveal-value');
+
+  function openKeyModal() {
+    stepCreate.style.display = '';
+    stepResult.style.display = 'none';
+    keyNameInput.value = '';
+    keyModal.classList.add('open');
+    keyNameInput.focus();
+  }
+  function closeKeyModal() {
+    keyModal.classList.remove('open');
+  }
+
+  document.getElementById('btn-new-key').addEventListener('click', openKeyModal);
+  document.getElementById('key-modal-x').addEventListener('click', closeKeyModal);
+  keyModal.addEventListener('click', function(e) { if (e.target === keyModal) closeKeyModal(); });
+
+  document.getElementById('btn-create-submit').addEventListener('click', async function() {
+    var name = keyNameInput.value.trim();
+    if (!name) { keyNameInput.focus(); return; }
+    var btn = this;
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+    try {
+      var data = await api('POST', '/api/v1/auth/api-keys', { name: name });
+      keyReveal.textContent = data.key;
+      stepCreate.style.display = 'none';
+      stepResult.style.display = '';
+      loadDashboard();
+    } catch(err) {
+      toast(err.message, 'error');
+      btn.disabled = false;
+      btn.textContent = 'Create Key';
+    }
+  });
+
+  document.getElementById('btn-copy-key').addEventListener('click', function() {
+    navigator.clipboard.writeText(keyReveal.textContent).then(function() {
+      toast('Key copied!', 'success');
+      closeKeyModal();
+    });
+  });
+
+  window.revokeKey = async function(id) {
+    if (!confirm('Revoke this key? Agents using it will stop working immediately.')) return;
+    try {
+      await api('DELETE', '/api/v1/auth/api-keys/' + id);
+      toast('Key revoked', 'info');
+      loadDashboard();
+    } catch(err) { toast(err.message, 'error'); }
+  };
+
+  async function loadDashboard() {
+    console.log('[Dashboard] Starting load...');
+    try {
+      var me = await api('GET', '/api/v1/auth/me');
+      console.log('[Dashboard] Profile loaded:', me.email, me.plan);
+      document.getElementById('org-name').textContent = me.email;
+      var plan = me.plan || 'free';
+      var badge = document.getElementById('plan-badge');
+      badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+      badge.className = 'plan-badge plan-' + plan;
+      document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
+      if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
+    } catch(err) {
+      console.error('[Dashboard] Profile load failed:', err.message || err);
+      var msg = err.message || '';
+      if (msg.includes('429') || msg.includes('Too many')) {
+        document.getElementById('org-name').textContent = 'Rate limited — wait 15 min';
+        return;
+      }
+      clearToken();
+      window.location.href = '/';
+      return;
+    }
+
+    try {
+      var agents = await api('GET', '/api/v1/agents');
+      document.getElementById('stat-agents').textContent = Array.isArray(agents) ? agents.length : '0';
+    } catch(e) { console.error('[Dashboard] Agents load failed:', e); document.getElementById('stat-agents').textContent = '0'; }
+
+    try {
+      var logs = await api('GET', '/api/v1/audit-logs?limit=10');
+      var logsList = document.getElementById('logs-list');
+      if (logs.data && logs.data.length) {
+        document.getElementById('stat-logs').textContent = (logs.pagination && logs.pagination.total ? logs.pagination.total : logs.data.length).toLocaleString();
+        logsList.innerHTML = logs.data.map(function(l) {
+          var flagged = l.complianceFlags && l.complianceFlags.length;
+          return '<div class="log-row">' +
+            '<span class="log-time">' + new Date(l.createdAt).toLocaleString() + '</span>' +
+            '<span class="log-action">' + l.action + '</span>' +
+            '<span class="log-agent">' + (l.agentId ? l.agentId.slice(0,8) + '...' : '—') + '</span>' +
+            '<span class="log-status ' + (flagged ? 'status-flag' : 'status-clean') + '">' + (flagged ? '⚠ Flagged' : '✓ Clean') + '</span>' +
+            '</div>';
+        }).join('');
+      } else {
+        document.getElementById('stat-logs').textContent = '0';
+        logsList.innerHTML = '<div class="empty-state">No audit logs yet.<br><small>Integrate the SDK to start logging.</small></div>';
+      }
+    } catch(e) { console.error('[Dashboard] Logs load failed:', e); document.getElementById('logs-list').innerHTML = '<div class="empty-state">Unable to load logs.</div>'; }
+
+    try {
+      var keys = await api('GET', '/api/v1/auth/api-keys');
+      document.getElementById('stat-keys').textContent = keys.length;
+      var keysList = document.getElementById('keys-list');
+      if (keys.length) {
+        keysList.innerHTML = keys.map(function(k) {
+          return '<div class="key-row">' +
+            '<div><div class="key-name">' + k.name + '</div>' +
+            '<div class="key-meta">Created ' + new Date(k.createdAt).toLocaleDateString() + ' &nbsp;·&nbsp; aa_••••••••</div></div>' +
+            '<button class="btn btn-secondary btn-sm" onclick="revokeKey(\'' + k.id + '\')">Revoke</button>' +
+            '</div>';
+        }).join('');
+      } else {
+        keysList.innerHTML = '<div class="empty-state">No API keys yet.<br><small>Create one above to start integrating your agents.</small></div>';
+      }
+    } catch(e) { console.error('[Dashboard] Keys load failed:', e); document.getElementById('keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>'; }
+    console.log('[Dashboard] Load complete.');
+  }
+
+  if (new URLSearchParams(window.location.search).get('billing') === 'success') {
+    toast('Subscription activated!', 'success');
+    history.replaceState(null, '', '/dashboard.html');
+  }
+
+  loadDashboard();
+
+  (function() {
+    var canvas = document.getElementById('bg-canvas');
+    var ctx = canvas.getContext('2d');
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789*#@&%$';
+    var streams = [];
+
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+
+    function Stream() {
+      this.reset = function() {
+        this.y = Math.random() * canvas.height;
+        this.x = -200;
+        this.speed = 0.15 + Math.random() * 0.25;
+        this.chars = [];
+        var len = 8 + Math.floor(Math.random() * 10);
+        for (var i = 0; i < len; i++) {
+          this.chars.push({ c: chars[Math.floor(Math.random() * chars.length)], col: Math.random() > 0.92 ? 'rgba(220,38,38,0.3)' : 'rgba(161,161,170,0.15)', sz: 9 + Math.floor(Math.random() * 3) });
+        }
+      };
+      this.reset();
+      this.x = Math.random() * (canvas.width || window.innerWidth);
+    }
+
+    function init() { streams = []; for (var i = 0; i < 10; i++) streams.push(new Stream()); }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      streams.forEach(function(s) {
+        s.x += s.speed;
+        if (s.x > canvas.width + 200) s.reset();
+        var x = s.x;
+        s.chars.forEach(function(c) { ctx.font = c.sz + "px 'JetBrains Mono',monospace"; ctx.fillStyle = c.col; ctx.fillText(c.c, x, s.y); x += c.sz * 0.55; });
+      });
+      requestAnimationFrame(draw);
+    }
+
+    resize();
+    init();
+    draw();
+    window.addEventListener('resize', function() { resize(); init(); });
+  })();
+})();
