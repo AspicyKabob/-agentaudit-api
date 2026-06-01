@@ -258,7 +258,7 @@
 
     // ── Load dashboard data ─────────────────────────────────────────────────
     async function loadDashboard() {
-      // Profile
+      // Profile — any failure here means session is invalid, redirect to login
       try {
         var me = await api('GET', '/api/v1/auth/me');
         document.getElementById('org-name').textContent = me.email;
@@ -269,10 +269,10 @@
         document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
         if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
       } catch(err) {
-        if (err.message.includes('401') || err.message.includes('expired')) {
-          clearToken();
-          window.location.href = '/';
-        }
+        // Any error on /auth/me means the session is invalid — clear and redirect
+        clearToken();
+        window.location.href = '/';
+        return;
       }
 
       // Agents
@@ -374,14 +374,22 @@
     // ── Custom cursor ───────────────────────────────────────────────────────
     (function() {
       var cur = document.createElement('div');
-      cur.className = 'custom-cursor';
+      cur.style.cssText = 'position:fixed;top:0;left:0;width:20px;height:26px;pointer-events:none;z-index:10000;transition:transform 0.05s linear;';
       document.body.appendChild(cur);
-      document.addEventListener('mousemove', function(e) { cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px'; });
-      document.addEventListener('mousedown', function() { cur.classList.add('active'); });
-      document.addEventListener('mouseup', function() { cur.classList.remove('active'); });
+      // Inner arrow via pseudo – use a child span instead so we control it fully
+      var arrow = document.createElement('div');
+      arrow.style.cssText = 'width:0;height:0;border-left:10px solid #fafaf9;border-top:8px solid transparent;border-bottom:8px solid transparent;transform:rotate(-15deg);filter:drop-shadow(0 0 3px rgba(220,38,38,0.5));';
+      cur.appendChild(arrow);
+
+      var px = -100, py = -100, scale = 1;
+      function move() { cur.style.transform = 'translate(' + px + 'px,' + py + 'px) scale(' + scale + ')'; }
+
+      document.addEventListener('mousemove', function(e) { px = e.clientX; py = e.clientY; move(); });
+      document.addEventListener('mousedown', function() { scale = 0.85; move(); });
+      document.addEventListener('mouseup', function() { scale = 1; move(); });
       document.querySelectorAll('a, button, .btn').forEach(function(el) {
-        el.addEventListener('mouseenter', function() { cur.classList.add('hover'); });
-        el.addEventListener('mouseleave', function() { cur.classList.remove('hover'); });
+        el.addEventListener('mouseenter', function() { arrow.style.borderLeftColor = '#dc2626'; });
+        el.addEventListener('mouseleave', function() { arrow.style.borderLeftColor = '#fafaf9'; });
       });
     })();
   </script>
