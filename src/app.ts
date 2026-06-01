@@ -20,7 +20,6 @@ export function createApp() {
   const app = express();
 
   app.set('trust proxy', 1);
-
   app.use(helmet());
 
   const corsOrigin = config.get('env') === 'production'
@@ -38,8 +37,9 @@ export function createApp() {
     express.urlencoded({ extended: true })(req, res, next);
   });
 
-  // Rate limiting
-  app.use('/api/v1/auth', authLimiter);
+  // Rate limiting — strict only on login/register, not on /auth/me or api-keys
+  app.post('/api/v1/auth/register', authLimiter);
+  app.post('/api/v1/auth/login', authLimiter);
   app.use('/api/v1/audit-logs', auditLimiter);
   app.use('/api/v1', generalLimiter);
 
@@ -99,6 +99,5 @@ export function createApp() {
   app.use(express.static(websitePath, { index: ['index.html'] }));
 
   app.use(errorHandler);
-
   return app;
 }

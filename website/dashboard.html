@@ -269,7 +269,13 @@
         document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
         if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
       } catch(err) {
-        // Any error on /auth/me means the session is invalid — clear and redirect
+        var msg = err.message || '';
+        if (msg.includes('429') || msg.includes('Too many')) {
+          // Rate limited — don't clear token, just show error and stop
+          document.getElementById('org-name').textContent = 'Rate limited — wait 15 min';
+          return;
+        }
+        // Any other auth failure = invalid session
         clearToken();
         window.location.href = '/';
         return;
