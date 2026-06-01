@@ -184,7 +184,20 @@
       setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
     }
 
+    // ── Global error handler ────────────────────────────────────────────────
+    window.addEventListener('error', function(e) {
+      console.error('[Dashboard] Unhandled error:', e.error);
+      document.getElementById('org-name').textContent = 'Error — check console (F12)';
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('[Dashboard] Unhandled promise rejection:', e.reason);
+    });
+
     // ── Logout ──────────────────────────────────────────────────────────────
+    document.getElementById('btn-logout').addEventListener('click', function() {
+      clearToken();
+      window.location.href = '/';
+    });
     document.getElementById('btn-logout').addEventListener('click', function() {
       clearToken();
       window.location.href = '/';
@@ -258,9 +271,11 @@
 
     // ── Load dashboard data ─────────────────────────────────────────────────
     async function loadDashboard() {
+      console.log('[Dashboard] Starting load...');
       // Profile — any failure here means session is invalid, redirect to login
       try {
         var me = await api('GET', '/api/v1/auth/me');
+        console.log('[Dashboard] Profile loaded:', me.email, me.plan);
         document.getElementById('org-name').textContent = me.email;
         var plan = me.plan || 'free';
         var badge = document.getElementById('plan-badge');
@@ -269,13 +284,12 @@
         document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
         if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
       } catch(err) {
+        console.error('[Dashboard] Profile load failed:', err.message || err);
         var msg = err.message || '';
         if (msg.includes('429') || msg.includes('Too many')) {
-          // Rate limited — don't clear token, just show error and stop
           document.getElementById('org-name').textContent = 'Rate limited — wait 15 min';
           return;
         }
-        // Any other auth failure = invalid session
         clearToken();
         window.location.href = '/';
         return;
@@ -285,7 +299,7 @@
       try {
         var agents = await api('GET', '/api/v1/agents');
         document.getElementById('stat-agents').textContent = Array.isArray(agents) ? agents.length : '0';
-      } catch(e) { document.getElementById('stat-agents').textContent = '0'; }
+      } catch(e) { console.error('[Dashboard] Agents load failed:', e); document.getElementById('stat-agents').textContent = '0'; }
 
       // Audit logs
       try {
@@ -306,7 +320,7 @@
           document.getElementById('stat-logs').textContent = '0';
           logsList.innerHTML = '<div class="empty-state">No audit logs yet.<br><small>Integrate the SDK to start logging.</small></div>';
         }
-      } catch(e) { document.getElementById('logs-list').innerHTML = '<div class="empty-state">Unable to load logs.</div>'; }
+      } catch(e) { console.error('[Dashboard] Logs load failed:', e); document.getElementById('logs-list').innerHTML = '<div class="empty-state">Unable to load logs.</div>'; }
 
       // API keys
       try {
@@ -324,7 +338,8 @@
         } else {
           keysList.innerHTML = '<div class="empty-state">No API keys yet.<br><small>Create one above to start integrating your agents.</small></div>';
         }
-      } catch(e) { document.getElementById('keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>'; }
+      } catch(e) { console.error('[Dashboard] Keys load failed:', e); document.getElementById('keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>'; }
+      console.log('[Dashboard] Load complete.');
     }
 
     // Billing success redirect
@@ -377,27 +392,7 @@
       window.addEventListener('resize', function() { resize(); init(); });
     })();
 
-    // ── Custom cursor ───────────────────────────────────────────────────────
-    (function() {
-      var cur = document.createElement('div');
-      cur.style.cssText = 'position:fixed;top:0;left:0;width:20px;height:26px;pointer-events:none;z-index:10000;transition:transform 0.05s linear;';
-      document.body.appendChild(cur);
-      // Inner arrow via pseudo – use a child span instead so we control it fully
-      var arrow = document.createElement('div');
-      arrow.style.cssText = 'width:0;height:0;border-left:10px solid #fafaf9;border-top:8px solid transparent;border-bottom:8px solid transparent;transform:rotate(-15deg);filter:drop-shadow(0 0 3px rgba(220,38,38,0.5));';
-      cur.appendChild(arrow);
 
-      var px = -100, py = -100, scale = 1;
-      function move() { cur.style.transform = 'translate(' + px + 'px,' + py + 'px) scale(' + scale + ')'; }
-
-      document.addEventListener('mousemove', function(e) { px = e.clientX; py = e.clientY; move(); });
-      document.addEventListener('mousedown', function() { scale = 0.85; move(); });
-      document.addEventListener('mouseup', function() { scale = 1; move(); });
-      document.querySelectorAll('a, button, .btn').forEach(function(el) {
-        el.addEventListener('mouseenter', function() { arrow.style.borderLeftColor = '#dc2626'; });
-        el.addEventListener('mouseleave', function() { arrow.style.borderLeftColor = '#fafaf9'; });
-      });
-    })();
   </script>
 </body>
 </html>
