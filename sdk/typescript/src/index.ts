@@ -208,6 +208,35 @@ export class AgentAudit {
       auditLogId: data.id,
     };
   }
+  /**
+   * Submit a batch of audit log entries.
+   */
+  async logBatch(
+    entries: Array<{
+      action: string;
+      prompt?: string;
+      response?: string;
+      metadata?: Record<string, any>;
+      agentId?: string;
+      traceId?: string;
+      parentSpanId?: string;
+    }>
+  ): Promise<AuditLog[]> {
+    const enriched = entries.map((entry) => {
+      const agentId = entry.agentId || this.agentId;
+      return {
+        action: entry.action,
+        ...(agentId ? { agentId } : {}),
+        ...(entry.prompt ? { prompt: entry.prompt } : {}),
+        ...(entry.response ? { response: entry.response } : {}),
+        ...(entry.metadata ? { metadata: entry.metadata } : {}),
+        ...(entry.traceId ? { traceId: entry.traceId } : {}),
+        ...(entry.parentSpanId ? { parentSpanId: entry.parentSpanId } : {}),
+      };
+    });
+    const { data } = await this.client.post<AuditLog[]>('/audit-logs/batch', enriched);
+    return data;
+  }
 }
 
 export default AgentAudit;

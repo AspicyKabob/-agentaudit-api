@@ -81,6 +81,16 @@ export const auditController = {
     res.status(200).json(chain);
   }),
 
+  submitBatch: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { data, processed, errors } = await auditService.submitBatch(organizationId, req.body);
+    logger.info(
+      { organizationId, processed, errors },
+      'Batch audit logs submitted'
+    );
+    res.status(201).json({ data, processed, errors });
+  }),
+
   exportLogs: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
     const { format } = req.query as { format?: string };

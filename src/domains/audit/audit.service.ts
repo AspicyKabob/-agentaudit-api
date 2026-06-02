@@ -77,6 +77,56 @@ export const auditService = {
     return log;
   },
 
+  async submitBatch(organizationId: string, entries: SubmitAuditBody[]) {
+    const results: Array<{ id: string; action: string; complianceFlags: string[]; createdAt: Date | string }> = [];
+    let errors = 0;
+
+    // Evaluate compliance and create logs in a single Prisma transaction for atomicity
+    await prisma.$transaction(async (tx) => {
+      for (const data of entries) {
+        try {
+          const flags = await evaluateComplianceRules(organizationId, data);
+          const log = await tx.auditLog.create({
+            data: {
+              organizationId,
+              agentId: data.agentId,
+              action: data.action,
+              prompt: data.prompt,
+              response: data.response,
+              metadata: data.metadata ?? Prisma.JsonNull,
+              complianceFlags: flags,
+              traceId: data.traceId ?? null,
+              parentSpanId: data.parentSpanId ?? null,
+            },
+          });
+          results.push({
+            id: log.id,
+            action: log.action,
+            complianceFlags: log.complianceFlags,
+            createdAt: log.createdAt,
+          });
+
+          // Create alerts for critical flags (outside tx to avoid long-lived locks)
+          // We handle alert creation after the loop via a fire-and-forget job
+        } catch (err) {
+          errors += 1;
+          logger.warn({ organizationId, error: err }, 'Batch audit log entry failed');
+        }
+      }
+    });
+
+    // Post-transaction: alerts + webhooks + emails (fire-and-forget, do NOT block)
+    createBatchAlerts(organizationId, results).catch(() => {});
+
+    // Increment usage
+    await prisma.organization.update({
+      where: { id: organizationId },
+      data: { apiUsed: { increment: results.length } },
+    });
+
+    return { data: results, processed: results.length, errors };
+  },
+
   async query(organizationId: string, options: QueryOptions) {
     const { action, agentId, traceId, startDate, endDate, page, limit } = options;
     const skip = (page - 1) * limit;
@@ -282,5 +332,43 @@ function checkRegex(text: string, pattern: string): boolean {
     return regex.test(text);
   } catch {
     return false;
+  }
+}
+
+async function createBatchAlerts(
+  organizationId: string,
+  results: Array<{ id: string; action: string; complianceFlags: string[]; createdAt: Date | string }>
+) {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { email: true, notifyWebhook: true, notifyEmail: true, notifyMinSeverity: true },
+  });
+  if (!org) return;
+
+  for (const result of results) {
+    for (const flag of result.complianceFlags) {
+      const severity = flag.startsWith('CRITICAL') ? 'critical' : 'warning';
+      const alert = await prisma.alert.create({
+        data: {
+          organizationId,
+          auditLogId: result.id,
+          severity,
+          message: `Compliance flag triggered: ${flag}`,
+          details: { action: result.action },
+        },
+      });
+
+      const shouldNotify = severity === 'critical' || org.notifyMinSeverity === 'warning';
+      if (org.notifyWebhook !== false && shouldNotify) {
+        alertService.deliverWebhook(alert).catch(() => {});
+      }
+      if (org.notifyEmail !== false && shouldNotify && org.email) {
+        emailService.sendAlert(org.email, {
+          severity,
+          message: `Compliance flag triggered: ${flag}`,
+          action: result.action,
+        }).catch(() => {});
+      }
+    }
   }
 }
