@@ -220,7 +220,7 @@
           return '<div class="key-row" data-key-id="' + k.id + '" data-key-name="' + k.name + '" data-key-created="' + k.createdAt + '" draggable="false">' +
             '<div><div class="key-name">' + k.name + '</div>' +
             '<div class="key-meta">Created ' + new Date(k.createdAt).toLocaleDateString() + ' &nbsp;·&nbsp; aa_••••••••</div></div>' +
-            '<button class="btn btn-secondary btn-sm revoke-key-btn" data-revoke-id="' + k.id + '" type="button">Revoke</button>' +
+            '<button class="btn-dash btn-dash-danger revoke-key-btn" data-revoke-id="' + k.id + '" type="button">Revoke</button>' +
             '</div>';
         }).join('');
         keysList.querySelectorAll('.revoke-key-btn').forEach(function(btn) {
@@ -243,7 +243,7 @@
       if (alerts && alerts.length) {
         alertsList.innerHTML = alerts.map(function(a) {
           var sevClass = a.severity === 'critical' ? 'status-critical' : 'status-flag';
-          var resolved = a.isResolved ? '<span style="color:var(--success);font-size:11px;">Resolved</span>' : '<button class="btn btn-secondary btn-sm resolve-btn" data-resolve-id="' + a.id + '">Resolve</button>';
+          var resolved = a.isResolved ? '<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-mono);">RESOLVED</span>' : '<button class="btn-dash btn-dash-primary resolve-btn" data-resolve-id="' + a.id + '">Resolve</button>';
           return '<div class="alert-row">' +
             '<span class="alert-severity ' + sevClass + '">' + a.severity + '</span>' +
             '<span class="alert-message">' + a.message + '</span>' +

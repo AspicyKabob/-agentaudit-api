@@ -9,77 +9,114 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
-    .dashboard-wrap { padding: 100px 0 60px; min-height: 100vh; }
-    .dashboard-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; gap: 16px; }
-    .dashboard-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .dashboard-org { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
-    .plan-badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-muted); background: transparent; }
-    .plan-badge.plan-pro { border-color: #6366f1; color: #6366f1; }
-    .plan-badge.plan-business { border-color: #f59e0b; color: #f59e0b; }
-    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
-    .stat-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; overflow: hidden; transition: border-color 0.2s; }
-    .stat-card:hover { border-color: var(--border-strong); }
-    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(220,38,38,0.3), transparent); opacity: 0; transition: opacity 0.2s; }
-    .stat-card:hover::before { opacity: 1; }
-    .stat-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
-    .stat-value { font-size: 32px; font-weight: 800; color: var(--text); letter-spacing: -1px; line-height: 1; }
+    :root {
+      --dash-border: rgba(148,163,184,0.12);
+      --dash-border-hover: rgba(148,163,184,0.25);
+      --dash-bg: rgba(255,255,255,0.02);
+    }
+
+    .dashboard-wrap { padding: 80px 0 40px; min-height: 100vh; }
+
+    /* Header */
+    .dashboard-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; gap: 16px; border-bottom: 1px solid var(--dash-border); padding-bottom: 24px; }
+    .dashboard-title { font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+    .dashboard-org { font-size: 20px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; margin-top: 4px; }
+    .plan-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+    .plan-tag.plan-pro { color: #6366f1; }
+    .plan-tag.plan-business { color: #f59e0b; }
+
+    /* Stats - flat row */
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--dash-border); border: 1px solid var(--dash-border); margin-bottom: 32px; }
+    .stat-cell { background: var(--bg); padding: 20px 24px; }
+    .stat-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; line-height: 1; font-family: var(--font-mono); }
     .stat-value.accent { color: var(--accent); }
-    .panel { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); }
-    .panel-title { font-size: 14px; font-weight: 600; color: var(--text); }
-    .key-row { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--border); gap: 16px; transition: background 0.15s; }
-    .key-row:last-child { border: none; }
-    .key-row:hover { background: rgba(255,255,255,0.02); }
-    .key-name { font-size: 14px; font-weight: 500; color: var(--text); }
-    .key-meta { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
-    .log-row { display: grid; grid-template-columns: 160px 1fr 130px 90px; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; transition: background 0.15s; }
-    .log-row:last-child { border: none; }
-    .log-row:hover { background: rgba(255,255,255,0.02); }
-    .log-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+
+    /* Panels - sharp, minimal */
+    .panel { background: var(--bg); border: 1px solid var(--dash-border); margin-bottom: 24px; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--dash-border); background: var(--dash-bg); }
+    .panel-title { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-secondary); }
+    .panel-body { padding: 0; }
+
+    /* Rows */
+    .key-row, .log-row, .alert-row { display: grid; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--dash-border); font-size: 13px; align-items: center; }
+    .key-row:last-child, .log-row:last-child, .alert-row:last-child { border-bottom: none; }
+    .key-row:hover, .log-row:hover, .alert-row:hover { background: var(--dash-bg); }
+    .key-row { grid-template-columns: 1fr auto; }
+    .log-row { grid-template-columns: 140px 1fr 120px 80px; }
+    .alert-row { grid-template-columns: 70px 1fr 120px 90px; }
+    .key-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .key-meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
+    .log-time, .alert-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
     .log-action { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .log-agent { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
-    .log-status { text-align: right; font-size: 12px; font-weight: 600; }
-    .status-clean { color: var(--success); }
+    .log-agent { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+    .log-status { text-align: right; font-size: 11px; font-weight: 600; }
+    .alert-severity { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .alert-message { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+    .alert-actions { text-align: right; }
+    .status-clean { color: #22c55e; }
     .status-flag { color: #f59e0b; }
     .status-critical { color: #dc2626; }
-    .alert-row { display: grid; grid-template-columns: 80px 1fr 120px 100px; gap: 16px; padding: 14px 24px; border-bottom: 1px solid var(--border); font-size: 13px; align-items: center; transition: background 0.15s; }
-    .alert-row:last-child { border: none; }
-    .alert-row:hover { background: rgba(255,255,255,0.02); }
-    .alert-severity { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-    .alert-message { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .alert-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
-    .alert-actions { text-align: right; }
-    .empty-state { padding: 48px 24px; text-align: center; color: var(--text-muted); font-size: 14px; line-height: 1.7; }
-    /* Modal */
-    .dash-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
-    .dash-modal-overlay.open { display: flex; }
-    .dash-modal { background: #0f1117; border: 1px solid var(--border-strong); border-radius: 16px; padding: 40px; width: 100%; max-width: 460px; position: relative; }
-    .dash-modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .dash-modal p { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
-    .modal-x { position: absolute; top: 16px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 24px; line-height: 1; }
-    .modal-x:hover { color: var(--text); }
+
+    /* Empty state */
+    .empty-state { padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
+
+    /* Notification settings */
+    .settings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--dash-border); border: 1px solid var(--dash-border); }
+    .settings-cell { background: var(--bg); padding: 16px 20px; }
+    .settings-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 10px; }
+    .settings-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
     .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 13px; font-weight: 500; color: #a1a1aa; margin-bottom: 6px; }
-    .field input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; box-sizing: border-box; transition: border-color 0.2s; }
-    .field input:focus { border-color: var(--accent); }
-    .field input::placeholder { color: #52525b; }
-    .key-reveal { background: var(--bg); border: 1px solid var(--border-strong); border-radius: 8px; padding: 14px 16px; font-family: var(--font-mono); font-size: 13px; color: var(--accent); word-break: break-all; margin-bottom: 12px; }
-    .key-warn { font-size: 12px; color: #f59e0b; margin-bottom: 20px; padding: 10px 14px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; }
-    .switch input:checked + span { background: var(--accent); }
-    .switch input:checked + span:before { transform: translateX(16px); }
-    .switch span:before { content: ''; position: absolute; height: 16px; width: 16px; left: 2px; bottom: 2px; background: #fff; border-radius: 50%; transition: 0.2s; }
+    .field label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 6px; }
+    .field input, .field select { width: 100%; background: transparent; border: 1px solid var(--dash-border); padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; box-sizing: border-box; font-family: var(--font-mono); }
+    .field input:focus, .field select:focus { border-color: var(--dash-border-hover); }
+    .field input::placeholder { color: var(--text-muted); }
+
+    /* Switch */
+    .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch-track { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--dash-border); transition: 0.15s; }
+    .switch input:checked + .switch-track { background: var(--accent); }
+    .switch-track:before { content: ''; position: absolute; height: 14px; width: 14px; left: 2px; bottom: 2px; background: var(--text); transition: 0.15s; }
+    .switch input:checked + .switch-track:before { transform: translateX(14px); background: #fff; }
+
+    /* Modal - sharp */
+    .dash-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+    .dash-modal-overlay.open { display: flex; }
+    .dash-modal { background: #0a0a0a; border: 1px solid var(--dash-border); padding: 32px; width: 100%; max-width: 420px; position: relative; }
+    .dash-modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.2px; }
+    .dash-modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+    .modal-x { position: absolute; top: 12px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 20px; line-height: 1; cursor: pointer; }
+    .modal-x:hover { color: var(--text); }
+    .key-reveal { background: var(--dash-bg); border: 1px solid var(--dash-border); padding: 12px 14px; font-family: var(--font-mono); font-size: 12px; color: var(--accent); word-break: break-all; margin-bottom: 12px; }
+    .key-warn { font-size: 11px; color: #f59e0b; margin-bottom: 16px; padding: 8px 12px; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); }
+
     /* Toast */
-    .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1c1c1e; border: 1px solid rgba(148,163,184,0.2); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 2000; pointer-events: none; white-space: nowrap; }
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: #111; border: 1px solid var(--dash-border); color: var(--text); padding: 10px 20px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 2000; pointer-events: none; font-family: var(--font-mono); }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .toast.success { border-color: #22c55e; color: #22c55e; }
-    .toast.error { border-color: #dc2626; color: #dc2626; }
-    .toast.info { border-color: #6366f1; color: #6366f1; }
-    @media (max-width: 900px) { .stat-grid { grid-template-columns: repeat(2,1fr); } .log-row { grid-template-columns: 1fr 1fr; } }
+    .toast.success { border-color: rgba(34,197,94,0.3); color: #22c55e; }
+    .toast.error { border-color: rgba(220,38,38,0.3); color: #dc2626; }
+    .toast.info { border-color: rgba(99,102,241,0.3); color: #6366f1; }
+
+    /* Buttons on dashboard - sharp */
+    .btn-dash { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.15s; border: 1px solid var(--dash-border); background: transparent; color: var(--text-secondary); font-family: inherit; }
+    .btn-dash:hover { border-color: var(--dash-border-hover); color: var(--text); }
+    .btn-dash-primary { border-color: var(--text); color: var(--text); }
+    .btn-dash-primary:hover { background: var(--text); color: var(--bg); }
+    .btn-dash-danger { border-color: rgba(220,38,38,0.4); color: var(--accent); }
+    .btn-dash-danger:hover { background: var(--accent); color: #fff; }
+    .btn-dash-full { width: 100%; justify-content: center; padding: 10px; font-size: 12px; }
+
+    @media (max-width: 900px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+      .log-row { grid-template-columns: 1fr 1fr; }
+      .alert-row { grid-template-columns: 1fr 1fr; }
+      .settings-grid { grid-template-columns: 1fr; }
+      .key-row { grid-template-columns: 1fr; gap: 8px; }
+    }
   </style>
 </head>
 <body>
-  <canvas id="bg-canvas" style="position:fixed;top:0;left:0;pointer-events:none;z-index:0;opacity:0.4;"></canvas>
-
   <nav class="nav">
     <div class="nav-glass">
       <div class="container nav-inner">
@@ -90,9 +127,9 @@
           <a href="/" class="nav-link">Home</a>
           <a href="/docs" class="nav-link">Docs</a>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span id="plan-badge" class="plan-badge">Free</span>
-          <button class="btn btn-secondary btn-sm" id="btn-logout">Log Out</button>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <span id="plan-badge" class="plan-tag">Free</span>
+          <button class="btn-dash" id="btn-logout">Log Out</button>
         </div>
       </div>
     </div>
@@ -105,111 +142,110 @@
         <div class="dashboard-org" id="org-name">Loading...</div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;">
-        <button class="btn btn-primary btn-sm" id="btn-upgrade" style="display:none">Upgrade Plan</button>
+        <button class="btn-dash btn-dash-primary" id="btn-upgrade" style="display:none">Upgrade Plan</button>
       </div>
     </div>
 
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">Audit Logs</div><div class="stat-value" id="stat-logs">—</div></div>
-      <div class="stat-card"><div class="stat-label">Agents</div><div class="stat-value" id="stat-agents">—</div></div>
-      <div class="stat-card"><div class="stat-label">API Calls (Month)</div><div class="stat-value" id="stat-api">—</div></div>
-      <div class="stat-card"><div class="stat-label">Unread Alerts</div><div class="stat-value" id="stat-alerts">—</div></div>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="stat-label">Audit Logs</div><div class="stat-value" id="stat-logs">—</div></div>
+      <div class="stat-cell"><div class="stat-label">Agents</div><div class="stat-value" id="stat-agents">—</div></div>
+      <div class="stat-cell"><div class="stat-label">API Calls (Month)</div><div class="stat-value" id="stat-api">—</div></div>
+      <div class="stat-cell"><div class="stat-label">Unread Alerts</div><div class="stat-value accent" id="stat-alerts">—</div></div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">API Keys</span>
-        <button class="btn btn-primary btn-sm" id="btn-new-key">+ New Key</button>
+        <button class="btn-dash btn-dash-primary" id="btn-new-key">+ New Key</button>
       </div>
-      <div id="keys-list"><div class="empty-state">Loading...</div></div>
+      <div class="panel-body" id="keys-list"><div class="empty-state">Loading...</div></div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Notification Settings</span>
-        <button class="btn btn-primary btn-sm" id="btn-save-webhook">Save</button>
+        <button class="btn-dash btn-dash-primary" id="btn-save-webhook">Save</button>
       </div>
-      <div style="padding: 20px 24px;">
-        <div class="field" style="margin-bottom: 16px;">
-          <label for="webhook-url" style="display: block; font-size: 13px; font-weight: 500; color: #a1a1aa; margin-bottom: 6px;">Webhook URL for Alerts</label>
-          <input id="webhook-url" type="url" placeholder="https://hooks.slack.com/services/..." style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; box-sizing: border-box; transition: border-color 0.2s;">
+      <div class="panel-body" style="padding: 16px 24px;">
+        <div class="field" style="margin-bottom: 20px;">
+          <label for="webhook-url">Webhook URL</label>
+          <input id="webhook-url" type="url" placeholder="https://hooks.slack.com/services/...">
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-              <span style="font-size: 13px; font-weight: 500; color: var(--text);">Webhook Alerts</span>
-              <label class="switch" style="position: relative; display: inline-block; width: 36px; height: 20px;">
-                <input type="checkbox" id="toggle-webhook" style="opacity: 0; width: 0; height: 0;">
-                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-strong); border-radius: 20px; transition: 0.2s;"></span>
+        <div class="settings-grid" style="margin-bottom: 16px;">
+          <div class="settings-cell">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:12px;font-weight:500;color:var(--text);">Webhook Alerts</span>
+              <label class="switch">
+                <input type="checkbox" id="toggle-webhook">
+                <span class="switch-track"></span>
               </label>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">POST alerts to your URL</p>
+            <div class="settings-hint">POST to your URL on violations</div>
           </div>
 
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-              <span style="font-size: 13px; font-weight: 500; color: var(--text);">Email Alerts</span>
-              <label class="switch" style="position: relative; display: inline-block; width: 36px; height: 20px;">
-                <input type="checkbox" id="toggle-email" style="opacity: 0; width: 0; height: 0;">
-                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-strong); border-radius: 20px; transition: 0.2s;"></span>
+          <div class="settings-cell">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:12px;font-weight:500;color:var(--text);">Email Alerts</span>
+              <label class="switch">
+                <input type="checkbox" id="toggle-email">
+                <span class="switch-track"></span>
               </label>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Send to your account email</p>
+            <div class="settings-hint">Send to your account email</div>
           </div>
 
-          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-              <span style="font-size: 13px; font-weight: 500; color: var(--text);">Min Severity</span>
-              <select id="select-severity" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); border-radius: 6px; padding: 4px 8px; color: var(--text); font-size: 12px; outline: none;">
+          <div class="settings-cell">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:12px;font-weight:500;color:var(--text);">Min Severity</span>
+              <select id="select-severity" style="background:transparent;border:1px solid var(--dash-border);padding:4px 8px;color:var(--text);font-size:12px;outline:none;font-family:var(--font-mono);">
                 <option value="warning">Warning+</option>
                 <option value="critical">Critical only</option>
               </select>
             </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Filter noise level</p>
+            <div class="settings-hint">Filter noise level</div>
           </div>
         </div>
 
-        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">When a compliance violation is detected, AgentAudit will notify you based on these preferences. <a href="/docs" style="color: var(--accent); text-decoration: none;">View webhook schema</a>.</p>
+        <p style="font-size:11px;color:var(--text-muted);margin:0;">When a compliance violation is detected, AgentAudit will notify you based on these preferences. <a href="/docs" style="color:var(--text-secondary);text-decoration:underline;">View webhook schema</a>.</p>
       </div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Recent Audit Logs</span>
-        <a href="/docs" class="btn btn-glass btn-sm">View Docs</a>
+        <a href="/docs" class="btn-dash">API Docs</a>
       </div>
-      <div id="logs-list"><div class="empty-state">Loading...</div></div>
+      <div class="panel-body" id="logs-list"><div class="empty-state">Loading...</div></div>
     </div>
 
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Recent Alerts</span>
-        <a href="/docs" class="btn btn-glass btn-sm">Alert API</a>
+        <a href="/docs" class="btn-dash">Alert API</a>
       </div>
-      <div id="alerts-list"><div class="empty-state">Loading...</div></div>
+      <div class="panel-body" id="alerts-list"><div class="empty-state">Loading...</div></div>
     </div>
   </div>
 
-  <!-- New key modal -->
   <div class="dash-modal-overlay" id="key-modal">
     <div class="dash-modal">
       <button class="modal-x" id="key-modal-x">&times;</button>
       <div id="modal-step-create">
         <h3>New API Key</h3>
-        <p>Give this key a name so you can identify it later.</p>
+        <p>Name this key so you can identify it later.</p>
         <div class="field">
           <label for="key-name">Key name</label>
           <input id="key-name" type="text" placeholder="e.g. Production Agent" />
         </div>
-        <button class="btn btn-primary btn-full" id="btn-create-submit">Create Key</button>
+        <button class="btn-dash btn-dash-primary btn-dash-full" id="btn-create-submit">Create Key</button>
       </div>
       <div id="modal-step-result" style="display:none">
         <h3>Key Created</h3>
-        <p>Copy this now — it will not be shown again.</p>
+        <p>Copy this now. It will not be shown again.</p>
         <div class="key-reveal" id="key-reveal-value"></div>
         <div class="key-warn">Store this somewhere safe. You cannot recover it.</div>
-        <button class="btn btn-primary btn-full" id="btn-copy-key">Copy &amp; Close</button>
+        <button class="btn-dash btn-dash-primary btn-dash-full" id="btn-copy-key">Copy &amp; Close</button>
       </div>
     </div>
   </div>
