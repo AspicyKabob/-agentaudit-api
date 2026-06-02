@@ -301,7 +301,18 @@
           <div class="code-header">
             <div class="code-dots">
               <span></span><span></span><span></span>
-            </div>
+        <div class="pack-card">
+          <h3>AI Safety &amp; Content Moderation</h3>
+          <div class="pack-rules">
+            <span>Toxicity</span>
+            <span>Bias detection</span>
+            <span>PII leaks</span>
+            <span>Prompt injection</span>
+          </div>
+          <p>Flags harmful outputs, jailbreak attempts, and model-exploitation patterns in real-time.</p>
+          <button class="btn btn-primary btn-sm">Activate Pack</button>
+        </div>
+      </div>
             <span class="code-filename">agent.py</span>
           </div>
           <div class="code-content" id="code-content">
@@ -626,7 +637,7 @@ audit = AgentAudit(api_key=<span class="code-str">"aa_your_key_here"</span>)
   <div id="auth-modal" class="modal-overlay">
     <div class="modal-box">
       <button id="modal-close" class="modal-close" aria-label="Close">&times;</button>
-      <div class="modal-logo">AgentAudit</div>
+      <div class="modal-logo"><span class="logo-text"><span class="logo-a">A</span>gentAudit</span></div>
       <div class="modal-tabs">
         <button class="modal-tab active" data-tab="signup">Sign Up</button>
         <button class="modal-tab" data-tab="login">Log In</button>
