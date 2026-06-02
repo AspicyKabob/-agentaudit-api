@@ -219,6 +219,60 @@ curl -X POST http://localhost:8080/api/v1/compliance-rules \
   }'
 ```
 
+### Batch Logging
+
+For high-throughput agents, submit up to 100 audit log entries in a single request:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/audit-logs/batch \
+  -H "X-API-Key: aa_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {"action": "llm_start", "prompt": "Hello", "metadata": {"model": "gpt-4"}},
+    {"action": "llm_end", "response": "Hi there", "metadata": {"tokens": 12}}
+  ]'
+```
+
+Response:
+```json
+{
+  "data": [{"id": "...", "action": "llm_start", ...}],
+  "processed": 2,
+  "errors": 0
+}
+```
+
+### Framework Integrations
+
+Self-hosted instances support the same drop-in integrations as the managed service:
+
+| Framework | Pattern | File |
+|-----------|---------|------|
+| **CrewAI** | Observer callback | `integrations/crewai/agentaudit_observer.py` |
+| **LangChain** | Callback handler | `integrations/langchain/agentaudit_callback.py` |
+| **AutoGPT** | Decorator + context manager | `integrations/autogpt/__init__.py` |
+| **OpenAI** | Wrapped client | `integrations/openai/agentaudit_openai.py` |
+
+All integrations share the same `BaseIntegration` class with circuit breakers, retry with exponential backoff, batch buffering, telemetry hooks, and `fail_open` / `fail_closed` configuration. Set the `AGENTAUDIT_BASE_URL` environment variable (or pass `base_url` to the SDK) to point to your self-hosted instance:
+
+```python
+from agentaudit import AgentAudit
+
+audit = AgentAudit(
+    api_key="aa_your_key_here",
+    base_url="https://your-domain.com/api/v1"
+)
+```
+
+```typescript
+import { AgentAudit } from 'agentaudit-client';
+
+const audit = new AgentAudit({
+  apiKey: 'aa_your_key_here',
+  baseUrl: 'https://your-domain.com/api/v1'
+});
+```
+
 ---
 
 ## Optional Features

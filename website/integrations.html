@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Integrations — AgentAudit</title>
+  <meta name="description" content="Drop-in integrations for CrewAI, LangChain, AutoGPT, and OpenAI. Real-time guardrails + distributed tracing in one line of code.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://agentaudit-api-production.up.railway.app/integrations.html">
+  <meta property="og:title" content="Integrations — AgentAudit">
+  <meta property="og:description" content="Drop-in integrations for CrewAI, LangChain, AutoGPT, and OpenAI. Real-time guardrails + distributed tracing in one line of code.">
+  <meta property="og:image" content="https://agentaudit-api-production.up.railway.app/docs/assets/landing-hero.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Integrations — AgentAudit">
+  <meta name="twitter:description" content="Drop-in integrations for CrewAI, LangChain, AutoGPT, and OpenAI. Real-time guardrails + distributed tracing in one line of code.">
+  <meta name="twitter:image" content="https://agentaudit-api-production.up.railway.app/docs/assets/landing-hero.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%230c0c0c'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-family='Georgia,serif' font-size='60' font-weight='bold' font-style='italic' fill='%23dc2626'%3EA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .integrations-page { padding-top: 80px; }
+    .integration-hero {
+      padding: 80px 0 60px;
+      position: relative;
+      z-index: 2;
+    }
+    .integration-hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .integration-hero p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      line-height: 1.6;
+    }
+    .integration-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      position: relative;
+      z-index: 2;
+    }
+    .integration-block {
+      padding: 80px 0;
+      border-top: 1px solid var(--border);
+    }
+    .integration-block:last-child {
+      border-bottom: 1px solid var(--border);
+    }
+    .integration-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .integration-header h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(28px, 3vw, 40px);
+      font-weight: 400;
+    }
+    .integration-header .badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      border: 1px solid var(--border-strong);
+      color: var(--text-muted);
+    }
+    .integration-desc {
+      font-size: 17px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      max-width: 720px;
+      margin-bottom: 32px;
+    }
+    .install-cmd {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 10px 16px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .install-cmd svg {
+      width: 14px;
+      height: 14px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .integration-code {
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      padding: 28px;
+      overflow-x: auto;
+      margin-bottom: 24px;
+    }
+    .integration-code pre {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+    .integration-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .integration-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .integration-meta .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      display: inline-block;
+    }
+    .integration-meta .dot.green { background: var(--success); }
+    .integration-meta .dot.yellow { background: var(--warning); }
+    .quick-start {
+      padding: 100px 0;
+      position: relative;
+      z-index: 2;
+    }
+    .quick-start h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(28px, 3vw, 40px);
+      font-weight: 400;
+      margin-bottom: 16px;
+    }
+    .quick-start > .container > p {
+      font-size: 17px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin-bottom: 40px;
+      line-height: 1.7;
+    }
+    .qs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .qs-card {
+      border: 1px solid var(--border);
+      padding: 24px;
+      background: var(--bg-card);
+      transition: border-color 0.3s;
+    }
+    .qs-card:hover {
+      border-color: var(--border-strong);
+    }
+    .qs-card h4 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .qs-card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .qs-card a {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .qs-card a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-glass">
+      <div class="container nav-inner">
+        <a href="index.html" class="logo">
+          <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
+        </a>
+        <div class="nav-links">
+          <a href="index.html#features" class="nav-link">Features</a>
+          <a href="index.html#demo" class="nav-link">Demo</a>
+          <a href="index.html#pricing" class="nav-link">Pricing</a>
+          <a href="trace-visualizer.html" class="nav-link">Trace Visualizer</a>
+          <a href="integrations.html" class="nav-link active">Integrations</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" class="nav-link nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+        <div class="nav-auth" id="nav-auth">
+          <a href="/dashboard.html" class="btn btn-glass btn-sm" id="nav-login">Log In</a>
+          <a href="index.html#signup" class="btn btn-primary btn-sm" id="nav-signup">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="integrations-page">
+    <section class="integration-hero">
+      <div class="container">
+        <span class="section-badge">Zero-Config Setup</span>
+        <h1>One line to guard <span class="gradient-text">every agent</span></h1>
+        <p>Drop-in integrations for CrewAI, LangChain, AutoGPT, and OpenAI. Real-time guardrails, automatic audit logging, and distributed tracing — no refactoring required.</p>
+      </div>
+    </section>
+
+    <section class="integration-grid">
+      <div class="container">
+        <!-- LangChain -->
+        <div class="integration-block" id="langchain">
+          <div class="integration-header">
+            <h2>LangChain</h2>
+            <span class="badge">Callback Handler</span>
+          </div>
+          <p class="integration-desc">
+            Pass a single callback to any LangChain LLM, chain, or agent. Every prompt, response, tool call, and chain step is automatically audited with <code>traceId</code> propagation. Guardrails block violations before the output reaches the next link in the chain.
+          </p>
+          <div class="install-cmd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            pip install agentaudit-client
+          </div>
+          <div class="integration-code">
+            <pre><code><span class="code-kw">from</span> langchain.callbacks <span class="code-kw">import</span> AgentAuditCallbackHandler
+<span class="code-kw">from</span> langchain.llms <span class="code-kw">import</span> OpenAI
+
+<span class="code-comment"># One callback guards every LLM call + traces the full chain</span>
+handler = AgentAuditCallbackHandler(
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
+    agent_id=<span class="code-str">"uuid-of-your-agent"</span>,
+    guard=<span class="code-kw">True</span>
+)
+
+llm = OpenAI(callbacks=[handler])
+llm.predict(<span class="code-str">"What is the weather?"</span>)
+
+<span class="code-comment"># Query the trace after execution</span>
+<span class="code-kw">print</span>(handler.trace_id)  <span class="code-comment"># "trace-uuid-123"</span></code></pre>
+          </div>
+          <div class="integration-meta">
+            <span><span class="dot"></span> Guardrails enabled by default</span>
+            <span><span class="dot green"></span> Distributed tracing auto-linked</span>
+            <span><span class="dot yellow"></span> Raises ComplianceViolation on block</span>
+          </div>
+        </div>
+
+        <!-- CrewAI -->
+        <div class="integration-block" id="crewai">
+          <div class="integration-header">
+            <h2>CrewAI</h2>
+            <span class="badge">Observer</span>
+          </div>
+          <p class="integration-desc">
+            Add one observer to your Crew. Every crew start, task execution, agent action, and crew end is logged with a shared <code>traceId</code> and <code>parentSpanId</code> linking. If any task output violates a rule, the crew halts before delivery.
+          </p>
+          <div class="install-cmd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            pip install agentaudit-client
+          </div>
+          <div class="integration-code">
+            <pre><code><span class="code-kw">from</span> crewai <span class="code-kw">import</span> Crew, Agent, Task
+<span class="code-kw">from</span> agentaudit_crewai <span class="code-kw">import</span> AgentAuditObserver
+
+observer = AgentAuditObserver(
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
+    crew_name=<span class="code-str">"Research Crew"</span>,
+    guard=<span class="code-kw">True</span>   <span class="code-comment"># Block violations automatically</span>
+)
+
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[task1, task2],
+    callbacks=[observer]
+)
+
+crew.kickoff()
+<span class="code-comment"># Every task traced, violations blocked, full chain queryable</span></code></pre>
+          </div>
+          <div class="integration-meta">
+            <span><span class="dot"></span> Guardrails enabled by default</span>
+            <span><span class="dot green"></span> Auto traceId + parentSpanId linking</span>
+            <span><span class="dot yellow"></span> Catch ComplianceViolation to handle blocks</span>
+          </div>
+        </div>
+
+        <!-- AutoGPT -->
+        <div class="integration-block" id="autogpt">
+          <div class="integration-header">
+            <h2>AutoGPT</h2>
+            <span class="badge">Decorator + Context Manager</span>
+          </div>
+          <p class="integration-desc">
+            Use the <code>@guard</code> decorator to wrap any agent function, or the <code>AutoGPTLogger</code> context manager for fine-grained trace control. Every thought, action, and file write is logged with full trace linking.
+          </p>
+          <div class="install-cmd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            pip install agentaudit-client
+          </div>
+          <div class="integration-code">
+            <pre><code><span class="code-kw">from</span> agentaudit_autogpt <span class="code-kw">import</span> guard, ComplianceViolation
+
+<span class="code-comment"># One decorator guards your entire agent function</span>
+<span class="code-kw">@guard</span>(api_key=<span class="code-str">"aa_your_key_here"</span>, agent_name=<span class="code-str">"MyAutoGPT"</span>)
+<span class="code-kw">def</span> run_agent(task: str) -> str:
+    <span class="code-kw">return</span> agent.run(task)
+
+<span class="code-kw">try</span>:
+    result = run_agent(<span class="code-str">"Research topic X"</span>)
+<span class="code-kw">except</span> ComplianceViolation <span class="code-kw">as</span> e:
+    <span class="code-kw">print</span>(<span class="code-str">f"Blocked: {e.violations}"</span>)
+
+<span class="code-comment"># Or use the context manager for multi-step traces</span>
+<span class="code-kw">from</span> agentaudit_autogpt <span class="code-kw">import</span> AutoGPTLogger
+<span class="code-kw">with</span> logger.trace() <span class="code-kw">as</span> t:
+    t.log_action(<span class="code-str">"think"</span>, prompt=<span class="code-str">"Plan?"</span>, response=<span class="code-str">"Research"</span>)
+    t.log_action(<span class="code-str">"execute"</span>, prompt=<span class="code-str">"Search"</span>, response=<span class="code-str">"Found 3"</span>)</code></pre>
+          </div>
+          <div class="integration-meta">
+            <span><span class="dot"></span> Guardrails enabled by default</span>
+            <span><span class="dot green"></span> Trace linking across all actions</span>
+            <span><span class="dot yellow"></span> Decorator or context manager</span>
+          </div>
+        </div>
+
+        <!-- OpenAI -->
+        <div class="integration-block" id="openai">
+          <div class="integration-header">
+            <h2>OpenAI</h2>
+            <span class="badge">Wrapped Client</span>
+          </div>
+          <p class="integration-desc">
+            Wrap the OpenAI client to automatically log every chat completion, completion, and embedding call. Guardrails run on outputs before they return to your code. Each call generates a <code>traceId</code> for downstream querying.
+          </p>
+          <div class="install-cmd">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            pip install agentaudit-client openai
+          </div>
+          <div class="integration-code">
+            <pre><code><span class="code-kw">from</span> agentaudit_openai <span class="code-kw">import</span> AuditOpenAI
+
+client = AuditOpenAI(
+    openai_api_key=<span class="code-str">"sk-..."</span>,
+    agentaudit_api_key=<span class="code-str">"aa_your_key_here"</span>,
+    agent_id=<span class="code-str">"uuid-of-your-agent"</span>,
+    guard=<span class="code-kw">True</span>
+)
+
+response = client.chat_completions_create(
+    model=<span class="code-str">"gpt-4"</span>,
+    messages=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
+)
+
+<span class="code-comment"># If output violates a rule, ComplianceViolation is raised</span>
+<span class="code-kw">print</span>(client.trace_id)  <span class="code-comment"># "trace-uuid-123"</span></code></pre>
+          </div>
+          <div class="integration-meta">
+            <span><span class="dot"></span> Guardrails enabled by default</span>
+            <span><span class="dot green"></span> Chat + completion + embedding coverage</span>
+            <span><span class="dot yellow"></span> Trace per API call</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="quick-start">
+      <div class="container">
+        <h2>Choose your <span class="gradient-text">stack</span></h2>
+        <p>All integrations share the same base: circuit breakers, retry with backoff, batch logging, and fail-open / fail-closed configuration. Pick the pattern that fits your codebase.</p>
+        <div class="qs-grid">
+          <div class="qs-card">
+            <h4>LangChain</h4>
+            <p>Pass a callback handler to any LLM, chain, or agent. Automatic guardrails + trace propagation on every call.</p>
+            <a href="#langchain">View setup &rarr;</a>
+          </div>
+          <div class="qs-card">
+            <h4>CrewAI</h4>
+            <p>Add an observer to your Crew. All tasks, agents, and outputs traced with shared trace IDs.</p>
+            <a href="#crewai">View setup &rarr;</a>
+          </div>
+          <div class="qs-card">
+            <h4>AutoGPT</h4>
+            <p>Decorator for single functions, context manager for multi-step runs. Full trace linking either way.</p>
+            <a href="#autogpt">View setup &rarr;</a>
+          </div>
+          <div class="qs-card">
+            <h4>OpenAI</h4>
+            <p>Wrap the client. Every completion and embedding call is audited and guarded automatically.</p>
+            <a href="#openai">View setup &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo">
+            <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
+          </div>
+          <p>The audit layer AI agents desperately need. Built for the $47B agent economy.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+            <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>
+            <a href="#" aria-label="Discord"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Product</h4>
+          <a href="index.html#features">Features</a>
+          <a href="index.html#pricing">Pricing</a>
+          <a href="/docs">Documentation</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/docs/self-hosting.md" target="_blank">Self-Host</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/commits/main" target="_blank">Changelog</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/ROADMAP.md" target="_blank">Roadmap</a>
+        </div>
+        <div class="footer-links">
+          <h4>Developers</h4>
+          <a href="/docs">API Reference</a>
+          <a href="https://pypi.org/project/agentaudit-client/" target="_blank">Python SDK</a>
+          <a href="https://www.npmjs.com/package/agentaudit-client" target="_blank">TypeScript SDK</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank">GitHub</a>
+          <a href="/health">Status</a>
+        </div>
+        <div class="footer-links">
+          <h4>Company</h4>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/ROADMAP.md" target="_blank">Blog</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank">About</a>
+          <a href="mailto:support@agentaudit.io?subject=Careers Inquiry">Careers</a>
+          <a href="mailto:support@agentaudit.io">Email support</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/LICENSE" target="_blank">Legal</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 AgentAudit. All rights reserved. Built with care for the agent economy.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

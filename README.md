@@ -195,6 +195,13 @@ audit.log(
     parent_span_id="log-parent-456",
     response="Task completed successfully"
 )
+
+# Batch logging — submit up to 100 entries in one request
+logs = audit.log_batch([
+    {"action": "llm_start", "prompt": "Hello", "metadata": {"model": "gpt-4"}},
+    {"action": "llm_end", "response": "Hi there", "metadata": {"tokens": 12}}
+])
+print(f"Batch: {len(logs)} processed")
 ```
 
 ### TypeScript
@@ -224,6 +231,32 @@ await audit.log({
   parentSpanId: 'log-parent-456',
   response: 'Task completed successfully'
 });
+
+// Batch logging — submit up to 100 entries in one request
+const { data, processed, errors } = await audit.logBatch([
+  { action: 'llm_start', prompt: 'Hello', metadata: { model: 'gpt-4' } },
+  { action: 'llm_end', response: 'Hi there', metadata: { tokens: 12 } }
+]);
+console.log(`Batch: ${processed} processed, ${errors} errors`);
+```
+
+### Batch Logging
+
+Both SDKs support submitting up to 100 audit log entries in a single request via `logBatch()`. This is ideal for high-throughput agents that generate many events per second.
+
+| SDK | Method | Max Entries | Returns |
+|-----|--------|-------------|---------|
+| Python | `audit.log_batch([...])` | 100 | `List[AuditLog]` |
+| TypeScript | `audit.logBatch([...])` | 100 | `{ data, processed, errors }` |
+
+```bash
+curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+  -H "X-API-Key: aa_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '[
+    { "action": "llm_start", "prompt": "Hello", "metadata": { "model": "gpt-4" } },
+    { "action": "llm_end", "response": "Hi there", "metadata": { "tokens": 12 } }
+  ]'
 ```
 
 ---
@@ -290,6 +323,7 @@ result = crew.kickoff()
 | `GET` | `/api/v1/auth/me` | JWT | Get current org |
 | `POST` | `/api/v1/auth/api-keys` | JWT | Generate API key |
 | `POST` | `/api/v1/audit-logs` | API Key | Submit audit log |
+| `POST` | `/api/v1/audit-logs/batch` | API Key | Submit batch audit logs (1–100 entries) |
 | `GET` | `/api/v1/audit-logs` | JWT | Query logs |
 | `GET` | `/api/v1/audit-logs/trace/:traceId` | JWT | Query by trace |
 | `GET` | `/api/v1/audit-logs/:id/chain` | JWT | Reconstruct chain |
