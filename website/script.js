@@ -235,8 +235,17 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
   });
 });
 
-updateNav();
-bindAuthLinks();
+  document.getElementById('btn-setup-notify')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (isLoggedIn()) {
+      window.location.href = '/dashboard.html';
+    } else {
+      openModal('signup');
+    }
+  });
+
+  updateNav();
+  bindAuthLinks();
 
 // ─── Existing visual scripts (unchanged) ─────────────────────────
 
