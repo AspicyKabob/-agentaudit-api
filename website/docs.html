@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation — AgentAudit</title>
+  <meta name="description" content="Interactive API documentation for AgentAudit. Explore endpoints, request/response schemas, and authentication.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://agentaudit-api-production.up.railway.app/docs.html">
+  <meta property="og:title" content="API Documentation — AgentAudit">
+  <meta property="og:description" content="Interactive API documentation for AgentAudit.">
+  <meta property="og:image" content="https://agentaudit-api-production.up.railway.app/docs/assets/landing-hero.png">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%230c0c0c'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-family='Georgia,serif' font-size='60' font-weight='bold' font-style='italic' fill='%23dc2626'%3EA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .docs-page { padding-top: 80px; min-height: 100vh; }
+    .docs-hero { padding: 80px 0 60px; position: relative; z-index: 2; }
+    .docs-hero h1 { font-family: var(--font-serif); font-size: clamp(36px, 5vw, 56px); font-weight: 400; line-height: 1.1; margin-bottom: 20px; }
+    .docs-hero p { font-size: 18px; color: var(--text-secondary); max-width: 640px; line-height: 1.6; }
+    .docs-grid { display: grid; grid-template-columns: 260px 1fr; gap: 40px; position: relative; z-index: 2; padding-bottom: 100px; }
+    .docs-sidebar { border-right: 1px solid var(--border); padding-right: 24px; }
+    .docs-sidebar h4 { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; margin-top: 24px; }
+    .docs-sidebar a { display: block; font-size: 14px; color: var(--text-secondary); text-decoration: none; padding: 6px 0; transition: color 0.2s; }
+    .docs-sidebar a:hover, .docs-sidebar a.active { color: var(--text); }
+    .docs-content h2 { font-family: var(--font-serif); font-size: clamp(24px, 3vw, 32px); font-weight: 400; margin-bottom: 16px; margin-top: 48px; }
+    .docs-content h2:first-child { margin-top: 0; }
+    .docs-content p { font-size: 16px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
+    .docs-content pre { background: var(--bg-elevated); border: 1px solid var(--border); padding: 20px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.8; color: var(--text-secondary); margin: 20px 0; }
+    .docs-content code { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
+    .docs-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    .docs-content th, .docs-content td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .docs-content th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 500; }
+    .docs-content td { color: var(--text-secondary); }
+    .endpoint { display: flex; align-items: center; gap: 10px; margin: 12px 0; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--border); font-family: var(--font-mono); font-size: 13px; }
+    .method { font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .method.get { color: var(--success); }
+    .method.post { color: #6366f1; }
+    .method.patch { color: var(--warning); }
+    .swagger-frame { width: 100%; height: 800px; border: 1px solid var(--border); background: #fff; margin-top: 24px; }
+    @media (max-width: 900px) {
+      .docs-grid { grid-template-columns: 1fr; }
+      .docs-sidebar { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <nav class="nav">
+    <div class="nav-glass">
+      <div class="container nav-inner">
+        <a href="index.html" class="logo">
+          <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
+        </a>
+        <div class="nav-links">
+          <a href="index.html#features" class="nav-link">Features</a>
+          <a href="index.html#demo" class="nav-link">Demo</a>
+          <a href="pricing.html" class="nav-link">Pricing</a>
+          <a href="trace-visualizer.html" class="nav-link">Trace Visualizer</a>
+          <a href="integrations.html" class="nav-link">Integrations</a>
+          <a href="docs.html" class="nav-link active">Docs</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" class="nav-link nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+        <div class="nav-auth" id="nav-auth">
+          <a href="/dashboard.html" class="btn btn-glass btn-sm" id="nav-login">Log In</a>
+          <a href="index.html#signup" class="btn btn-primary btn-sm" id="nav-signup">Get Started</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <div class="container docs-hero">
+      <span class="section-badge">API Reference</span>
+      <h1>AgentAudit <span class="gradient-text">API Docs</span></h1>
+      <p>Interactive OpenAPI documentation. Explore endpoints, authentication, request/response schemas, and try requests directly in the browser.</p>
+    </div>
+
+    <div class="container docs-grid">
+      <aside class="docs-sidebar">
+        <h4>Overview</h4>
+        <a href="#auth" class="active">Authentication</a>
+        <a href="#endpoints">Endpoints</a>
+        <a href="#batch">Batch Logging</a>
+        <a href="#tracing">Distributed Tracing</a>
+        <h4>SDKs</h4>
+        <a href="https://pypi.org/project/agentaudit-client/" target="_blank">Python SDK ↗</a>
+        <a href="https://www.npmjs.com/package/agentaudit-client" target="_blank">TypeScript SDK ↗</a>
+        <h4>More</h4>
+        <a href="integrations.html">Integrations</a>
+        <a href="security.html">Security</a>
+        <a href="self-hosting.html">Self-Hosting</a>
+      </aside>
+
+      <div class="docs-content">
+        <h2 id="auth">Authentication</h2>
+        <p>AgentAudit uses two authentication methods:</p>
+        <table>
+          <tr><th>Method</th><th>Header</th><th>Use Case</th></tr>
+          <tr><td>API Key</td><td><code>X-API-Key: aa_...</code></td><td>Agent-to-service logging</td></tr>
+          <tr><td>JWT</td><td><code>Authorization: Bearer jwt_token</code></td><td>Dashboard access</td></tr>
+        </table>
+
+        <h2 id="endpoints">Key Endpoints</h2>
+        <div class="endpoint"><span class="method post">POST</span> /api/v1/auth/register</div>
+        <div class="endpoint"><span class="method post">POST</span> /api/v1/auth/login</div>
+        <div class="endpoint"><span class="method post">POST</span> /api/v1/auth/api-keys</div>
+        <div class="endpoint"><span class="method post">POST</span> /api/v1/audit-logs</div>
+        <div class="endpoint"><span class="method post">POST</span> /api/v1/audit-logs/batch</div>
+        <div class="endpoint"><span class="method get">GET</span> /api/v1/audit-logs</div>
+        <div class="endpoint"><span class="method get">GET</span> /api/v1/audit-logs/trace/:traceId</div>
+        <div class="endpoint"><span class="method get">GET</span> /api/v1/audit-logs/:id/chain</div>
+        <div class="endpoint"><span class="method get">GET</span> /api/v1/compliance-rules</div>
+        <div class="endpoint"><span class="method post">POST</span> /api/v1/compliance-rules</div>
+        <div class="endpoint"><span class="method get">GET</span> /api/v1/alerts</div>
+        <div class="endpoint"><span class="method patch">PATCH</span> /api/v1/alerts/:id/resolve</div>
+
+        <h2 id="batch">Batch Logging</h2>
+        <p>Submit up to 100 audit log entries in a single request:</p>
+        <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+  -H "X-API-Key: aa_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {"action": "llm_start", "prompt": "Hello", "metadata": {"model": "gpt-4"}},
+    {"action": "llm_end", "response": "Hi there", "metadata": {"tokens": 12}}
+  ]'</pre>
+
+        <h2 id="tracing">Distributed Tracing</h2>
+        <p>Pass <code>traceId</code> and <code>parentSpanId</code> to link related events:</p>
+        <pre>{
+  "action": "crewai_task_end",
+  "traceId": "trace-abc-123",
+  "parentSpanId": "log-parent-456",
+  "response": "Task completed successfully"
+}</pre>
+
+        <h2>Interactive Swagger UI</h2>
+        <p>Explore the full OpenAPI schema and try requests live:</p>
+        <a href="/docs" class="btn btn-primary btn-lg" target="_blank">Open Swagger UI →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo"><span class="logo-text"><span class="logo-a">A</span>gentAudit</span></div>
+          <p>The audit layer AI agents desperately need. Built for the $47B agent economy.</p>
+        </div>
+        <div class="footer-links">
+          <h4>Product</h4>
+          <a href="index.html#features">Features</a>
+          <a href="pricing.html">Pricing</a>
+          <a href="docs.html">Documentation</a>
+          <a href="integrations.html">Integrations</a>
+        </div>
+        <div class="footer-links">
+          <h4>Developers</h4>
+          <a href="/docs">API Reference</a>
+          <a href="https://pypi.org/project/agentaudit-client/" target="_blank">Python SDK</a>
+          <a href="https://www.npmjs.com/package/agentaudit-client" target="_blank">TypeScript SDK</a>
+          <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank">GitHub</a>
+        </div>
+        <div class="footer-links">
+          <h4>Company</h4>
+          <a href="security.html">Security</a>
+          <a href="mailto:support@agentaudit.io">Contact</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 AgentAudit. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
