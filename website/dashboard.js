@@ -46,6 +46,21 @@
     window.location.href = '/';
   });
 
+  document.getElementById('btn-save-webhook').addEventListener('click', async function() {
+    var btn = this;
+    var url = document.getElementById('webhook-url').value.trim();
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+    try {
+      await api('PATCH', '/api/v1/auth/me', { webhookUrl: url });
+      toast('Webhook URL saved', 'success');
+    } catch(err) {
+      toast(err.message || 'Failed to save', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  });
+
   document.getElementById('btn-upgrade').addEventListener('click', async function() {
     var btn = this;
     var originalText = btn.textContent;
@@ -147,6 +162,7 @@
       badge.className = 'plan-badge plan-' + plan;
       document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
       if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
+      document.getElementById('webhook-url').value = me.webhookUrl || '';
     } catch(err) {
       console.error('[Dashboard] Profile load failed:', err.message || err);
       var msg = err.message || '';
@@ -207,8 +223,44 @@
         keysList.innerHTML = '<div class="empty-state">No API keys yet.<br><small>Create one above to start integrating your agents.</small></div>';
       }
     } catch(e) { console.error('[Dashboard] Keys load failed:', e); document.getElementById('keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>'; }
+
+    try {
+      var alerts = await api('GET', '/api/v1/alerts');
+      var alertsList = document.getElementById('alerts-list');
+      var unresolvedCount = alerts.filter(function(a){ return !a.isResolved; }).length;
+      document.getElementById('stat-alerts').textContent = unresolvedCount.toString();
+      if (alerts && alerts.length) {
+        alertsList.innerHTML = alerts.map(function(a) {
+          var sevClass = a.severity === 'critical' ? 'status-critical' : 'status-flag';
+          var resolved = a.isResolved ? '<span style="color:var(--success);font-size:11px;">Resolved</span>' : '<button class="btn btn-secondary btn-sm resolve-btn" data-resolve-id="' + a.id + '">Resolve</button>';
+          return '<div class="alert-row">' +
+            '<span class="alert-severity ' + sevClass + '">' + a.severity + '</span>' +
+            '<span class="alert-message">' + a.message + '</span>' +
+            '<span class="alert-time">' + new Date(a.createdAt).toLocaleString() + '</span>' +
+            '<span class="alert-actions">' + resolved + '</span>' +
+            '</div>';
+        }).join('');
+        alertsList.querySelectorAll('.resolve-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = btn.getAttribute('data-resolve-id');
+            if (id) resolveAlert(id);
+          });
+        });
+      } else {
+        alertsList.innerHTML = '<div class="empty-state">No alerts yet.<br><small>Compliance violations will appear here automatically.</small></div>';
+      }
+    } catch(e) { console.error('[Dashboard] Alerts load failed:', e); document.getElementById('alerts-list').innerHTML = '<div class="empty-state">Unable to load alerts.</div>'; }
+
     console.log('[Dashboard] Load complete.');
   }
+
+  window.resolveAlert = async function(id) {
+    try {
+      await api('PATCH', '/api/v1/alerts/' + id + '/resolve');
+      toast('Alert resolved', 'success');
+      loadDashboard();
+    } catch(err) { toast(err.message, 'error'); }
+  };
 
   if (new URLSearchParams(window.location.search).get('billing') === 'success') {
     toast('Subscription activated!', 'success');
