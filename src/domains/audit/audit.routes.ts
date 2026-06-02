@@ -3,13 +3,14 @@ import { auditController } from './audit.controller';
 import { validate } from '../../middleware/validate.middleware';
 import { authenticateApiKey } from '../../middleware/apiKey.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
+import { batchLimiter } from '../../middleware/rateLimit.middleware';
 import { submitAuditSchema, queryAuditSchema, auditIdSchema, traceAuditSchema, batchAuditSchema } from './audit.types';
 
 const router = Router();
 
 // Service-to-service: API key auth
 router.post('/', authenticateApiKey, validate(submitAuditSchema), auditController.submit);
-router.post('/batch', authenticateApiKey, validate(batchAuditSchema), auditController.submitBatch);
+router.post('/batch', authenticateApiKey, batchLimiter, validate(batchAuditSchema), auditController.submitBatch);
 
 // Dashboard: JWT auth
 router.get('/', authenticate, validate(queryAuditSchema), auditController.query);

@@ -27,7 +27,13 @@ export const auditLimiter = rateLimit({
   handler: onLimitReached,
 });
 
-// ─── General: Everything else ──────────────────────────────────────
+export const batchLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: onLimitReached,
+});
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,

@@ -73,7 +73,10 @@ model AuditLog {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agent        Agent?       @relation(fields: [agentId], references: [id], onDelete: SetNull)
-}
+
+  @@index([organizationId, traceId])
+  @@index([organizationId, parentSpanId])
+  @@index([organizationId, createdAt])
 
 model ComplianceRule {
   id            String   @id @default(uuid())

@@ -386,6 +386,58 @@ export const swaggerSpec = {
         },
       },
     },
+    '/audit-logs/batch': {
+      post: {
+        tags: ['Audit Logs'],
+        summary: 'Submit a batch of audit log entries',
+        description: 'Process up to 100 audit logs in a single request. Each entry is evaluated against compliance rules atomically within a database transaction. Errors on individual entries do not abort the batch.',
+        security: [{ apiKeyAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'array',
+                minItems: 1,
+                maxItems: 100,
+                items: {
+                  type: 'object',
+                  required: ['action'],
+                  properties: {
+                    agentId: { type: 'string', format: 'uuid' },
+                    action: { type: 'string', example: 'prompt_submitted' },
+                    prompt: { type: 'string' },
+                    response: { type: 'string' },
+                    metadata: { type: 'object' },
+                    traceId: { type: 'string' },
+                    parentSpanId: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '201': {
+            description: 'Batch processed',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    processed: { type: 'integer', description: 'Number of entries successfully created' },
+                    errors: { type: 'integer', description: 'Number of entries that failed' },
+                    data: { type: 'array', items: { $ref: '#/components/schemas/AuditLog' } },
+                  },
+                },
+              },
+            },
+          },
+          '401': { description: 'Invalid or missing API key' },
+          '429': { description: 'Batch rate limit exceeded' },
+        },
+      },
+    },
     '/audit-logs/export': {
       get: {
         tags: ['Audit Logs'],
