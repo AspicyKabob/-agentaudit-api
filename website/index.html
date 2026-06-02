@@ -403,36 +403,33 @@ crew = Crew(
 crew.kickoff()
 <span class="code-comment"># Every task traced, violations blocked</span></code></pre>
 
-          <pre class="fw-content" data-fw="autogpt"><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAudit
+          <pre class="fw-content" data-fw="autogpt"><code><span class="code-kw">from</span> agentaudit_autogpt <span class="code-kw">import</span> guard, ComplianceViolation
 
-<span class="code-comment"># Wrap AutoGPT actions</span>
-audit = AgentAudit(api_key=<span class="code-str">"aa_your_key_here"</span>)
+<span class="code-comment"># One decorator guards your entire agent</span>
+<span class="code-kw">@guard</span>(api_key=<span class="code-str">"aa_your_key_here"</span>, agent_name=<span class="code-str">"MyAutoGPT"</span>)
+<span class="code-kw">def</span> run_agent(task: str) -> str:
+    <span class="code-kw">return</span> agent.run(task)
 
-<span class="code-comment"># Guard every thought and action</span>
-<span class="code-kw">for</span> thought <span class="code-kw">in</span> agent.thoughts:
-    result = audit.guardrail(
-        action=<span class="code-str">"autogpt_thought"</span>,
-        prompt=thought,
-        agent_id=agent.id
-    )
-    <span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
-        agent.halt()  <span class="code-comment"># Stop before bad action</span></code></pre>
+<span class="code-kw">try</span>:
+    result = run_agent(<span class="code-str">"Research topic X"</span>)
+<span class="code-kw">except</span> ComplianceViolation <span class="code-kw">as</span> e:
+    <span class="code-kw">print</span>(<span class="code-str">f"Blocked: {e.violations}"</span>)
+<span class="code-comment"># Automatically traced + guarded</span></code></pre>
 
-          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
+          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">from</span> agentaudit_openai <span class="code-kw">import</span> AuditOpenAI
 
-<span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({ apiKey: <span class="code-str">'aa_your_key_here'</span> });
+<span class="code-comment"># One wrapper guards every OpenAI call</span>
+client = AuditOpenAI(
+    openai_api_key=<span class="code-str">"sk-..."</span>,
+    agentaudit_api_key=<span class="code-str">"aa_your_key_here"</span>,
+    guard=<span class="code-kw">True</span>  <span class="code-comment"># Block violations automatically</span>
+)
 
-<span class="code-comment">// Intercept every OpenAI call</span>
-<span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
-    action: <span class="code-str">'openai_chat'</span>,
-    prompt: userInput,
-    response: completion
-});
-
-<span class="code-kw">if</span> (!result.allowed) {
-    <span class="code-kw">return</span> { error: <span class="code-str">'Blocked by compliance'</span> };
-}
-<span class="code-comment">// Clean output delivered to user</span></code></pre>
+response = client.chat_completions_create(
+    model=<span class="code-str">"gpt-4"</span>,
+    messages=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
+)
+<span class="code-comment"># Every call traced, violations blocked</span></code></pre>
         </div>
         <div class="framework-note"><span class="badge">Copy. Paste. Done.</span> Zero configuration required.</div>
       </div>

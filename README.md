@@ -78,10 +78,10 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 - **Compliance Reports** — Export JSON/CSV for any date range
 
 ### Integrations
-- **CrewAI** — Drop-in `AgentAuditObserver` with `guard=True`
-- **LangChain** — Callback integration
-- **AutoGPT** — Compatible via API
-- **OpenAI** — Request/response interception
+- **CrewAI** — Drop-in `AgentAuditObserver` with `guard=True/False` + distributed tracing
+- **LangChain** — Callback handler with real-time guardrails + `traceId`/`parentSpanId` propagation
+- **AutoGPT** — Decorator and context manager with guardrails + trace linking
+- **OpenAI** — Wrapped client with automatic guarding and audit logging on every call
 
 ### DevEx
 - **Python SDK** — `pip install agentaudit-client`
