@@ -39,7 +39,7 @@ export const auditService = {
     // Create alerts for critical flags and deliver webhooks + emails
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { email: true },
+      select: { email: true, notifyWebhook: true, notifyEmail: true, notifyMinSeverity: true },
     });
     for (const flag of flags) {
       const severity = flag.startsWith('CRITICAL') ? 'critical' : 'warning';
@@ -52,9 +52,14 @@ export const auditService = {
           details: { action: data.action, agentId: data.agentId },
         },
       });
-      // Deliver webhook and email asynchronously (non-blocking)
-      alertService.deliverWebhook(alert).catch(() => {});
-      if (org?.email) {
+
+      const shouldNotify = severity === 'critical' || org?.notifyMinSeverity === 'warning';
+
+      if (org?.notifyWebhook !== false && shouldNotify) {
+        alertService.deliverWebhook(alert).catch(() => {});
+      }
+
+      if (org?.notifyEmail !== false && shouldNotify && org?.email) {
         emailService.sendAlert(org.email, {
           severity,
           message: `Compliance flag triggered: ${flag}`,

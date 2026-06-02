@@ -34,6 +34,9 @@ export type CreateApiKeyBody = z.infer<typeof createApiKeySchema>['body'];
 export const updateProfileSchema = z.object({
   body: z.object({
     webhookUrl: z.string().url().optional(),
+    notifyWebhook: z.boolean().optional(),
+    notifyEmail: z.boolean().optional(),
+    notifyMinSeverity: z.enum(['warning', 'critical']).optional(),
   }),
 });
 

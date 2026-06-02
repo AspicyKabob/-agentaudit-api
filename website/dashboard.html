@@ -65,6 +65,9 @@
     .field input::placeholder { color: #52525b; }
     .key-reveal { background: var(--bg); border: 1px solid var(--border-strong); border-radius: 8px; padding: 14px 16px; font-family: var(--font-mono); font-size: 13px; color: var(--accent); word-break: break-all; margin-bottom: 12px; }
     .key-warn { font-size: 12px; color: #f59e0b; margin-bottom: 20px; padding: 10px 14px; background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; }
+    .switch input:checked + span { background: var(--accent); }
+    .switch input:checked + span:before { transform: translateX(16px); }
+    .switch span:before { content: ''; position: absolute; height: 16px; width: 16px; left: 2px; bottom: 2px; background: #fff; border-radius: 50%; transition: 0.2s; }
     /* Toast */
     .toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px); background: #1c1c1e; border: 1px solid rgba(148,163,184,0.2); color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 500; opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 2000; pointer-events: none; white-space: nowrap; }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -127,11 +130,47 @@
         <button class="btn btn-primary btn-sm" id="btn-save-webhook">Save</button>
       </div>
       <div style="padding: 20px 24px;">
-        <div class="field" style="margin-bottom: 12px;">
+        <div class="field" style="margin-bottom: 16px;">
           <label for="webhook-url" style="display: block; font-size: 13px; font-weight: 500; color: #a1a1aa; margin-bottom: 6px;">Webhook URL for Alerts</label>
           <input id="webhook-url" type="url" placeholder="https://hooks.slack.com/services/..." style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; box-sizing: border-box; transition: border-color 0.2s;">
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; margin-bottom: 0;">When a compliance violation is detected, AgentAudit will POST alert details to this URL in real-time. <a href="/docs" style="color: var(--accent); text-decoration: none;">View webhook schema</a>.</p>
         </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">Webhook Alerts</span>
+              <label class="switch" style="position: relative; display: inline-block; width: 36px; height: 20px;">
+                <input type="checkbox" id="toggle-webhook" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-strong); border-radius: 20px; transition: 0.2s;"></span>
+              </label>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">POST alerts to your URL</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">Email Alerts</span>
+              <label class="switch" style="position: relative; display: inline-block; width: 36px; height: 20px;">
+                <input type="checkbox" id="toggle-email" style="opacity: 0; width: 0; height: 0;">
+                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border-strong); border-radius: 20px; transition: 0.2s;"></span>
+              </label>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Send to your account email</p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span style="font-size: 13px; font-weight: 500; color: var(--text);">Min Severity</span>
+              <select id="select-severity" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-strong); border-radius: 6px; padding: 4px 8px; color: var(--text); font-size: 12px; outline: none;">
+                <option value="warning">Warning+</option>
+                <option value="critical">Critical only</option>
+              </select>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin: 0;">Filter noise level</p>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: var(--text-muted); margin: 0;">When a compliance violation is detected, AgentAudit will notify you based on these preferences. <a href="/docs" style="color: var(--accent); text-decoration: none;">View webhook schema</a>.</p>
       </div>
     </div>
 

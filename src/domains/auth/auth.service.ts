@@ -114,7 +114,7 @@ export const authService = {
     });
   },
 
-  async updateProfile(organizationId: string, data: { webhookUrl?: string }) {
+  async updateProfile(organizationId: string, data: { webhookUrl?: string; notifyWebhook?: boolean; notifyEmail?: boolean; notifyMinSeverity?: string }) {
     return prisma.organization.update({
       where: { id: organizationId },
       data,
@@ -124,6 +124,9 @@ export const authService = {
         email: true,
         plan: true,
         webhookUrl: true,
+        notifyWebhook: true,
+        notifyEmail: true,
+        notifyMinSeverity: true,
       },
     });
   },

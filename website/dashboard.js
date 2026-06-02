@@ -49,11 +49,19 @@
   document.getElementById('btn-save-webhook').addEventListener('click', async function() {
     var btn = this;
     var url = document.getElementById('webhook-url').value.trim();
+    var webhookOn = document.getElementById('toggle-webhook').checked;
+    var emailOn = document.getElementById('toggle-email').checked;
+    var minSev = document.getElementById('select-severity').value;
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
-      await api('PATCH', '/api/v1/auth/me', { webhookUrl: url });
-      toast('Webhook URL saved', 'success');
+      await api('PATCH', '/api/v1/auth/me', {
+        webhookUrl: url || null,
+        notifyWebhook: webhookOn,
+        notifyEmail: emailOn,
+        notifyMinSeverity: minSev
+      });
+      toast('Notification preferences saved', 'success');
     } catch(err) {
       toast(err.message || 'Failed to save', 'error');
     }
@@ -163,6 +171,9 @@
       document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
       if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
       document.getElementById('webhook-url').value = me.webhookUrl || '';
+      document.getElementById('toggle-webhook').checked = me.notifyWebhook !== false;
+      document.getElementById('toggle-email').checked = me.notifyEmail !== false;
+      document.getElementById('select-severity').value = me.notifyMinSeverity || 'warning';
     } catch(err) {
       console.error('[Dashboard] Profile load failed:', err.message || err);
       var msg = err.message || '';

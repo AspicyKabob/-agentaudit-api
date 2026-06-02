@@ -27,6 +27,9 @@ export const authController = {
       apiQuota: req.organization!.apiQuota,
       apiUsed: req.organization!.apiUsed,
       webhookUrl: req.organization!.webhookUrl,
+      notifyWebhook: req.organization!.notifyWebhook,
+      notifyEmail: req.organization!.notifyEmail,
+      notifyMinSeverity: req.organization!.notifyMinSeverity,
     });
   }),
 
