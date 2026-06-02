@@ -47,10 +47,36 @@
   });
 
   document.getElementById('btn-upgrade').addEventListener('click', async function() {
+    var btn = this;
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Loading billing portal...';
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 15000);
+
     try {
-      var d = await api('POST', '/api/v1/billing/portal-session', null);
-      if (d.url) window.location.href = d.url;
-    } catch(e) { window.location.href = '/#pricing'; }
+      var d = await api('POST', '/api/v1/billing/portal-session', null, controller.signal);
+      clearTimeout(timeoutId);
+      if (d.url) {
+        window.location.href = d.url;
+      } else {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        toast('Unable to load billing portal. Please try again.', 'error');
+      }
+    } catch(e) {
+      clearTimeout(timeoutId);
+      btn.disabled = false;
+      btn.textContent = originalText;
+      if (e.name === 'AbortError') {
+        toast('Request timed out. Please check your connection.', 'error');
+      } else if (e.message && e.message.includes('fetch')) {
+        toast('Connection lost. Please check your internet and try again.', 'error');
+      } else {
+        window.location.href = '/#pricing';
+      }
+    }
   });
 
   var keyModal = document.getElementById('key-modal');

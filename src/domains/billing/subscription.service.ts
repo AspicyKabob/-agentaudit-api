@@ -4,14 +4,33 @@ import { prisma } from '../../db/prisma';
 import { config } from '../../config';
 import { logger } from '../../utils/logger';
 
+const VALID_PRICE_IDS = [
+  config.get('stripePricePro'),
+  config.get('stripePriceBusiness'),
+  config.get('stripePriceEnterprise'),
+  config.get('stripePriceFree'),
+].filter(Boolean);
+
+function isValidPriceId(priceId: string): boolean {
+  return typeof priceId === 'string' && priceId.startsWith('price_') && priceId.length > 10;
+}
+
 export const subscriptionService = {
   async createCheckoutSession(organizationId: string, priceId: string, customerEmail: string) {
+    if (!isValidPriceId(priceId)) {
+      throw new Error('Invalid price ID');
+    }
+
     try {
       let customer;
       
       const org = await prisma.organization.findUnique({
         where: { id: organizationId },
       });
+
+      if (!org) {
+        throw new Error('Organization not found');
+      }
 
       if (org?.stripeCustomerId) {
         try {
@@ -40,6 +59,8 @@ export const subscriptionService = {
       }
 
       const baseUrl = config.get('frontendUrl').replace(/\/$/, '');
+      const idempotencyKey = `checkout-${organizationId}-${priceId}-${Date.now()}`;
+      
       const session = await stripe.checkout.sessions.create({
         customer: customer.id,
         line_items: [{ price: priceId, quantity: 1 }],
@@ -47,6 +68,8 @@ export const subscriptionService = {
         success_url: `${baseUrl}/dashboard.html?billing=success`,
         cancel_url: `${baseUrl}/index.html#pricing?billing=canceled`,
         subscription_data: { metadata: { organizationId } },
+      }, {
+        idempotencyKey,
       });
 
       logger.info({ organizationId, sessionId: session.id }, 'Checkout session created');
@@ -79,6 +102,27 @@ export const subscriptionService = {
         break;
       }
 
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as any;
+        const org = await prisma.organization.findFirst({
+          where: { stripeSubscriptionId: subscription.id },
+        });
+        
+        if (org) {
+          const newPlan = subscription.metadata?.plan || subscription.plan?.nickname || org.plan;
+          const status = subscription.status;
+          
+          if (status === 'active' || status === 'trialing') {
+            await prisma.organization.update({
+              where: { id: org.id },
+              data: { plan: newPlan },
+            });
+            logger.info({ organizationId: org.id, newPlan, status }, 'Subscription updated');
+          }
+        }
+        break;
+      }
+
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as any;
         const subscriptionId = invoice.subscription as string;
@@ -104,6 +148,14 @@ export const subscriptionService = {
           });
           if (org) {
             logger.warn({ organizationId: org.id }, 'Payment failed');
+            await prisma.alert.create({
+              data: {
+                organizationId: org.id,
+                severity: 'critical',
+                message: `Payment failed for subscription ${subscriptionId}`,
+                details: { invoiceId: invoice.id, attemptCount: invoice.attempt_count },
+              },
+            });
           }
         }
         break;
@@ -149,7 +201,15 @@ export const subscriptionService = {
         currentPeriodEnd: new Date(sub.current_period_end * 1000),
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'resource_missing') {
+        logger.warn({ organizationId, subscriptionId: org.stripeSubscriptionId }, 'Subscription not found in Stripe, resetting');
+        await prisma.organization.update({
+          where: { id: organizationId },
+          data: { stripeSubscriptionId: null, plan: 'free' },
+        });
+        return { status: 'inactive', plan: 'free' };
+      }
       logger.error({ error, organizationId }, 'Failed to retrieve subscription');
       return { status: 'error', plan: org.plan };
     }
@@ -160,13 +220,27 @@ export const subscriptionService = {
       where: { id: organizationId },
     });
 
-    if (!org?.stripeCustomerId) {
-      throw new Error('No Stripe customer found');
+    if (!org) {
+      throw new Error('Organization not found');
+    }
+
+    let customerId = org.stripeCustomerId;
+
+    if (!customerId) {
+      const stripeCustomer = await stripe.customers.create({
+        email: org.email,
+        metadata: { organizationId },
+      });
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: { stripeCustomerId: stripeCustomer.id },
+      });
+      customerId = stripeCustomer.id;
     }
 
     const baseUrl = config.get('frontendUrl').replace(/\/$/, '');
     const session = await stripe.billingPortal.sessions.create({
-      customer: org.stripeCustomerId,
+      customer: customerId,
       return_url: `${baseUrl}/dashboard.html`,
     });
 

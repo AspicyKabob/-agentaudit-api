@@ -38,10 +38,11 @@ function showToast(message, type = 'info') {
   }, 3000);
 }
 
-async function apiCall(method, path, body, auth = false) {
+async function apiCall(method, path, body, auth = false, signal = null) {
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
+    signal,
   };
   if (body) opts.body = JSON.stringify(body);
   if (auth) {
@@ -199,14 +200,37 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
       window.open('mailto:sales@agentaudit.io?subject=Enterprise Inquiry', '_blank');
       return;
     }
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Redirecting to Stripe...';
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     try {
       const data = await apiCall('POST', '/api/v1/billing/checkout-session', {
         priceId: btn.dataset.price,
-      }, true);
-      if (data.url) window.location.href = data.url;
-      else showToast('Billing setup incomplete. Please try again later.', 'error');
+      }, true, controller.signal);
+      clearTimeout(timeoutId);
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        btn.disabled = false;
+        btn.textContent = originalText;
+        showToast('Billing setup incomplete. Please try again later.', 'error');
+      }
     } catch (err) {
-      showToast(err.message, 'error');
+      clearTimeout(timeoutId);
+      btn.disabled = false;
+      btn.textContent = originalText;
+      if (err.name === 'AbortError') {
+        showToast('Request timed out. Please check your connection and try again.', 'error');
+      } else if (err.message && err.message.includes('fetch')) {
+        showToast('Connection lost. Please check your internet and try again.', 'error');
+      } else {
+        showToast(err.message || 'Failed to start checkout. Please try again.', 'error');
+      }
     }
   });
 });
