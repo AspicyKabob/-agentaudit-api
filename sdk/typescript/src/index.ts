@@ -221,7 +221,7 @@ export class AgentAudit {
       traceId?: string;
       parentSpanId?: string;
     }>
-  ): Promise<AuditLog[]> {
+  ): Promise<{ data: AuditLog[]; processed: number; errors: number }> {
     const enriched = entries.map((entry) => {
       const agentId = entry.agentId || this.agentId;
       return {
@@ -234,7 +234,7 @@ export class AgentAudit {
         ...(entry.parentSpanId ? { parentSpanId: entry.parentSpanId } : {}),
       };
     });
-    const { data } = await this.client.post<AuditLog[]>('/audit-logs/batch', enriched);
+    const { data } = await this.client.post<{ data: AuditLog[]; processed: number; errors: number }>('/audit-logs/batch', enriched);
     return data;
   }
 }
