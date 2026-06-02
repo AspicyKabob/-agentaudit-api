@@ -14,8 +14,18 @@ export const subscriptionService = {
       });
 
       if (org?.stripeCustomerId) {
-        customer = { id: org.stripeCustomerId };
-      } else {
+        try {
+          const existingCustomer = await stripe.customers.retrieve(org.stripeCustomerId);
+          if (existingCustomer && !existingCustomer.deleted) {
+            customer = { id: org.stripeCustomerId };
+          }
+        } catch (e) {
+          logger.warn({ organizationId, oldCustomerId: org.stripeCustomerId }, 'Old Stripe customer not found in current environment, creating new one');
+          customer = null;
+        }
+      }
+
+      if (!customer) {
         const stripeCustomer = await stripe.customers.create({
           email: customerEmail,
           metadata: { organizationId },
