@@ -10,13 +10,22 @@ export const billingController = {
     const organizationId = req.organization!.id;
     const email = req.organization!.email;
 
-    const session = await subscriptionService.createCheckoutSession(
-      organizationId,
-      priceId,
-      email
-    );
-
-    res.status(200).json({ sessionId: session.id, url: session.url });
+    try {
+      const session = await subscriptionService.createCheckoutSession(
+        organizationId,
+        priceId,
+        email
+      );
+      res.status(200).json({ sessionId: session.id, url: session.url });
+    } catch (err: any) {
+      console.error('[Checkout Error] raw:', err);
+      console.error('[Checkout Error] message:', err?.message || 'unknown');
+      console.error('[Checkout Error] stack:', err?.stack || 'no stack');
+      res.status(400).json({
+        error: err?.message || 'Failed to create checkout session',
+        detail: err?.raw?.message || undefined,
+      });
+    }
   }),
 
   getSubscriptionStatus: asyncHandler(async (req: Request, res: Response) => {
