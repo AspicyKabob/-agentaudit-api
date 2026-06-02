@@ -42,8 +42,8 @@ export const subscriptionService = {
       logger.info({ organizationId, sessionId: session.id }, 'Checkout session created');
       return session;
     } catch (error) {
-      logger.error({ error, organizationId, priceId }, 'Failed to create checkout session');
-      throw new Error('Failed to create checkout session');
+      logger.error({ error, organizationId, priceId }, 'Stripe checkout session failed');
+      throw error;
     }
   },
 
