@@ -51,6 +51,12 @@
     .pricing-card-page.popular { border-color: rgba(220, 38, 38, 0.25); }
 
     .card-top { padding: 28px 28px 0; }
+    .pricing-card-page:not(.popular) .card-top::before {
+      content: '';
+      display: block;
+      height: 22px;
+      margin-bottom: 12px;
+    }
     .popular-badge {
       font-family: var(--font-mono);
       font-size: 10px;
@@ -61,7 +67,7 @@
       display: block;
     }
     .pricing-card-page h3 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin-bottom: 4px; }
-    .pricing-card-page .price { font-size: 48px; font-weight: 300; font-family: var(--font-sans); letter-spacing: -2px; margin-bottom: 6px; line-height: 1; }
+    .pricing-card-page .price { font-size: 42px; font-weight: 500; font-family: var(--font-sans); letter-spacing: -1.5px; margin-bottom: 6px; line-height: 1; }
     .pricing-card-page .price span { font-size: 14px; font-weight: 400; color: var(--text-muted); letter-spacing: 0; }
     .pricing-card-page .price-note { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
 
@@ -72,10 +78,11 @@
     .card-body ul { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
     .card-body li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-secondary); padding: 5px 0; }
     .card-body li svg { flex-shrink: 0; margin-top: 2px; color: var(--success); }
+    .card-body li > span { flex: 1; }
 
     .card-body li.coming-soon { color: var(--text-muted); }
     .card-body li.coming-soon svg { color: var(--text-muted); stroke-dasharray: 3 3; }
-    .coming-soon-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .coming-soon-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
 
     /* FAQ */
     .faq { padding: 100px 0; position: relative; z-index: 2; border-top: 1px solid var(--border); }
@@ -136,8 +143,8 @@
         <div class="card-body">
           <ul>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5,000 audit logs / month</li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>1 agent <span class="coming-soon-tag">Coming soon</span></li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>7-day retention <span class="coming-soon-tag">Coming soon</span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>1 agent <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>7-day retention <span class="coming-soon-tag">Coming soon</span></span></li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Basic compliance rules</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Email support</li>
           </ul>
@@ -157,8 +164,8 @@
         <div class="card-body">
           <ul>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>50,000 audit logs / month</li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>10 agents <span class="coming-soon-tag">Coming soon</span></li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>1-year retention <span class="coming-soon-tag">Coming soon</span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>10 agents <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>1-year retention <span class="coming-soon-tag">Coming soon</span></span></li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced compliance rules</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
@@ -178,9 +185,9 @@
         <div class="card-body">
           <ul>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>250,000 audit logs / month</li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited agents <span class="coming-soon-tag">Coming soon</span></li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>7-year retention <span class="coming-soon-tag">Coming soon</span></li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced analytics <span class="coming-soon-tag">Coming soon</span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Unlimited agents <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>7-year retention <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Advanced analytics <span class="coming-soon-tag">Coming soon</span></span></li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom integrations</li>
           </ul>

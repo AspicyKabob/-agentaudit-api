@@ -1038,12 +1038,12 @@ body::after {
 
 .pricing-price {
   font-family: var(--font-sans);
-  font-size: 48px;
-  font-weight: 300;
+  font-size: 42px;
+  font-weight: 500;
   line-height: 1;
   margin-bottom: 8px;
   color: var(--text);
-  letter-spacing: -2px;
+  letter-spacing: -1.5px;
 }
 
 .pricing-price span {
