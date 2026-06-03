@@ -50,24 +50,18 @@
     .pricing-card-page.popular::before { background: var(--accent); }
     .pricing-card-page.popular { border-color: rgba(220, 38, 38, 0.25); }
 
-    .card-top { padding: 28px 28px 0; }
-    .pricing-card-page:not(.popular) .card-top::before {
-      content: '';
-      display: block;
-      height: 22px;
-      margin-bottom: 12px;
-    }
+    .card-top { padding: 28px 28px 0; display: flex; flex-direction: column; }
+    .badge-area { height: 22px; margin-bottom: 12px; }
     .popular-badge {
       font-family: var(--font-mono);
       font-size: 10px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--accent);
-      margin-bottom: 12px;
       display: block;
     }
     .pricing-card-page h3 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin-bottom: 4px; }
-    .pricing-card-page .price { font-size: 42px; font-weight: 500; font-family: var(--font-sans); letter-spacing: -1.5px; margin-bottom: 6px; line-height: 1; }
+    .pricing-card-page .price { font-size: 36px; font-weight: 300; font-family: var(--font-sans); letter-spacing: -1.5px; margin-bottom: 6px; line-height: 1; }
     .pricing-card-page .price span { font-size: 14px; font-weight: 400; color: var(--text-muted); letter-spacing: 0; }
     .pricing-card-page .price-note { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
 
@@ -78,11 +72,11 @@
     .card-body ul { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
     .card-body li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-secondary); padding: 5px 0; }
     .card-body li svg { flex-shrink: 0; margin-top: 2px; color: var(--success); }
-    .card-body li > span { flex: 1; }
+    .card-body li > span { flex: 1; display: flex; flex-direction: column; }
 
     .card-body li.coming-soon { color: var(--text-muted); }
     .card-body li.coming-soon svg { color: var(--text-muted); stroke-dasharray: 3 3; }
-    .coming-soon-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+    .coming-soon-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 2px; }
 
     /* FAQ */
     .faq { padding: 100px 0; position: relative; z-index: 2; border-top: 1px solid var(--border); }
@@ -135,6 +129,7 @@
       <!-- Free -->
       <div class="pricing-card-page">
         <div class="card-top">
+          <div class="badge-area"></div>
           <h3>Free</h3>
           <div class="price">$0<span>/mo</span></div>
           <div class="price-note">For solo developers</div>
@@ -177,6 +172,7 @@
       <!-- Business -->
       <div class="pricing-card-page">
         <div class="card-top">
+          <div class="badge-area"></div>
           <h3>Business</h3>
           <div class="price">$79<span>/mo</span></div>
           <div class="price-note">For compliance-driven orgs</div>
@@ -198,6 +194,7 @@
       <!-- Enterprise -->
       <div class="pricing-card-page">
         <div class="card-top">
+          <div class="badge-area"></div>
           <h3>Enterprise</h3>
           <div class="price">Custom</div>
           <div class="price-note">For regulated industries</div>
