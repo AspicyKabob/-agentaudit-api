@@ -1082,6 +1082,20 @@ body::after {
   color: var(--success);
 }
 
+.card-top { padding: 0 0 24px; display: flex; flex-direction: column; }
+.badge-area { height: 20px; margin-bottom: 8px; }
+.card-divider { height: 1px; background: var(--border); margin: 0 -32px 24px; }
+.card-body { flex: 1; display: flex; flex-direction: column; }
+
+.pricing-card .popular-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
 /* ─── Rule Packs ──────────────────────────────────────────────── */
 .rule-packs {
   padding: 120px 0;
