@@ -1037,18 +1037,21 @@ body::after {
 }
 
 .pricing-price {
-  font-family: var(--font-serif);
-  font-size: 48px;
-  font-weight: 400;
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 700;
   line-height: 1;
   margin-bottom: 8px;
   color: var(--text);
+  letter-spacing: -1.5px;
 }
 
 .pricing-price span {
   font-family: var(--font-mono);
   font-size: 14px;
+  font-weight: 400;
   color: var(--text-muted);
+  letter-spacing: 0;
 }
 
 .pricing-header > p {
