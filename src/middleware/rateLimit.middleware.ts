@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 
 // Generic error handler for all limiters
@@ -18,26 +18,46 @@ export const authLimiter = rateLimit({
   handler: onLimitReached,
 });
 
-// ─── Medium: Audit log submission (API-key routes) ─────────────────
-export const auditLimiter = rateLimit({
+// ─── Audit: Single log submission ────────────────────────────────
+export const singleLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   handler: onLimitReached,
 });
 
+// ─── Audit: Batch log submission ─────────────────────────────────
 export const batchLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50,
+  max: 500,
   standardHeaders: true,
   legacyHeaders: false,
   handler: onLimitReached,
 });
-export const generalLimiter = rateLimit({
+
+// ─── Audit: Read-only queries (trace, chain, list) ─────────────
+export const readLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   handler: onLimitReached,
 });
+
+// ─── General: Everything else under /api/v1 ──────────────────────
+const _generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 200,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: onLimitReached,
+});
+
+export function generalLimiter(req: Request, res: Response, next: NextFunction) {
+  // Let audit routes handle their own limits via singleLimiter / batchLimiter / readLimiter
+  if (req.path.startsWith('/audit-logs')) {
+    return next();
+  }
+  return _generalLimiter(req, res, next);
+}

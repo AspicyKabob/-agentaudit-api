@@ -13,7 +13,7 @@ import billingRoutes from './domains/billing/billing.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { logger } from './utils/logger';
 import { swaggerSpec, swaggerUiHandler, swaggerUiSetup } from './utils/swagger';
-import { authLimiter, auditLimiter, generalLimiter } from './middleware/rateLimit.middleware';
+import { authLimiter, generalLimiter } from './middleware/rateLimit.middleware';
 import { config } from './config';
 
 export function createApp() {
@@ -40,7 +40,6 @@ export function createApp() {
   // Rate limiting — strict only on login/register, not on /auth/me or api-keys
   app.post('/api/v1/auth/register', authLimiter);
   app.post('/api/v1/auth/login', authLimiter);
-  app.use('/api/v1/audit-logs', auditLimiter);
   app.use('/api/v1', generalLimiter);
 
   // Health check
