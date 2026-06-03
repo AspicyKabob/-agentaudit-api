@@ -17,9 +17,39 @@ interface QueryOptions {
   limit: number;
 }
 
+const PLAN_QUOTAS: Record<string, number> = {
+  free: 5000,
+  pro: 50000,
+  business: 250000,
+  enterprise: Infinity,
+};
+
+async function enforceQuota(organizationId: string, requestedCount: number) {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { plan: true, apiUsed: true, apiQuota: true },
+  });
+
+  if (!org) {
+    throw new Error('Organization not found');
+  }
+
+  const quota = org.apiQuota || PLAN_QUOTAS[org.plan] || PLAN_QUOTAS.free;
+  const remaining = quota - org.apiUsed;
+
+  if (remaining <= 0) {
+    throw new Error(`Monthly audit log quota exceeded (${org.apiUsed}/${quota}). Upgrade your plan to continue logging.`);
+  }
+
+  if (requestedCount > remaining) {
+    throw new Error(`Batch too large. Only ${remaining} logs remaining this month. Upgrade your plan to continue logging.`);
+  }
+}
+
 export const auditService = {
   async submit(organizationId: string, data: SubmitAuditBody) {
-    // Evaluate compliance rules
+    await enforceQuota(organizationId, 1);
+
     const flags = await evaluateComplianceRules(organizationId, data);
 
     const log = await prisma.auditLog.create({
@@ -78,6 +108,8 @@ export const auditService = {
   },
 
   async submitBatch(organizationId: string, entries: SubmitAuditBody[]) {
+    await enforceQuota(organizationId, entries.length);
+
     const results: Array<{ id: string; action: string; complianceFlags: string[]; createdAt: Date | string }> = [];
     let errors = 0;
 

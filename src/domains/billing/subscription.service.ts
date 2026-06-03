@@ -4,6 +4,17 @@ import { prisma } from '../../db/prisma';
 import { config } from '../../config';
 import { logger } from '../../utils/logger';
 
+const PLAN_QUOTAS: Record<string, number> = {
+  free: 5000,
+  pro: 50000,
+  business: 250000,
+  enterprise: 999999999,
+};
+
+function getQuotaForPlan(plan: string): number {
+  return PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
+}
+
 const VALID_PRICE_IDS = [
   config.get('stripePricePro'),
   config.get('stripePriceBusiness'),
@@ -115,7 +126,10 @@ export const subscriptionService = {
           if (status === 'active' || status === 'trialing') {
             await prisma.organization.update({
               where: { id: org.id },
-              data: { plan: newPlan },
+              data: {
+                plan: newPlan,
+                apiQuota: getQuotaForPlan(newPlan),
+              },
             });
             logger.info({ organizationId: org.id, newPlan, status }, 'Subscription updated');
           }
