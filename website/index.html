@@ -290,41 +290,33 @@
     </div>
   </section>
 
-  <section class="code-section">
-    <div class="container">
-      <div class="code-grid">
-<div class="code-text">
-<span class="section-badge">5-Minute Setup</span>
-<h2>Drop-in integration for <br><span class="gradient-text">real-time guardrails</span></h2>
-<p>One line of code. Automatic interception. Block violations before they reach users.</p>
-<div class="code-tabs">
-<button class="code-tab active" data-tab="python">Python</button>
-<button class="code-tab" data-tab="typescript">TypeScript</button>
-<button class="code-tab" data-tab="curl">cURL</button>
-</div>
-</div>
-<div class="code-window">
-<div class="code-header">
-<div class="code-dots">
-<span></span><span></span><span></span>
-</div>
-<span class="code-filename">agent.py</span>
-</div>
-<div class="code-content" id="code-content">
-<div class="code-notes">
-<p><strong>Note:</strong> SDK examples use high-level methods that abstract API details (like <code>checkType</code>). The cURL example shows the direct API call for comparison.</p>
-</div>
-
-<div class="code-tabs-content">
-<div class="code-tab-pane active" data-tab="python">
-<pre><code class="language-python"><span class="code-kw">import</span> agentaudit
-<span class="code-kw">import</span> uuid
+<section class="code-section">
+  <div class="container">
+    <div class="code-grid">
+      <div class="code-text">
+        <span class="section-badge">5-Minute Setup</span>
+        <h2>Drop-in integration for <br><span class="gradient-text">real-time guardrails</span></h2>
+        <p>One line of code. Automatic interception. Block violations before they reach users.</p>
+        <div class="code-tabs">
+          <button class="code-tab active" data-tab="python">Python</button>
+          <button class="code-tab" data-tab="typescript">TypeScript</button>
+          <button class="code-tab" data-tab="curl">cURL</button>
+        </div>
+      </div>
+      <div class="code-window">
+        <div class="code-header">
+          <div class="code-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="code-filename">agent.py</span>
+        </div>
+        <div class="code-content" id="code-content">
+          <pre><code class="tab-content active" data-tab="python"><span class="code-kw">import</span> agentaudit
 
 <span class="code-comment"># Initialize with your API key</span>
 audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span>)
 
-<span class="code-comment"># BASIC GUARDRAIL - Block violations before delivery</span>
-<span class="code-comment"># This is the simplest form - one line of protection</span>
+<span class="code-comment"># Guardrail: intercept and block violations before delivery</span>
 <span class="code-kw">result</span> = audit.guardrail(
     action=<span class="code-str">"prompt_submitted"</span>,
     prompt=<span class="code-str">"User: My SSN is 123-45-6789"</span>,
@@ -334,77 +326,16 @@ audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span
 <span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
     <span class="code-kw">raise</span> <span class="code-str">ValueError</span>(<span class="code-str">"Output blocked: "</span> + <span class="code-str">", "</span>.join(result.violations))
 
-<span class="code-comment"># Violations blocked. Clean output delivered to user.</span>
+<span class="code-comment"># Violations blocked. Clean output delivered to user.</span></code>
 
-<span class="code-comment"></span>
-<span class="code-comment"># ENHANCED EXAMPLE - With tracing and metadata</span>
-<span class="code-comment"># Perfect for multi-agent workflows like CrewAI or LangChain chains</span>
-trace_id = str(uuid.uuid4())  # Generate unique trace ID for this workflow
+<code class="tab-content" data-tab="typescript"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
-<span class="code-comment"># Log the start of an agent workflow with full traceability</span>
-audit.log(
-    action=<span class="code-str">"crewai_task_start"</span>,
-    prompt=<span class="code-str">"Research the latest AI safety guidelines"</span>,
-    trace_id=trace_id,
-    metadata={
-        <span class="code-str">"agent"</span>: <span class="code-str">"researcher"</span>,
-        <span class="code-str">"task_id"</span>: <span class="code-str">"task-001"</span>,
-        <span class="code-str">"crew"</span>: <span class="code-str">"Safety Research Crew"</span>
-    }
-)
-
-<span class="code-comment"># Process the agent's response through guardrails</span>
-<span class="code-kw">result</span> = audit.guardrail(
-    action=<span class="code-str">"llm_response"</span>,
-    prompt=<span class="code-str">"Research the latest AI safety guidelines"</span>,
-    response=<span class="code-str">"According to recent studies, AI systems should..."</span>,
-    trace_id=trace_id,
-    metadata={
-        <span class="code-str">"model"</span>: <span class="code-str">"gpt-4"</span>,
-        <span class="code-str">"tokens_used"</span>: 150
-    }
-)
-
-<span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
-    <span class="code-kw">raise</span> <span class="code-str">ValueError</span>(<span class="code-str">"Output blocked: "</span> + <span class="code-str">", "</span>.join(result.violations))
-
-<span class="code-comment"># Log completion for audit trail</span>
-audit.log(
-    action=<span class="code-str">"crewai_task_end"</span>,
-    response=<span class="code-str">"Task completed successfully"</span>,
-    trace_id=trace_id,
-    parent_span_id=result.audit_log_id,  # Link to guardrail log
-    metadata={<span class="code-str">"status"</span>: <span class="code-str">"completed"</span>}
-)
-
-<span class="code-comment"></span>
-<span class="code-comment"># BATCH LOGGING - For high-throughput scenarios</span>
-<span class="code-comment"># Submit up to 100 logs in a single request for better performance</span>
-audit.log_batch([
-    {
-        <span class="code-str">"action"</span>: <span class="code-str">"llm_start"</span>,
-        <span class="code-str">"prompt"</span>: <span class="code-str">"What is 2+2?"</span>,
-        <span class="code-str">"metadata"</span>: {<span class="code-str">"model"</span>: <span class="code-str">"gpt-3.5-turbo"</span>}
-    },
-    {
-        <span class="code-str">"action"</span>: <span class="code-str">"llm_end"</span>,
-        <span class="code-str">"response"</span>: <span class="code-str">"4"</span>,
-        <span class="code-str">"metadata"</span>: {<span class="code-str">"model"</span>: <span class="code-str">"gpt-3.5-turbo"</span>, <span class="code-str">"tokens"</span>: 8}
-    }
-])
-</code></pre>
-</div>
-
-<div class="code-tab-pane" data-tab="typescript">
-<pre><code class="language-typescript"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
-
-<span class="code-comment">// Initialize with your API key</span>
+<span class="code-comment"># Initialize with your API key</span>
 <span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({
     apiKey: <span class="code-str">'aa_live_...'</span>
 });
 
-<span class="code-comment">// BASIC GUARDRAIL - Block violations before delivery</span>
-<span class="code-comment">// This is the simplest form - one line of protection</span>
+<span class="code-comment"># Guardrail: intercept and block violations before delivery</span>
 <span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
     action: <span class="code-str">'prompt_submitted'</span>,
     prompt: <span class="code-str">'User: My SSN is 123-45-6789'</span>,
@@ -415,72 +346,9 @@ audit.log_batch([
     <span class="code-kw">throw</span> <span class="code-kw">new</span> <span class="code-str">Error</span>(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
 }
 
-// Violations blocked. Clean output delivered to user.
+<span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code>
 
-<span class="code-comment"></span>
-<span class="code-comment">// ENHANCED EXAMPLE - With tracing and metadata</span>
-<span class="code-comment">// Perfect for multi-agent workflows like CrewAI or LangChain chains</span>
-<span class="code-kw">const</span> traceId = crypto.randomUUID();  // Generate unique trace ID for this workflow
-
-<span class="code-comment">// Log the start of an agent workflow with full traceability</span>
-<span class="code-kw">await</span> audit.log({
-    action: <span class="code-str">'crewai_task_start'</span>,
-    prompt: <span class="code-str">'Research the latest AI safety guidelines'</span>,
-    traceId,
-    metadata: {
-        agent: <span class="code-str">'researcher'</span>,
-        taskId: <span class="code-str">'task-001'</span>,
-        crew: <span class="code-str">'Safety Research Crew'</span>
-    }
-});
-
-<span class="code-comment">// Process the agent's response through guardrails</span>
-<span class="code-kw">const</span> guardrailResult = <span class="code-kw">await</span> audit.guardrail({
-    action: <span class="code-str">'llm_response'</span>,
-    prompt: <span class="code-str">'Research the latest AI safety guidelines'</span>,
-    response: <span class="code-str">'According to recent studies, AI systems should...'</span>,
-    traceId,
-    metadata: {
-        model: <span class="code-str">'gpt-4'</span>,
-        tokensUsed: 150
-    }
-});
-
-<span class="code-kw">if</span> (!guardrailResult.allowed) {
-    <span class="code-kw">throw</span> <span class="code-kw">new</span> <span class="code-str">Error</span>(<span class="code-str">'Output blocked: '</span> + guardrailResult.violations.join(<span class="code-str">', '</span>));
-}
-
-// Log completion for audit trail
-<span class="code-kw">await</span> audit.log({
-    action: <span class="code-str">'crewai_task_end'</span>,
-    response: <span class="code-str">'Task completed successfully'</span>,
-    traceId,
-    parentSpanId: guardrailResult.auditLogId,  // Link to guardrail log
-    metadata: { status: <span class="code-str">'completed'</span> }
-});
-
-<span class="code-comment"></span>
-<span class="code-comment">// BATCH LOGGING - For high-throughput scenarios</span>
-<span class="code-comment">// Submit up to 100 logs in a single request for better performance</span>
-<span class="code-kw">await</span> audit.logBatch([
-    {
-        action: <span class="code-str">'llm_start'</span>,
-        prompt: <span class="code-str">'What is 2+2?'</span>,
-        metadata: { model: <span class="code-str">'gpt-3.5-turbo'</span> }
-    },
-    {
-        action: <span class="code-str">'llm_end'</span>,
-        response: <span class="code-str">'4'</span>,
-        metadata: { model: <span class="code-str">'gpt-3.5-turbo'</span>, tokens: 8 }
-    }
-]);
-</code></pre>
-</div>
-
-<div class="code-tab-pane" data-tab="curl">
-<pre><code class="language-bash"><span class="code-comment"># BASIC GUARDRAIL - Direct API call</span>
-<span class="code-comment"># Shows what happens behind the scenes when using SDK</span>
-<span class="code-kw">curl</span> -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+<code class="tab-content" data-tab="curl"><span class="code-kw">curl</span> -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d '{
@@ -491,49 +359,11 @@ audit.log_batch([
   }'
 
 <span class="code-comment"># Response: {"id": "...", "complianceFlags": ["CRITICAL_pii_detect_SSN"]}</span>
-<span class="code-comment"># Your code checks complianceFlags and blocks before delivery.</span>
-
-<span class="code-comment"></span>
-<span class="code-comment"># ENHANCED EXAMPLE - With tracing and metadata</span>
-<span class="code-comment"># Shows how to include trace IDs and custom metadata</span>
-<span class="code-kw">curl</span> -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
-  -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
-  -H <span class="code-str">"Content-Type: application/json"</span> \
-  -d '{
-    <span class="code-str">"action"</span>: <span class="code-str">"crewai_task_start"</span>,
-    <span class="code-str">"prompt"</span>: <span class="code-str">"Research the latest AI safety guidelines"</span>,
-    <span class="code-str">"traceId"</span>: <span class="code-str">"550e8400-e29b-41d4-a716-446655440000"</span>,
-    <span class="code-str">"metadata"</span>: {
-      <span class="code-str">"agent"</span>: <span class="code-str">"researcher"</span>,
-      <span class="code-str">"taskId"</span>: <span class="code-str">"task-001"</span>,
-      <span class="code-str">"crew"</span>: <span class="code-str">"Safety Research Crew"</span>
-    }
-  }'
-
-<span class="code-comment"></span>
-<span class="code-comment"># BATCH LOGGING - Submit multiple logs efficiently</span>
-<span class="code-kw">curl</span> -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
-  -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
-  -H <span class="code-str">"Content-Type: application/json"</span> \
-  -d '[
-    {
-      <span class="code-str">"action"</span>: <span class="code-str">"llm_start"</span>,
-      <span class="code-str">"prompt"</span>: <span class="code-str">"What is 2+2?"</span>,
-      <span class="code-str">"metadata"</span>: { <span class="code-str">"model"</span>: <span class="code-str">"gpt-3.5-turbo"</span> }
-    },
-    {
-      <span class="code-str">"action"</span>: <span class="code-str">"llm_end"</span>,
-      <span class="code-str">"response"</span>: <span class="code-str">"4"</span>,
-      <span class="code-str">"metadata"</span>: { <span class="code-str">"model"</span>: <span class="code-str">"gpt-3.5-turbo"</span>, <span class="code-str">"tokens"</span>: 8 }
-    }
-  ]'
-</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+<span class="code-comment"># Your code checks complianceFlags and blocks before delivery.</span></code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
   <section class="frameworks">

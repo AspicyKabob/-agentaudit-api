@@ -16,26 +16,74 @@
   <link rel="stylesheet" href="styles.css">
   <style>
     .pricing-page { padding-top: 80px; }
-    .pricing-hero { padding: 80px 0 60px; position: relative; z-index: 2; text-align: center; }
-    .pricing-hero h1 { font-family: var(--font-serif); font-size: clamp(36px, 5vw, 56px); font-weight: 400; line-height: 1.1; margin-bottom: 20px; }
-    .pricing-hero p { font-size: 18px; color: var(--text-secondary); max-width: 560px; margin: 0 auto; line-height: 1.6; }
-    .pricing-grid-page { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; position: relative; z-index: 2; padding-bottom: 100px; }
-    .pricing-card-page { border: 1px solid var(--border); background: var(--bg-card); padding: 32px; transition: border-color 0.3s; }
-    .pricing-card-page:hover { border-color: var(--border-strong); }
-    .pricing-card-page.popular { border-color: var(--accent); }
-    .popular-badge { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 12px; display: block; }
-    .pricing-card-page h3 { font-family: var(--font-serif); font-size: 24px; font-weight: 400; margin-bottom: 8px; }
-    .pricing-card-page .price { font-size: 36px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -1px; margin-bottom: 8px; }
-    .pricing-card-page .price span { font-size: 14px; font-weight: 400; color: var(--text-muted); }
-    .pricing-card-page p { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; }
-    .pricing-card-page ul { list-style: none; padding: 0; margin: 0 0 24px; }
-    .pricing-card-page li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-secondary); padding: 6px 0; }
-    .pricing-card-page li svg { flex-shrink: 0; margin-top: 2px; color: var(--success); }
-    .faq { padding: 80px 0; position: relative; z-index: 2; border-top: 1px solid var(--border); }
-    .faq h2 { font-family: var(--font-serif); font-size: clamp(24px, 3vw, 32px); font-weight: 400; margin-bottom: 40px; text-align: center; }
-    .faq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; }
-    .faq-item h4 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+
+    /* Hero */
+    .pricing-hero { padding: 100px 0 60px; position: relative; z-index: 2; text-align: center; }
+    .pricing-hero h1 { font-family: var(--font-serif); font-size: clamp(38px, 5vw, 64px); font-weight: 400; line-height: 1.05; margin-bottom: 20px; }
+    .pricing-hero > p { font-size: 18px; color: var(--text-secondary); max-width: 560px; margin: 0 auto 16px; line-height: 1.6; }
+    .pricing-hero .sub { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); letter-spacing: 0.03em; }
+
+    /* Grid */
+    .pricing-grid-page { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; position: relative; z-index: 2; padding-bottom: 100px; }
+    @media (max-width: 1100px) { .pricing-grid-page { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .pricing-grid-page { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .pricing-card-page {
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      padding: 0;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .pricing-card-page::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .pricing-card-page:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+    .pricing-card-page.popular::before { background: var(--accent); }
+    .pricing-card-page.popular { border-color: rgba(220, 38, 38, 0.25); }
+
+    .card-top { padding: 28px 28px 0; }
+    .popular-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .pricing-card-page h3 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin-bottom: 4px; }
+    .pricing-card-page .price { font-size: 40px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -1.5px; margin-bottom: 6px; line-height: 1; }
+    .pricing-card-page .price span { font-size: 14px; font-weight: 400; color: var(--text-muted); letter-spacing: 0; }
+    .pricing-card-page .price-note { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+    .card-divider { height: 1px; background: var(--border); margin: 0 28px; }
+
+    .card-body { padding: 20px 28px 28px; flex: 1; display: flex; flex-direction: column; }
+    .card-body p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
+    .card-body ul { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+    .card-body li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-secondary); padding: 5px 0; }
+    .card-body li svg { flex-shrink: 0; margin-top: 2px; color: var(--success); }
+
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* FAQ */
+    .faq { padding: 100px 0; position: relative; z-index: 2; border-top: 1px solid var(--border); }
+    .faq h2 { font-family: var(--font-serif); font-size: clamp(26px, 3vw, 36px); font-weight: 400; margin-bottom: 48px; text-align: center; }
+    .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+    @media (max-width: 800px) { .faq-grid { grid-template-columns: 1fr; } }
+    .faq-item { border: 1px solid var(--border); padding: 24px; background: var(--bg-card); }
+    .faq-item h4 { font-size: 15px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
     .faq-item p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .faq-item code { font-family: var(--font-mono); font-size: 12px; color: var(--accent); }
   </style>
 </head>
 <body>
@@ -69,94 +117,119 @@
   <main class="pricing-page">
     <div class="container pricing-hero">
       <span class="section-badge">Pricing</span>
-      <h1>Simple, usage-based <span class="gradient-text">pricing</span></h1>
-      <p>Start free. Scale as your agents grow. No seat-based pricing.</p>
+      <h1>Pay for what you <span class="gradient-text">actually use</span></h1>
+      <p>No seat-based pricing. No hidden fees. One audit log = one event.</p>
+      <div class="sub">Batch entries count individually. Cancel anytime.</div>
     </div>
 
     <div class="container pricing-grid-page">
+      <!-- Free -->
       <div class="pricing-card-page">
-        <h3>Free</h3>
-        <div class="price">$0<span>/mo</span></div>
-        <p>For solo developers exploring agent guardrails.</p>
-        <ul>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 5,000 audit logs/month</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 1 agent</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 7-day retention</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Basic compliance rules</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Email support</li>
-        </ul>
-        <a href="index.html#signup" class="btn btn-secondary btn-full">Get Started</a>
+        <div class="card-top">
+          <h3>Free</h3>
+          <div class="price">$0<span>/mo</span></div>
+          <div class="price-note">For solo developers</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5,000 audit logs / month</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>1 agent</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>7-day retention</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Basic compliance rules</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Email support</li>
+          </ul>
+          <a href="index.html#signup" class="btn btn-secondary btn-full">Get Started</a>
+        </div>
       </div>
 
+      <!-- Pro -->
       <div class="pricing-card-page popular">
-        <span class="popular-badge">Most Popular</span>
-        <h3>Pro</h3>
-        <div class="price">$29<span>/mo</span></div>
-        <p>For teams with production agents.</p>
-        <ul>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 50,000 audit logs/month</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 10 agents</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 1-year retention</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Advanced compliance rules</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Webhook alerts</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
-        </ul>
-        <a href="index.html#signup" class="btn btn-primary btn-full">Get Started</a>
+        <div class="card-top">
+          <span class="popular-badge">Most Popular</span>
+          <h3>Pro</h3>
+          <div class="price">$29<span>/mo</span></div>
+          <div class="price-note">For teams with production agents</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>50,000 audit logs / month</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>10 agents</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>1-year retention</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced compliance rules</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
+          </ul>
+          <a href="index.html#signup" class="btn btn-primary btn-full">Get Started</a>
+        </div>
       </div>
 
+      <!-- Business -->
       <div class="pricing-card-page">
-        <h3>Business</h3>
-        <div class="price">$79<span>/mo</span></div>
-        <p>For organizations with compliance requirements.</p>
-        <ul>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 250,000 audit logs/month</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Unlimited agents</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> 7-year retention</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Advanced analytics</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Custom integrations</li>
-        </ul>
-        <a href="index.html#signup" class="btn btn-secondary btn-full">Get Started</a>
+        <div class="card-top">
+          <h3>Business</h3>
+          <div class="price">$79<span>/mo</span></div>
+          <div class="price-note">For compliance-driven orgs</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>250,000 audit logs / month</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited agents</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>7-year retention</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced analytics</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom integrations</li>
+          </ul>
+          <a href="index.html#signup" class="btn btn-secondary btn-full">Get Started</a>
+        </div>
       </div>
 
+      <!-- Enterprise -->
       <div class="pricing-card-page">
-        <h3>Enterprise</h3>
-        <div class="price">Custom</div>
-        <p>For regulated industries and large deployments.</p>
-        <ul>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Unlimited everything</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Custom SLA</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> On-premise deployment</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Dedicated engineer</li>
-          <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Annual contracts</li>
-        </ul>
-        <a href="mailto:sales@agentaudit.io" class="btn btn-secondary btn-full">Contact Sales</a>
+        <div class="card-top">
+          <h3>Enterprise</h3>
+          <div class="price">Custom</div>
+          <div class="price-note">For regulated industries</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-body">
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited everything</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom SLA</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>On-premise deployment</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Dedicated engineer</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Annual contracts</li>
+          </ul>
+          <a href="mailto:sales@agentaudit.io" class="btn btn-secondary btn-full">Contact Sales</a>
+        </div>
       </div>
     </div>
 
+    <!-- FAQ -->
     <section class="faq">
       <div class="container">
-        <h2>Frequently Asked Questions</h2>
+        <h2>Questions &amp; Answers</h2>
         <div class="faq-grid">
           <div class="faq-item">
             <h4>What counts as an audit log?</h4>
-            <p>Any event submitted via the API — agent actions, prompts, responses, guardrail checks, trace events. Batch entries count individually.</p>
+            <p>Any event submitted via the API — agent actions, prompts, responses, guardrail checks, trace events. <strong>Batch entries count individually.</strong> Submit 50 entries in one batch call = 50 logs consumed.</p>
           </div>
-          <div class="faq-item">
-            <h4>Can I self-host?</h4>
-            <p>Yes. AgentAudit is fully open-source and self-hostable with Docker Compose or bare-metal. See the self-hosting guide for details.</p>
-          </div>
-          <div class="faq-item">
-            <h4>Is there a free trial?</h4>
-            <p>The Free plan is the trial — no credit card required. Upgrade to Pro or Business when you need more capacity.</p>
-          </div>
-          <div class="faq-item">
-            <h4>What happens if I exceed my limit?</h4>
-            <p>We’ll notify you at 80% and 100% of your monthly limit. You can upgrade instantly or switch to Business for unlimited capacity.</p>
-          </div>
+
           <div class="faq-item">
             <h4>What are the API rate limits?</h4>
-            <p><strong>Single logs:</strong> 1,000 requests / 15 min. <strong>Batch:</strong> 500 requests / 15 min (up to 100 entries each). <strong>Queries:</strong> 200 requests / 15 min. Auth endpoints: 5 / 15 min.</p>
+            <p><code>POST /audit-logs</code>: 1,000 req / 15 min. <code>POST /audit-logs/batch</code>: 500 req / 15 min (up to 100 entries each). <code>GET</code> queries: 200 / 15 min. Auth: 5 / 15 min.</p>
+          </div>
+
+          <div class="faq-item">
+            <h4>What happens if I exceed my monthly quota?</h4>
+            <p>We return HTTP 429 with a clear message: <code>Monthly audit log quota exceeded. Upgrade your plan to continue logging.</code> You can upgrade instantly via the dashboard.</p>
+          </div>
+
+          <div class="faq-item">
+            <h4>Can I self-host?</h4>
+            <p>Yes. AgentAudit is 100% open-source and self-hostable with Docker Compose or bare-metal. See the <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/docs/self-hosting.md" target="_blank">self-hosting guide</a> for details.</p>
           </div>
         </div>
       </div>
