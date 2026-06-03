@@ -450,63 +450,85 @@ response = client.chat_completions_create(
         <p>Start free. Scale as your agents grow. No seat-based pricing.</p>
       </div>
       <div class="pricing-grid">
+        <!-- Free -->
         <div class="pricing-card">
-          <div class="pricing-header">
+          <div class="card-top">
+            <div class="badge-area"></div>
             <h3>Free</h3>
             <div class="pricing-price">$0<span>/mo</span></div>
             <p>For solo developers exploring agent guardrails</p>
           </div>
-          <ul class="pricing-features">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5,000 audit logs/month</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Basic compliance rules</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><a href="mailto:support@agentaudit.io" style="color:inherit;text-decoration:none;">Email support</a></li>
-          </ul>
-          <button class="btn btn-secondary btn-full" data-plan="free">Get Started</button>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <ul class="pricing-features">
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>5,000 audit logs / month</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Basic compliance rules</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span><a href="mailto:support@agentaudit.io" style="color:inherit;text-decoration:none;">Email support</a></span></li>
+            </ul>
+            <button class="btn btn-secondary btn-full" data-plan="free">Get Started</button>
+          </div>
         </div>
+
+        <!-- Pro -->
         <div class="pricing-card popular">
-          <div class="popular-badge">Most Popular</div>
-          <div class="pricing-header">
+          <div class="card-top">
+            <span class="popular-badge">Most Popular</span>
             <h3>Pro</h3>
             <div class="pricing-price">$29<span>/mo</span></div>
             <p>For teams with production agents</p>
           </div>
-          <ul class="pricing-features">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>50,000 audit logs/month</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced compliance rules</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
-          </ul>
-          <button class="btn btn-primary btn-full" data-plan="pro" data-price="price_1TbR4b1DJBx5xOxFiiIvXDYz">Get Started</button>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <ul class="pricing-features">
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>50,000 audit logs / month</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Advanced compliance rules</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Webhook alerts</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Priority support</span></li>
+            </ul>
+            <button class="btn btn-primary btn-full" data-plan="pro" data-price="price_1TbR4b1DJBx5xOxFiiIvXDYz">Get Started</button>
+          </div>
         </div>
+
+        <!-- Business -->
         <div class="pricing-card">
-          <div class="pricing-header">
+          <div class="card-top">
+            <div class="badge-area"></div>
             <h3>Business</h3>
             <div class="pricing-price">$79<span>/mo</span></div>
             <p>For organizations with compliance requirements</p>
           </div>
-          <ul class="pricing-features">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>250,000 audit logs/month</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced compliance rules</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom integrations</li>
-          </ul>
-          <button class="btn btn-secondary btn-full" data-plan="business" data-price="price_1TbR611DJBx5xOxFBI323s75">Get Started</button>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <ul class="pricing-features">
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>250,000 audit logs / month</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Advanced compliance rules</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Webhook alerts</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Priority support</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Custom integrations</span></li>
+            </ul>
+            <button class="btn btn-secondary btn-full" data-plan="business" data-price="price_1TbR611DJBx5xOxFBI323s75">Get Started</button>
+          </div>
         </div>
+
+        <!-- Enterprise -->
         <div class="pricing-card">
-          <div class="pricing-header">
+          <div class="card-top">
+            <div class="badge-area"></div>
             <h3>Enterprise</h3>
             <div class="pricing-price">Custom</div>
             <p>For regulated industries and large deployments</p>
           </div>
-          <ul class="pricing-features">
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited everything</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom SLA</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>On-premise deployment</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Dedicated engineer</li>
-            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Annual contracts</li>
-          </ul>
-          <button class="btn btn-secondary btn-full" data-plan="enterprise">Get Started</button>
+          <div class="card-divider"></div>
+          <div class="card-body">
+            <ul class="pricing-features">
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Unlimited everything</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Custom SLA</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>On-premise deployment</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Dedicated engineer</span></li>
+              <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Annual contracts</span></li>
+            </ul>
+            <button class="btn btn-secondary btn-full" data-plan="enterprise">Get Started</button>
+          </div>
         </div>
       </div>
     </div>
