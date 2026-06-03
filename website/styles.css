@@ -1018,17 +1018,6 @@ body::after {
   background: var(--bg-card);
 }
 
-.pricing-card.popular::before {
-  content: '/// MOST POPULAR';
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-}
-
 .pricing-header h3 {
   font-family: var(--font-serif);
   font-size: 28px;
@@ -1068,21 +1057,30 @@ body::after {
 
 .pricing-features li {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  padding: 8px 0;
-  font-family: var(--font-mono);
-  font-size: 12px;
+  padding: 5px 0;
+  font-size: 14px;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border);
 }
 
 .pricing-features li svg {
   flex-shrink: 0;
+  margin-top: 2px;
   color: var(--success);
 }
 
-.card-top { padding: 0 0 24px; display: flex; flex-direction: column; }
+.pricing-features li > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.pricing-features li.coming-soon { color: var(--text-muted); }
+.pricing-features li.coming-soon svg { color: var(--text-muted); stroke-dasharray: 3 3; }
+.coming-soon-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 2px; }
+
+.card-top { padding: 0 0 24px; display: flex; flex-direction: column; min-height: 200px; }
 .badge-area { height: 20px; margin-bottom: 8px; }
 .card-divider { height: 1px; background: var(--border); margin: 0 -32px 24px; }
 .card-body { flex: 1; display: flex; flex-direction: column; }
