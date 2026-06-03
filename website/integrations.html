@@ -165,14 +165,13 @@
       color: var(--text);
     }
     .code-tabs .integration-code {
-      display: none;
       padding: 20px;
       border-top-left-radius: 0;
       margin-top: 0;
       overflow-x: auto;
     }
-    .code-tabs .integration-code.active {
-      display: block;
+    .code-tabs .integration-code:not(.active) {
+      display: none;
     }
     .copy-btn {
       position: absolute;
@@ -618,20 +617,41 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/guardrail \
         }
       });
     });
-    // Tab switching
+    // Tab switching (reliable version with hidden attribute)
     document.querySelectorAll('.code-tabs').forEach(function(tabContainer) {
+      console.log('Initializing tabs for container:', tabContainer); // Debug
       var tabs = tabContainer.querySelectorAll('.code-tab');
       var panels = tabContainer.querySelectorAll('.integration-code');
+      
+      // Hide all panels except the first one
+      panels.forEach(function(panel, index) {
+        if (index !== 0) {
+          panel.classList.remove('active');
+          panel.hidden = true;
+        } else {
+          panel.classList.add('active');
+          panel.hidden = false;
+        }
+      });
+      
       tabs.forEach(function(tab) {
         tab.addEventListener('click', function() {
           var target = tab.getAttribute('data-tab');
           console.log('Tab clicked:', target); // Debug
+          
+          // Reset all tabs/panels
           tabs.forEach(function(t) { t.classList.remove('active'); });
-          panels.forEach(function(p) { p.classList.remove('active'); });
+          panels.forEach(function(p) {
+            p.classList.remove('active');
+            p.hidden = true;
+          });
+          
+          // Activate clicked tab/panel
           tab.classList.add('active');
           var panel = tabContainer.querySelector('.integration-code[data-tab-content="' + target + '"]');
           if (panel) {
             panel.classList.add('active');
+            panel.hidden = false;
             console.log('Panel shown:', target); // Debug
           } else {
             console.error('Panel not found for tab:', target); // Debug
