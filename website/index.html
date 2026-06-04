@@ -317,45 +317,45 @@
 audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span>)
 
 <span class="code-comment"># Guardrail: intercept and block violations before delivery</span>
-<span class="code-kw">result</span> = audit.guardrail(
-    action=<span class="code-str">"prompt_submitted"</span>,
-    prompt=<span class="code-str">"User: My SSN is 123-45-6789"</span>,
-    response=<span class="code-str">"Here is your account info..."</span>
+result = audit.guardrail(
+  action=<span class="code-str">"prompt_submitted"</span>,
+  prompt=<span class="code-str">"User: My SSN is 123-45-6789"</span>,
+  response=<span class="code-str">"Here is your account info..."</span>
 )
 
-<span class="code-kw">if</span> <span class="code-kw">not</span> result.allowed:
-    <span class="code-kw">raise</span> <span class="code-str">ValueError</span>(<span class="code-str">"Output blocked: "</span> + <span class="code-str">", "</span>.join(result.violations))
+if not result.allowed:
+  raise ValueError(<span class="code-str">"Output blocked: "</span> + <span class="code-str">", "</span>.join(result.violations))
 
 <span class="code-comment"># Violations blocked. Clean output delivered to user.</span></code>
 
 <code class="tab-content" data-tab="typescript"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
-<span class="code-comment"># Initialize with your API key</span>
-<span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({
-    apiKey: <span class="code-str">'aa_live_...'</span>
+<span class="code-comment">// Initialize with your API key</span>
+const audit = new AgentAudit({
+  apiKey: <span class="code-str">'aa_live_...'</span>
 });
 
-<span class="code-comment"># Guardrail: intercept and block violations before delivery</span>
-<span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
-    action: <span class="code-str">'prompt_submitted'</span>,
-    prompt: <span class="code-str">'User: My SSN is 123-45-6789'</span>,
-    response: <span class="code-str">'Here is your account info...'</span>
+<span class="code-comment">// Guardrail: intercept and block violations before delivery</span>
+const result = await audit.guardrail({
+  action: <span class="code-str">'prompt_submitted'</span>,
+  prompt: <span class="code-str">'User: My SSN is 123-45-6789'</span>,
+  response: <span class="code-str">'Here is your account info...'</span>
 });
 
-<span class="code-kw">if</span> (!result.allowed) {
-    <span class="code-kw">throw</span> <span class="code-kw">new</span> <span class="code-str">Error</span>(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
+if (!result.allowed) {
+  throw new Error(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
 }
 
 <span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code>
 
-<code class="tab-content" data-tab="curl"><span class="code-kw">curl</span> -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+<code class="tab-content" data-tab="curl">curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d '{
-    <span class="code-str">"action"</span>: <span class="code-str">"prompt_submitted"</span>,
-    <span class="code-str">"prompt"</span>: <span class="code-str">"User: My SSN is 123-45-6789"</span>,
-    <span class="code-str">"response"</span>: <span class="code-str">"Here is your account info..."</span>,
-    <span class="code-str">"checkType"</span>: <span class="code-str">"realtime"</span>
+    "action": "prompt_submitted",
+    "prompt": "User: My SSN is 123-45-6789",
+    "response": "Here is your account info...",
+    "checkType": "realtime"
   }'
 
 <span class="code-comment"># Response: {"id": "...", "complianceFlags": ["CRITICAL_pii_detect_SSN"]}</span>
