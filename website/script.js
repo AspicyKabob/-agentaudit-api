@@ -360,10 +360,15 @@ document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el))
 document.querySelectorAll('.code-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const targetTab = tab.dataset.tab;
-    document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    const container = tab.closest('.code-tabs') || document;
+    
+    container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(content => {
-      content.classList.toggle('active', content.dataset.tab === targetTab);
+    
+    container.querySelectorAll('.integration-code, .tab-content').forEach(content => {
+      const isTarget = content.dataset.tabContent === targetTab || content.dataset.tab === targetTab;
+      content.classList.toggle('active', isTarget);
+      if (content.hidden !== undefined) content.hidden = !isTarget;
     });
   });
 });
@@ -568,6 +573,53 @@ demoClear?.addEventListener('click', () => {
       <p>Results will appear here</p>
     </div>`;
 });
+
+document.querySelectorAll('.integration-code').forEach(container => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.setAttribute('aria-label', 'Copy code');
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>';
+  container.insertBefore(btn, container.firstChild);
+
+  btn.addEventListener('click', () => {
+    const codeEl = container.querySelector('pre code');
+    if (!codeEl) return;
+    const text = codeEl.innerText;
+
+    function showCopied() {
+      btn.textContent = 'Copied!';
+      btn.setAttribute('aria-label', 'Copied to clipboard');
+      setTimeout(() => {
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>';
+        btn.setAttribute('aria-label', 'Copy code');
+      }, 2000);
+    }
+
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+        fallbackCopy(text, showCopied);
+      });
+    } else {
+      fallbackCopy(text, showCopied);
+    }
+  });
+});
+
+function fallbackCopy(text, callback) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    callback();
+  } catch (err) {
+  }
+  document.body.removeChild(textarea);
+}
 
 console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; color: #dc2626;');
 console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #78716c;');
