@@ -383,6 +383,10 @@ document.querySelectorAll('.code-tab').forEach(tab => {
     if (filenameEl && activeContent?.dataset.filename) {
       filenameEl.textContent = activeContent.dataset.filename;
     }
+    
+    contentContainer.querySelectorAll('.code-dots span').forEach(dot => {
+      dot.classList.toggle('code-dot-active', dot.dataset.tabDot === targetTab);
+    });
   });
 });
 

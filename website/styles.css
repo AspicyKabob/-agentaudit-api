@@ -856,7 +856,7 @@ body::after {
   border: 1px solid var(--border-strong);
 }
 
-.code-dots span:first-child {
+.code-dots span.code-dot-active {
   background: var(--accent);
   border-color: var(--accent);
 }
