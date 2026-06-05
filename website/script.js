@@ -360,16 +360,29 @@ document.querySelectorAll('.counter').forEach(el => counterObserver.observe(el))
 document.querySelectorAll('.code-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const targetTab = tab.dataset.tab;
-    const container = tab.closest('.code-tabs') || document;
+    const tabsContainer = tab.closest('.code-tabs') || document;
     
-    container.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+    tabsContainer.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     
-    container.querySelectorAll('.integration-code, .tab-content').forEach(content => {
-      const isTarget = content.dataset.tabContent === targetTab || content.dataset.tab === targetTab;
+    const contentContainer = tab.closest('.code-grid') || tab.closest('.integration-block') || tabsContainer;
+    
+    contentContainer.querySelectorAll('.tab-content').forEach(content => {
+      const isTarget = content.dataset.tab === targetTab;
+      content.classList.toggle('active', isTarget);
+    });
+    
+    contentContainer.querySelectorAll('.integration-code').forEach(content => {
+      const isTarget = content.dataset.tabContent === targetTab;
       content.classList.toggle('active', isTarget);
       if (content.hidden !== undefined) content.hidden = !isTarget;
     });
+    
+    const filenameEl = contentContainer.querySelector('.code-filename');
+    const activeContent = contentContainer.querySelector('.tab-content.active, .integration-code.active');
+    if (filenameEl && activeContent?.dataset.filename) {
+      filenameEl.textContent = activeContent.dataset.filename;
+    }
   });
 });
 
