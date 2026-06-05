@@ -164,17 +164,18 @@
       color: var(--text);
     }
     .code-tabs .integration-code {
-      padding: 20px;
+      padding: 16px 20px 20px;
       margin: 0;
       overflow-x: auto;
+      transition: none;
     }
     .code-tabs .integration-code:not(.active) {
       display: none;
     }
     .copy-btn {
       position: absolute;
-      top: 8px;
-      right: 8px;
+      top: 12px;
+      right: 16px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -448,34 +449,40 @@ response = client.chat_completions_create(
             </div>
             <div class="integration-code" data-tab-content="typescript">
               <pre><code><span class="code-comment">// TypeScript Example</span>
-<span class="code-kw">import</span> { AuditOpenAI } <span class="code-kw">from</span> 'agentaudit-client/openai';
+<span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
-const client = <span class="code-kw">new</span> AuditOpenAI({
-  openaiApiKey: <span class="code-str">'sk-...'</span>,
-  agentauditApiKey: <span class="code-str">'aa_your_key_here'</span>,
-  agentId: <span class="code-str">'uuid-of-your-agent'</span>,
-  guard: <span class="code-kw">true</span>
+<span class="code-comment">// Initialize with your API key</span>
+const audit = new AgentAudit({
+  apiKey: <span class="code-str">'aa_your_key_here'</span>
 });
 
-<span class="code-kw">const</span> response = <span class="code-kw">await</span> client.chatCompletionsCreate({
-  model: <span class="code-str">'gpt-4'</span>,
-  messages: [{ role: <span class="code-str">'user'</span>, content: <span class="code-str">'Hello!'</span> }]
+<span class="code-comment">// Guardrail: intercept and block violations before delivery</span>
+const result = await audit.guardrail({
+  action: <span class="code-str">'prompt_submitted'</span>,
+  prompt: <span class="code-str">'User: My SSN is 123-45-6789'</span>,
+  response: <span class="code-str">'Here is your account info...'</span>
 });
 
-<span class="code-comment">// If output violates a rule, throws ComplianceViolation</span>
-<span class="code-kw">console.log</span>(client.traceId);  <span class="code-comment">// "trace-uuid-123"</span></code></pre>
+if (!result.allowed) {
+  throw new Error(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
+}
+
+<span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code></pre>
             </div>
             <div class="integration-code" data-tab-content="curl">
               <pre><code><span class="code-comment"># cURL Example</span>
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/guardrail \
+curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{
-    "action": "openai_chat_completion",
-    "prompt": "Hello!",
-    "response": "Hi there! How can I help?",
-    "agent_id": "uuid-of-your-agent"
-  }'</code></pre>
+    "action": "prompt_submitted",
+    "prompt": "User: My SSN is 123-45-6789",
+    "response": "Here is your account info...",
+    "agentId": "uuid-of-your-agent"
+  }'
+
+<span class="code-comment"># Response: {"id": "...", "complianceFlags": ["CRITICAL_pii_detect_SSN"]}</span>
+<span class="code-comment"># Your code checks complianceFlags and blocks before delivery.</span></code></pre>
             </div>
           </div>
           <div class="integration-meta">
