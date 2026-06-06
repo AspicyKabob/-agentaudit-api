@@ -7,23 +7,7 @@ jest.mock('../../src/db/prisma', () => ({
   __esModule: true,
   prisma: {
     $disconnect: jest.fn(),
-    $transaction: jest.fn(async (cb: any) => {
-      const tx = {
-        auditLog: {
-          create: jest.fn().mockResolvedValue({
-            id: 'log-batch-1',
-            organizationId: 'org-1',
-            action: 'prompt_submitted',
-            prompt: 'Hello?',
-            response: 'Hi!',
-            metadata: { model: 'gpt-4' },
-            complianceFlags: [],
-            createdAt: new Date().toISOString(),
-          }),
-        },
-      };
-      return await cb(tx);
-    }),
+    $transaction: jest.fn((cb: any) => cb(prisma)),
     rateLimit: {
       upsert: jest.fn(),
       update: jest.fn(),
@@ -169,6 +153,7 @@ describe('Audit Batch API', () => {
           notifyEmail: false,
         },
       });
+
       mockedPrisma.complianceRule.findMany.mockResolvedValue([]);
       mockedPrisma.auditLog.create.mockResolvedValue({
         id: 'log-1',
