@@ -25,8 +25,8 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init + OpenSSL libs required by Prisma engine on Alpine
+RUN apk add --no-cache dumb-init openssl libssl3 libc6-compat
 
 # Copy all dependencies (including compiled native modules like isolated-vm)
 COPY --from=builder /app/node_modules ./node_modules
@@ -42,6 +42,10 @@ RUN chmod +x entrypoint.sh
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
+
+# Prisma needs write access to node_modules/@prisma/engines at runtime
+RUN chown -R nodejs:nodejs /app
+
 USER nodejs
 
 # Health check
