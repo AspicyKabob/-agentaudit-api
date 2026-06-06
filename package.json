@@ -1,6 +1,6 @@
 {
   "name": "agentaudit-api",
-  "version": "1.0.2",
+  "version": "1.1.0-trace",
   "description": "Agent Audit & Compliance API for AI agents",
   "main": "dist/server.js",
   "scripts": {

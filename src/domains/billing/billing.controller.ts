@@ -3,6 +3,7 @@ import { subscriptionService } from './subscription.service';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { stripe } from '../../utils/stripe';
 import { config } from '../../config';
+import { logger } from '../../utils/logger';
 
 export const billingController = {
   createCheckoutSession: asyncHandler(async (req: Request, res: Response) => {
@@ -18,9 +19,10 @@ export const billingController = {
       );
       res.status(200).json({ sessionId: session.id, url: session.url });
     } catch (err: any) {
-      console.error('[Checkout Error] raw:', err);
-      console.error('[Checkout Error] message:', err?.message || 'unknown');
-      console.error('[Checkout Error] stack:', err?.stack || 'no stack');
+      logger.error(
+        { organizationId, priceId, error: err, message: err?.message, stack: err?.stack },
+        'Stripe checkout session failed'
+      );
       res.status(400).json({
         error: err?.message || 'Failed to create checkout session',
         detail: err?.raw?.message || undefined,
