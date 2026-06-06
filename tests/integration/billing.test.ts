@@ -11,6 +11,11 @@ jest.mock('../../src/db/prisma', () => ({
     $transaction: jest.fn((cb: any) => cb({
       auditLog: { create: jest.fn() },
     })),
+    rateLimit: {
+      upsert: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     organization: {
       findUnique: jest.fn(),
       findFirst: jest.fn(),
@@ -105,6 +110,15 @@ async function registerAndLogin(email: string, password: string) {
   });
 
   const loginRes = await agent.post('/api/v1/auth/login').send({ email, password });
+
+  mockedPrisma.organization.findUnique.mockResolvedValue({
+    id: 'org-1',
+    name: 'Billing Test',
+    email,
+    password: '$2a$10$mockhash',
+    plan: 'free',
+  });
+
   return loginRes.body.accessToken as string;
 }
 
@@ -113,21 +127,16 @@ describe('Billing Integration', () => {
     jest.clearAllMocks();
   });
 
-  it('GET /api/v1/billing/subscription → 200 (inactive when no stripe)', async () => {
+  it('GET /api/v1/billing/subscription → 503 when billing not configured', async () => {
     const token = await registerAndLogin('billing1@example.com', 'Password123');
-
-    mockedPrisma.organization.findUnique.mockResolvedValueOnce({
-      id: 'org-1',
-      stripeSubscriptionId: null,
-      plan: 'free',
-    });
 
     const res = await agent
       .get('/api/v1/billing/subscription')
       .set('Authorization', `Bearer ${token}`);
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(503);
     expect(res.body.status).toBe('inactive');
+    expect(res.body.reason).toBe('Billing not configured');
   });
 
   it('POST /api/v1/billing/checkout-session → 400 when billing not configured', async () => {

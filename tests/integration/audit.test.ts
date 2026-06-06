@@ -10,6 +10,11 @@ jest.mock('../../src/db/prisma', () => ({
     $transaction: jest.fn((cb: any) => cb({
       auditLog: { create: jest.fn() },
     })),
+    rateLimit: {
+      upsert: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     organization: {
       findUnique: jest.fn(),
       findFirst: jest.fn(),
@@ -103,6 +108,15 @@ async function getAuthTokens() {
   const loginRes = await request(app)
     .post('/api/v1/auth/login')
     .send({ email: 'test@example.com', password: 'Password123' });
+
+  // Ensure authenticate middleware finds the org on subsequent requests
+  mockedPrisma.organization.findUnique.mockResolvedValue({
+    id: 'org-1',
+    name: 'Test Org',
+    email: 'test@example.com',
+    password: '$2a$10$mockhash',
+    plan: 'free',
+  });
 
   return loginRes.body;
 }

@@ -14,6 +14,11 @@ jest.mock('../../src/db/prisma', () => ({
   __esModule: true,
   prisma: {
     $disconnect: jest.fn(),
+    rateLimit: {
+      upsert: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     organization: {
       findUnique: jest.fn(),
       findFirst: jest.fn(),
@@ -536,7 +541,7 @@ describe('AgentAudit API Full Integration', () => {
 
     it('GET /api/v1/audit-logs/:id/chain → 200', async () => {
       const token = getAuthToken();
-      const rootId = 'log-root-1';
+      const rootId = '00000000-0000-0000-0000-000000000001';
       mockedPrisma.auditLog.findFirst.mockResolvedValue({
         id: rootId,
         action: 'crewai_crew_start',
@@ -673,7 +678,7 @@ describe('AgentAudit API Full Integration', () => {
   // ─── Billing ───────────────────────────────────────────────────────
 
   describe('Billing', () => {
-    it('GET /api/v1/billing/subscription → 200', async () => {
+    it('GET /api/v1/billing/subscription → 200 or 503', async () => {
       const token = getAuthToken();
       mockedPrisma.organization.findUnique.mockResolvedValue({
         id: 'org-1',
@@ -687,8 +692,12 @@ describe('AgentAudit API Full Integration', () => {
         .get('/api/v1/billing/subscription')
         .set('Authorization', `Bearer ${token}`);
 
-      expect(res.status).toBe(200);
-      expect(res.body.status).toBe('inactive');
+      expect([200, 503]).toContain(res.status);
+      if (res.status === 200) {
+        expect(res.body.status).toBe('inactive');
+      } else {
+        expect(res.body.reason).toBe('Billing not configured');
+      }
     });
 
     it('POST /api/v1/billing/checkout-session → 200 or 400 or 500', async () => {

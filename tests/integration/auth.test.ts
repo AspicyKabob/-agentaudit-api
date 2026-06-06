@@ -10,6 +10,11 @@ jest.mock('../../src/db/prisma', () => ({
     $transaction: jest.fn((cb: any) => cb({
       auditLog: { create: jest.fn() },
     })),
+    rateLimit: {
+      upsert: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     organization: {
       findUnique: jest.fn(),
       findFirst: jest.fn(),

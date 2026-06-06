@@ -8,8 +8,20 @@ jest.mock('../../src/db/prisma', () => ({
   prisma: {
     $disconnect: jest.fn(),
     $transaction: jest.fn((cb: any) => cb({
-      auditLog: { create: jest.fn() },
+      auditLog: {
+        create: jest.fn().mockResolvedValue({
+          id: 'log-batch-1',
+          action: 'prompt_submitted',
+          complianceFlags: [],
+          createdAt: new Date().toISOString(),
+        }),
+      },
     })),
+    rateLimit: {
+      upsert: jest.fn(),
+      update: jest.fn(),
+      deleteMany: jest.fn(),
+    },
     organization: {
       findUnique: jest.fn(),
       findFirst: jest.fn(),
@@ -104,6 +116,14 @@ async function getAuthTokens() {
     .post('/api/v1/auth/login')
     .send({ email: 'test@example.com', password: 'Password123' });
 
+  mockedPrisma.organization.findUnique.mockResolvedValue({
+    id: 'org-1',
+    name: 'Test Org',
+    email: 'test@example.com',
+    password: '$2a$10$mockhash',
+    plan: 'free',
+  });
+
   return loginRes.body;
 }
 
@@ -142,7 +162,7 @@ describe('Audit Batch API', () => {
           notifyEmail: false,
         },
       });
-      mockedPrisma.complianceRule.findMany.mockResolvedValueOnce([]);
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([]);
       mockedPrisma.auditLog.create.mockResolvedValueOnce({
         id: 'log-1',
         organizationId: 'org-1',

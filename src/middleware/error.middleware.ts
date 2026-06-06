@@ -56,6 +56,11 @@ function getStatusCode(err: Error): number {
     return 401;
   }
 
+  // Zod validation errors
+  if (err.name === 'ZodError' || err.constructor?.name === 'ZodError') {
+    return 400;
+  }
+
   return 500;
 }
 

@@ -68,6 +68,16 @@ export function createApp() {
   app.use('/api/v1/alerts', alertRoutes);
   app.use('/api/v1/billing', billingRoutes);
 
+  // Catch-all — 404 JSON response for unmatched API routes
+  app.use('/api/v1/*', (_req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
+  // Catch-all — 404 JSON response for unmatched API routes
+  app.use('/api/v1/*', (_req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
   // MCP schema
   app.get('/mcp/v1/schema', (_req, res) => {
     res.status(200).json({
@@ -94,6 +104,13 @@ export function createApp() {
     : path.join(process.cwd(), 'website');
   logger.info('Serving static files from: ' + websitePath);
   app.use(express.static(websitePath, { index: ['index.html'] }));
+
+  // General catch-all — 404 JSON response for unmatched routes
+  app.use((_req, res) => {
+    if (!res.headersSent) {
+      res.status(404).json({ error: 'Not found' });
+    }
+  });
 
   app.use(errorHandler);
   return app;

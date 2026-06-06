@@ -11,22 +11,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     continue-on-error: true
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: agentaudit_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     env:
-      DATABASE_URL: postgres://test:test@localhost:5432/agentaudit_test
       JWT_SECRET: test_secret_not_for_production_01234567890123456789
       API_KEY_SALT: test_salt_0123456789abcdef
       NODE_ENV: test
@@ -38,7 +23,6 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npx prisma generate
-      - run: npx prisma migrate deploy
       - run: npm run build
       - name: Run tests
         run: npm test -- --passWithNoTests --no-coverage --forceExit
