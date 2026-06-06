@@ -1,10 +1,11 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
@@ -124,4 +125,17 @@ model Alert {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rule         ComplianceRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+}
+
+model RateLimit {
+  id        String   @id @default(uuid())
+  key       String
+  window    DateTime
+  count     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, window])
+  @@index([key])
+  @@index([window])
 }
