@@ -1,13 +1,16 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
+
+# Install build tools required for isolated-vm native compilation via node-gyp
+RUN apk add --no-cache python3 make g++ linux-headers
 
 # Copy dependency manifests
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
+# Install dependencies (isolated-vm compiles here)
 RUN npm ci
 
 # Copy source code
@@ -18,20 +21,18 @@ RUN npx prisma generate
 RUN npm run build
 
 # Production stage
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Copy dependency manifests and install production deps
-COPY package*.json ./
-RUN npm ci --only=production
+# Copy all dependencies (including compiled native modules like isolated-vm)
+COPY --from=builder /app/node_modules ./node_modules
 
 # Copy built artifacts and Prisma files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
 
 # Copy entrypoint script
