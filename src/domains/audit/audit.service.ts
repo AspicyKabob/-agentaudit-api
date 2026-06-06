@@ -86,7 +86,9 @@ export const auditService = {
       const shouldNotify = severity === 'critical' || org?.notifyMinSeverity === 'warning';
 
       if (org?.notifyWebhook !== false && shouldNotify) {
-        alertService.deliverWebhook(alert).catch(() => {});
+        alertService.deliverWebhook(alert).catch((err) => {
+          logger.warn({ organizationId, alertId: alert.id, error: err }, 'Webhook delivery failed');
+        });
       }
 
       if (org?.notifyEmail !== false && shouldNotify && org?.email) {
@@ -94,7 +96,9 @@ export const auditService = {
           severity,
           message: `Compliance flag triggered: ${flag}`,
           action: data.action,
-        }).catch(() => {});
+        }).catch((err) => {
+          logger.warn({ organizationId, alertId: alert.id, error: err }, 'Alert email delivery failed');
+        });
       }
     }
 
@@ -148,7 +152,9 @@ export const auditService = {
     });
 
     // Post-transaction: alerts + webhooks + emails (fire-and-forget, do NOT block)
-    createBatchAlerts(organizationId, results).catch(() => {});
+    createBatchAlerts(organizationId, results).catch((err) => {
+      logger.warn({ organizationId, error: err }, 'Batch alert creation failed');
+    });
 
     // Increment usage
     await prisma.organization.update({
@@ -392,14 +398,18 @@ async function createBatchAlerts(
 
       const shouldNotify = severity === 'critical' || org.notifyMinSeverity === 'warning';
       if (org.notifyWebhook !== false && shouldNotify) {
-        alertService.deliverWebhook(alert).catch(() => {});
+        alertService.deliverWebhook(alert).catch((err) => {
+          logger.warn({ organizationId, alertId: alert.id, error: err }, 'Webhook delivery failed');
+        });
       }
       if (org.notifyEmail !== false && shouldNotify && org.email) {
         emailService.sendAlert(org.email, {
           severity,
           message: `Compliance flag triggered: ${flag}`,
           action: result.action,
-        }).catch(() => {});
+        }).catch((err) => {
+          logger.warn({ organizationId, alertId: alert.id, error: err }, 'Alert email delivery failed');
+        });
       }
     }
   }

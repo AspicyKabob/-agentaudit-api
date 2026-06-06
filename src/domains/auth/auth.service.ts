@@ -3,6 +3,7 @@ import { hashPassword, comparePassword } from '../../utils/password';
 import { signAccessToken, signRefreshToken } from '../../utils/token';
 import { generateApiKey, hashApiKey } from '../../utils/apiKey';
 import { emailService } from '../../services/email.service';
+import { logger } from '../../utils/logger';
 
 export const authService = {
   async register(name: string, email: string, password: string) {
@@ -27,7 +28,9 @@ export const authService = {
       },
     });
 
-    emailService.sendWelcome(organization.email, organization.name).catch(() => {});
+    emailService.sendWelcome(organization.email, organization.name).catch((err) => {
+      logger.warn({ organizationId: organization.id, error: err }, 'Welcome email delivery failed');
+    });
 
     return organization;
   },
