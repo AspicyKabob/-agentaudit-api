@@ -10,7 +10,6 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    continue-on-error: true
     env:
       JWT_SECRET: test_secret_not_for_production_01234567890123456789
       API_KEY_SALT: test_salt_0123456789abcdef
@@ -25,4 +24,4 @@ jobs:
       - run: npx prisma generate
       - run: npm run build
       - name: Run tests
-        run: npm test -- --passWithNoTests --no-coverage --forceExit
+        run: npm test -- --runInBand --passWithNoTests --no-coverage --forceExit
