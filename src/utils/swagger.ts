@@ -663,18 +663,6 @@ export const swaggerSpec = {
         },
       },
     },
-    '/reports/{id}/download': {
-      get: {
-        tags: ['Reports'],
-        summary: 'Download a report as PDF',
-        security: [{ bearerAuth: [] }],
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
-        responses: {
-          '200': { description: 'PDF file', content: { 'application/pdf': { schema: { type: 'string', format: 'binary' } } } },
-          '404': { description: 'Not found' },
-        },
-      },
-    },
 
     // ── Billing ────────────────────────────────────────────────────────
     '/billing/checkout-session': {
