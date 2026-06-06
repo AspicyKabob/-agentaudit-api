@@ -87,6 +87,17 @@ jest.mock('bcryptjs', () => ({
 describe('AgentAudit API Full Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockedPrisma.alert.create.mockResolvedValue({ id: 'alert-1', severity: 'critical' });
+    mockedPrisma.organization.findUnique.mockResolvedValue({
+      id: 'org-1',
+      name: 'Test Corp',
+      email: 'test@example.com',
+      plan: 'free',
+      notifyWebhook: true,
+      notifyEmail: true,
+      notifyMinSeverity: 'warning',
+    });
   });
 
   afterAll(async () => {
