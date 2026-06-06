@@ -1,4 +1,4 @@
-import { runInNewContext } from 'vm';
+import ivm from 'isolated-vm';
 
 export interface CustomValidatorCondition {
   /**
@@ -9,39 +9,50 @@ export interface CustomValidatorCondition {
   code: string;
 }
 
+// Reuse a single isolate for performance (100ms timeout enforced per execution)
+const isolate = new ivm.Isolate({ memoryLimit: 8 }); // 8MB memory limit
+
 /**
- * Safely execute a user-provided custom validator function.
+ * Safely execute a user-provided custom validator function in a V8 isolate.
  *
  * Security model:
- * - Runs inside Node.js vm.runInNewContext with a pristine, empty sandbox.
- * - Only `text`, `prompt`, `response`, and `console` are injected.
- * - No access to `require`, `process`, `fs`, network, or any built-in module.
- * - Execution is capped at 100 ms to prevent infinite loops.
+ * - Runs in a separate V8 heap with no access to Node.js primitives.
+ * - Only `text`, `prompt`, `response` are injected (no `console`, `require`, etc.).
+ * - Memory limited to 8MB, CPU execution capped at 100ms.
  * - Any error (syntax, runtime, timeout) returns false (safe-fail).
  */
-export function evaluateCustomValidator(
+export async function evaluateCustomValidator(
   text: string,
   prompt: string | undefined,
   response: string | undefined,
   condition: CustomValidatorCondition
-): boolean {
+): Promise<boolean> {
   if (!condition.code || condition.code.trim().length === 0) {
     return false;
   }
 
-  const sandbox = {
-    text,
-    prompt: prompt ?? '',
-    response: response ?? '',
-    console,
-  };
-
+  const context = await isolate.createContext();
+  const jail = context.global;
+  
+  // Inject only the allowed variables (no console, no Node.js globals)
+  await jail.set('text', new ivm.ExternalCopy(text).copyInto());
+  await jail.set('prompt', new ivm.ExternalCopy(prompt ?? '').copyInto());
+  await jail.set('response', new ivm.ExternalCopy(response ?? '').copyInto());
+  
   const wrapped = `(function(text, prompt, response) { ${condition.code} })(text, prompt, response)`;
 
   try {
-    const result = runInNewContext(wrapped, sandbox, { timeout: 100 });
+    // Execute with 100ms timeout and 8MB memory limit
+    const result = await context.eval(wrapped, {
+      timeout: 100,
+      memoryLimit: 8, // MB
+      copy: true, // Return a copy of the result (not a reference)
+    });
     return result === true;
   } catch {
     return false;
+  } finally {
+    // Clean up the context to prevent memory leaks
+    await context.release();
   }
 }

@@ -314,8 +314,8 @@ async function evaluateComplianceRules(
                    evaluateSentiment(data.response || '', condition);
         break;
       case 'custom_validator':
-        triggered = evaluateCustomValidator(data.prompt || '', data.prompt, data.response, condition) ||
-                   evaluateCustomValidator(data.response || '', data.prompt, data.response, condition);
+        triggered = (await evaluateCustomValidator(data.prompt || '', data.prompt, data.response, condition)) ||
+                   (await evaluateCustomValidator(data.response || '', data.prompt, data.response, condition));
         break;
     }
 

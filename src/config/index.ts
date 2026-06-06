@@ -22,7 +22,7 @@ export const config = convict({
   jwtSecret: {
     doc: 'Secret for JWT signing.',
     format: String,
-    default: 'change-me-in-production',
+    default: 'change-me-in-production-jwt-secret-min-32-chars-long',
     env: 'JWT_SECRET',
     sensitive: true,
   },
@@ -91,7 +91,7 @@ export const config = convict({
   apiKeySalt: {
     doc: 'Salt for API key hashing.',
     format: String,
-    default: 'change-me-in-production',
+    default: 'change-me-in-production-api-key-salt',
     env: 'API_KEY_SALT',
     sensitive: true,
   },

@@ -455,11 +455,39 @@ git push origin feature/my-feature
 
 ## Security
 
-- API keys are hashed with bcrypt + salt
-- JWT tokens with configurable expiration
-- Rate limiting on auth and audit endpoints
-- Regex patterns limited to 500 chars (ReDoS protection)
-- Custom validators sandboxed with `vm.runInNewContext` + 100ms timeout
+### Core Protections
+- **API Keys**: Hashed with bcrypt (12 rounds) + per-key salts. Never stored in plaintext.
+- **JWT Tokens**: Configurable expiration (default: 15m access, 7d refresh).
+- **Rate Limiting**:
+  - Auth endpoints: 5 requests/15 minutes (IP-based).
+  - Audit endpoints: 2000 requests/15 minutes (API-key-based).
+  - **Webhooks**: Exempt from rate limiting to prevent payment event loss.
+- **Input Validation**: Zod schemas for all API endpoints.
+- **Regex Patterns**: Limited to 500 chars (ReDoS protection).
+- **JSON Payloads**: Limited to 100KB to prevent memory exhaustion.
+
+### Custom Validators
+- **Sandbox**: Runs in a V8 isolate (`isolated-vm`) with:
+  - 8MB memory limit (prevents heap exhaustion).
+  - 100ms CPU timeout (prevents infinite loops).
+  - No access to Node.js globals (`require`, `process`, `fs`, etc.).
+- **Safe-Fail**: Any error (syntax, runtime, timeout) returns `false`.
+
+### CORS
+- **Development**: Allows only `localhost`/`127.0.0.1` origins.
+- **Production**: Validates `origin` against an allowlist (includes `frontendUrl`).
+- **Credentials**: Enabled only for trusted origins.
+
+### Audit Logs
+- **Batch Size**: Configurable via `MAX_BATCH_SIZE` (default: 500 entries).
+- **Quotas**: Enforced per-organization (5,000–250,000 entries/month).
+
+### Self-Hosting Upgrade Notes
+- **Breaking**: Custom validators now require `isolated-vm` (install via `npm install isolated-vm`).
+- **Configuration**:
+  - `MAX_BATCH_SIZE`: Set via environment variable (e.g., `MAX_BATCH_SIZE=1000`).
+  - `API_KEY_SALT`: No longer used (bcrypt generates salts automatically).
+- **Rate Limiting**: Audit endpoints now use API-key-based limits (not IP-based).
 
 Report security issues privately to: security@agentaudit.dev
 

@@ -7,7 +7,7 @@ export function generateApiKey(): string {
 
 export function hashApiKey(key: string): string {
   return crypto
-    .createHmac('sha256', config.get('apiKeySalt'))
+    .createHmac('sha256', (config.get('apiKeySalt') as unknown) as string)
     .update(key)
     .digest('hex');
 }

@@ -2,15 +2,15 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 
 function getSecret(): string {
-  return config.get('jwtSecret') as string;
+  return (config.get('jwtSecret') as unknown) as string;
 }
 
 function getAccessExpiry(): string {
-  return config.get('jwtAccessExpiration') as string;
+  return (config.get('jwtAccessExpiration') as unknown) as string;
 }
 
 function getRefreshExpiry(): string {
-  return config.get('jwtRefreshExpiration') as string;
+  return (config.get('jwtRefreshExpiration') as unknown) as string;
 }
 
 export function signAccessToken(payload: object): string {

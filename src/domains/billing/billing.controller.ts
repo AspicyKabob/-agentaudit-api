@@ -30,14 +30,30 @@ export const billingController = {
 
   getSubscriptionStatus: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
-    const status = await subscriptionService.getSubscriptionStatus(organizationId);
-    res.status(200).json(status);
+    try {
+      const status = await subscriptionService.getSubscriptionStatus(organizationId);
+      res.status(200).json(status);
+    } catch (err: any) {
+      if (err.message === 'Billing is not configured') {
+        res.status(503).json({ status: 'inactive', plan: 'free', reason: 'Billing not configured' });
+        return;
+      }
+      throw err;
+    }
   }),
 
   createPortalSession: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
-    const session = await subscriptionService.createPortalSession(organizationId);
-    res.status(200).json({ url: session.url });
+    try {
+      const session = await subscriptionService.createPortalSession(organizationId);
+      res.status(200).json({ url: session.url });
+    } catch (err: any) {
+      if (err.message === 'Billing is not configured') {
+        res.status(503).json({ error: 'Billing not configured' });
+        return;
+      }
+      throw err;
+    }
   }),
 
   handleWebhook: asyncHandler(async (req: Request, res: Response) => {

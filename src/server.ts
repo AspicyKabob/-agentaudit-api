@@ -6,7 +6,7 @@ import { logger } from './utils/logger';
 const app = createApp();
 const PORT = config.get('port');
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   logger.info(`AgentAudit API running on port ${PORT}`);
   logger.info(`Environment: ${config.get('env')}`);
 });

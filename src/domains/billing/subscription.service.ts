@@ -1,4 +1,4 @@
-import { stripe } from '../../utils/stripe';
+import { stripe, ensureStripeConfigured } from '../../utils/stripe';
 import Stripe from 'stripe';
 import { prisma } from '../../db/prisma';
 import { config } from '../../config';
@@ -28,6 +28,7 @@ function isValidPriceId(priceId: string): boolean {
 
 export const subscriptionService = {
   async createCheckoutSession(organizationId: string, priceId: string, customerEmail: string) {
+    ensureStripeConfigured();
     if (!isValidPriceId(priceId)) {
       throw new Error('Invalid price ID');
     }
@@ -197,6 +198,7 @@ export const subscriptionService = {
   },
 
   async getSubscriptionStatus(organizationId: string) {
+    ensureStripeConfigured();
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
     });
@@ -206,7 +208,7 @@ export const subscriptionService = {
     }
 
     try {
-      const subscription = await stripe.subscriptions.retrieve(org.stripeSubscriptionId);
+      const subscription = await stripe!.subscriptions.retrieve(org.stripeSubscriptionId);
       const sub = subscription as any;
       
       return {

@@ -34,19 +34,6 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
-  # Optional: background worker for report generation
-  worker:
-    build: .
-    command: node dist/worker.js
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/agentaudit?schema=public
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - db
-      - redis
-    restart: unless-stopped
-
 volumes:
   postgres_data:
   redis_data:
