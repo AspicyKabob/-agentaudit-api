@@ -993,101 +993,59 @@ body::after {
 .pricing-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+@media (max-width: 1100px) {
+  .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .pricing-grid { grid-template-columns: 1fr; }
 }
 
 .pricing-card {
-  background: var(--bg-elevated);
-  padding: 40px 32px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  padding: 0;
+  transition: border-color 0.3s, transform 0.3s;
   position: relative;
-  transition: background 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  min-height: 520px;
-}
-
-.pricing-card .btn {
-  margin-top: auto;
-  width: 100%;
-  justify-content: center;
-}
-
-.pricing-card:hover {
-  background: var(--bg-card);
-}
-
-.pricing-card.popular {
-  background: var(--bg-card);
-}
-
-.pricing-header h3 {
-  font-family: var(--font-serif);
-  font-size: 28px;
-  font-weight: 400;
-  margin-bottom: 8px;
-}
-
-.pricing-price {
-  font-family: var(--font-sans);
-  font-size: 36px;
-  font-weight: 300;
-  line-height: 1;
-  margin-bottom: 8px;
-  color: var(--text);
-  letter-spacing: -1.5px;
-}
-
-.pricing-price span {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--text-muted);
-  letter-spacing: 0;
-}
-
-.pricing-header > p {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 32px;
-}
-
-.pricing-features {
-  list-style: none;
-  margin-bottom: 32px;
-}
-
-.pricing-features li {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 5px 0;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.pricing-features li svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--success);
-}
-
-.pricing-features li > span {
-  flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.pricing-features li.coming-soon { color: var(--text-muted); }
-.pricing-features li.coming-soon svg { color: var(--text-muted); stroke-dasharray: 3 3; }
-.coming-soon-tag { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-top: 2px; }
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--border);
+  transition: background 0.3s;
+}
 
-.card-top { padding: 0 0 24px; display: flex; flex-direction: column; min-height: 200px; }
-.badge-area { height: 20px; margin-bottom: 8px; }
-.card-divider { height: 1px; background: var(--border); margin: 0 -32px 24px; }
-.card-body { flex: 1; display: flex; flex-direction: column; }
+.pricing-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+.pricing-card.popular::before { background: var(--accent); }
+.pricing-card.popular { border-color: rgba(220, 38, 38, 0.25); }
+
+.pricing-card .card-top { padding: 28px 28px 0; display: flex; flex-direction: column; }
+.pricing-card .badge-area { height: 22px; margin-bottom: 12px; }
+.pricing-card h3 { font-family: var(--font-serif); font-size: 26px; font-weight: 400; margin-bottom: 4px; }
+.pricing-card .price { font-size: 36px; font-weight: 300; font-family: var(--font-sans); letter-spacing: -1.5px; margin-bottom: 6px; line-height: 1; }
+.pricing-card .price span { font-size: 14px; font-weight: 400; color: var(--text-muted); letter-spacing: 0; }
+.pricing-card .price-note { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+.pricing-card .card-divider { height: 1px; background: var(--border); margin: 0 28px; }
+
+.pricing-card .card-body { padding: 20px 28px 28px; flex: 1; display: flex; flex-direction: column; }
+.pricing-card .card-body ul { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+.pricing-card .card-body li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-secondary); padding: 5px 0; }
+.pricing-card .card-body li svg { flex-shrink: 0; margin-top: 2px; color: var(--success); }
+.pricing-card .card-body li > span { flex: 1; display: flex; flex-direction: column; }
+
+.pricing-card .card-body li.coming-soon { color: var(--text-muted); }
+.pricing-card .card-body li.coming-soon svg { color: var(--text-muted); stroke-dasharray: 3 3; }
 
 .pricing-card .popular-badge {
   font-family: var(--font-mono);
@@ -1095,7 +1053,7 @@ body::after {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--accent);
-  margin-bottom: 8px;
+  display: block;
 }
 
 /* ─── Rule Packs ──────────────────────────────────────────────── */
