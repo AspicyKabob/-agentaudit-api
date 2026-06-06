@@ -7,16 +7,23 @@ jest.mock('../../src/db/prisma', () => ({
   __esModule: true,
   prisma: {
     $disconnect: jest.fn(),
-    $transaction: jest.fn((cb: any) => cb({
-      auditLog: {
-        create: jest.fn().mockResolvedValue({
-          id: 'log-batch-1',
-          action: 'prompt_submitted',
-          complianceFlags: [],
-          createdAt: new Date().toISOString(),
-        }),
-      },
-    })),
+    $transaction: jest.fn(async (cb: any) => {
+      const tx = {
+        auditLog: {
+          create: jest.fn().mockResolvedValue({
+            id: 'log-batch-1',
+            organizationId: 'org-1',
+            action: 'prompt_submitted',
+            prompt: 'Hello?',
+            response: 'Hi!',
+            metadata: { model: 'gpt-4' },
+            complianceFlags: [],
+            createdAt: new Date().toISOString(),
+          }),
+        },
+      };
+      return await cb(tx);
+    }),
     rateLimit: {
       upsert: jest.fn(),
       update: jest.fn(),
@@ -163,22 +170,12 @@ describe('Audit Batch API', () => {
         },
       });
       mockedPrisma.complianceRule.findMany.mockResolvedValue([]);
-      mockedPrisma.auditLog.create.mockResolvedValueOnce({
+      mockedPrisma.auditLog.create.mockResolvedValue({
         id: 'log-1',
         organizationId: 'org-1',
         action: 'prompt_submitted',
         prompt: 'Hello?',
         response: 'Hi!',
-        metadata: { model: 'gpt-4' },
-        complianceFlags: [],
-        createdAt: new Date().toISOString(),
-      });
-      mockedPrisma.auditLog.create.mockResolvedValueOnce({
-        id: 'log-2',
-        organizationId: 'org-1',
-        action: 'prompt_submitted',
-        prompt: 'How are you?',
-        response: 'Good!',
         metadata: { model: 'gpt-4' },
         complianceFlags: [],
         createdAt: new Date().toISOString(),
