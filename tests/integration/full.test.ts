@@ -14,6 +14,7 @@ jest.mock('../../src/db/prisma', () => ({
   __esModule: true,
   prisma: {
     $disconnect: jest.fn(),
+    $executeRaw: jest.fn(),
     rateLimit: {
       upsert: jest.fn(),
       update: jest.fn(),

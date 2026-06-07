@@ -15,6 +15,10 @@ let store: any = null;
 let isRedisStore = false;
 let initialized = false;
 
+export function redisStoreActive(): boolean {
+  return isRedisStore;
+}
+
 async function createStore(prefix: string) {
   const redisReady = await connectRedis();
   const client = getRedisClient();

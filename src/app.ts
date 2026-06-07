@@ -42,13 +42,37 @@ export function createApp() {
   app.post('/api/v1/auth/login', authLimiter);
   app.use('/api/v1', generalLimiter);
 
-  // Health check
-  app.get('/health', (_req, res) => {
-    res.status(200).json({
-      status: 'ok',
+  app.get('/health', async (_req, res) => {
+    const { prisma } = await import('./db/prisma');
+    const { getRedisClient } = await import('./utils/redis');
+    const { redisStoreActive } = await import('./middleware/rateLimit.middleware');
+
+    let database = 'up';
+    try {
+      await prisma.$executeRaw`SELECT 1`;
+    } catch {
+      database = 'down';
+    }
+
+    let redis = 'disabled';
+    if (redisStoreActive()) {
+      const client = getRedisClient();
+      try {
+        await (client as any)?.ping?.();
+        redis = 'up';
+      } catch {
+        redis = 'down';
+      }
+    }
+
+    const ok = database === 'up';
+
+    res.status(ok ? 200 : 503).json({
+      status: ok ? 'ok' : 'degraded',
       service: 'agentaudit-api',
       version: '1.1.0-trace',
       commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
+      dependencies: { database, redis },
     });
   });
 

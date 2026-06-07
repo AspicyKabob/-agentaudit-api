@@ -8,6 +8,7 @@ jest.mock('../../src/db/prisma', () => ({
   __esModule: true,
   prisma: {
     $disconnect: jest.fn(),
+    $executeRaw: jest.fn(),
     $transaction: jest.fn((cb: any) => cb({
       auditLog: { create: jest.fn() },
     })),
