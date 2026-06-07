@@ -1,70 +1,70 @@
 import rateLimit from 'express-rate-limit';
 import { Request, Response, NextFunction } from 'express';
+import { RedisStore } from 'rate-limit-redis';
 import { logger } from '../utils/logger';
+import { connectRedis, getRedisClient } from '../utils/redis';
 import { prisma } from '../db/prisma';
 import { PrismaRateLimitStore } from './prisma-rate-limit-store';
 
-// Generic error handler for all limiters
 function onLimitReached(req: Request, res: Response) {
   logger.warn({ ip: req.ip, path: req.path }, 'Rate limit exceeded');
   res.status(429).json({ error: 'Too many requests. Please slow down.' });
 }
 
-// ─── Strict: Auth routes (register / login) ────────────────────────
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  handler: onLimitReached,
-  store: new PrismaRateLimitStore({ prisma, windowMs: 15 * 60 * 1000, prefix: 'auth:' }),
-});
+let store: any = null;
+let isRedisStore = false;
+let initialized = false;
 
-// ─── Audit: Single log submission ────────────────────────────────
-export const singleLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitReached,
-  store: new PrismaRateLimitStore({ prisma, windowMs: 15 * 60 * 1000, prefix: 'single:' }),
-});
+async function createStore(prefix: string) {
+  const redisReady = await connectRedis();
+  const client = getRedisClient();
+  if (redisReady && client) {
+    isRedisStore = true;
+    return new RedisStore({ sendCommand: (...args: any[]) => client.sendCommand(args) as any, prefix });
+  }
+  return null;
+}
 
-// ─── Audit: Batch log submission ─────────────────────────────────
-export const batchLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitReached,
-  store: new PrismaRateLimitStore({ prisma, windowMs: 15 * 60 * 1000, prefix: 'batch:' }),
-});
+export async function initRateLimiters(): Promise<void> {
+  if (initialized) return;
+  store = await createStore('rl:');
+  if (!store) {
+    store = new PrismaRateLimitStore({ prisma, windowMs: 15 * 60 * 1000, prefix: 'rl:' });
+    isRedisStore = false;
+  }
+  initialized = true;
+  logger.info({ redis: isRedisStore }, 'Rate limiters initialized');
+}
 
-// ─── Audit: Read-only queries (trace, chain, list) ─────────────
-export const readLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitReached,
-  store: new PrismaRateLimitStore({ prisma, windowMs: 15 * 60 * 1000, prefix: 'read:' }),
-});
+function makeLimiter(options: { max: number; skipSuccessfulRequests?: boolean }): (req: Request, res: Response, next: NextFunction) => void {
+  let cached: ReturnType<typeof rateLimit> | undefined;
 
-// ─── General: Everything else under /api/v1 ──────────────────────
-const _generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 200,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: onLimitReached,
-  store: new PrismaRateLimitStore({ prisma, windowMs: 15 * 60 * 1000, prefix: 'gen:' }),
-});
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!cached) {
+      if (!store) {
+        return next();
+      }
+      cached = rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: options.max,
+        standardHeaders: true,
+        legacyHeaders: false,
+        skipSuccessfulRequests: options.skipSuccessfulRequests ?? false,
+        handler: onLimitReached,
+        store,
+      });
+    }
+    return cached(req, res, next);
+  };
+}
+
+export const authLimiter = makeLimiter({ max: 5, skipSuccessfulRequests: true });
+export const singleLimiter = makeLimiter({ max: 1000 });
+export const batchLimiter = makeLimiter({ max: 500 });
+export const readLimiter = makeLimiter({ max: 200 });
+const _generalLimiter = makeLimiter({ max: 200 });
 
 export function generalLimiter(req: Request, res: Response, next: NextFunction) {
-  // Let audit routes handle their own limits via singleLimiter / batchLimiter / readLimiter
-  if (req.path.startsWith('/audit-logs')) {
-    return next();
-  }
+  if (req.path.startsWith('/audit-logs')) return next();
   return _generalLimiter(req, res, next);
 }

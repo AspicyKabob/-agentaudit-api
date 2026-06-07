@@ -73,11 +73,6 @@ export function createApp() {
     res.status(404).json({ error: 'Not found' });
   });
 
-  // Catch-all — 404 JSON response for unmatched API routes
-  app.use('/api/v1/*', (_req, res) => {
-    res.status(404).json({ error: 'Not found' });
-  });
-
   // MCP schema
   app.get('/mcp/v1/schema', (_req, res) => {
     res.status(200).json({

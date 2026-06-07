@@ -11,6 +11,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/agentaudit?schema=public
       - JWT_SECRET=${JWT_SECRET}
       - API_KEY_SALT=${API_KEY_SALT}
+      - REDIS_URL=redis://redis:6379
+      - REDIS_ENABLED=true
     depends_on:
       - db
       - redis

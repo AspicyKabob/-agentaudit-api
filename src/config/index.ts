@@ -114,6 +114,18 @@ export const config = convict({
     default: 'AgentAudit <noreply@agentaudit.io>',
     env: 'RESEND_FROM_EMAIL',
   },
+  redisUrl: {
+    doc: 'Redis connection string.',
+    format: String,
+    default: '',
+    env: 'REDIS_URL',
+  },
+  redisEnabled: {
+    doc: 'Whether Redis is used for distributed rate limiting.',
+    format: Boolean,
+    default: false,
+    env: 'REDIS_ENABLED',
+  },
 });
 
 config.validate({ allowed: 'strict' });
