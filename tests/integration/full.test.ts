@@ -56,6 +56,7 @@ jest.mock('../../src/db/prisma', () => ({
       findFirst: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      deleteMany: jest.fn(),
     },
     complianceReport: {
       findMany: jest.fn(),
@@ -602,6 +603,72 @@ describe('AgentAudit API Full Integration', () => {
 
       expect(res.status).toBe(201);
       expect(res.body.name).toBe('Detect Emails');
+    });
+
+    it('GET /api/v1/compliance-rules/packs → 200', async () => {
+      const token = getAuthToken();
+
+      const res = await request(app)
+        .get('/api/v1/compliance-rules/packs')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(3);
+      expect(res.body[0]).toHaveProperty('id');
+      expect(res.body[0]).toHaveProperty('name');
+      expect(res.body[0]).toHaveProperty('description');
+      expect(res.body[0]).toHaveProperty('rules');
+    });
+
+    it('POST /api/v1/compliance-rules/packs → 201', async () => {
+      const token = getAuthToken();
+      mockedPrisma.complianceRule.create
+        .mockResolvedValueOnce({ id: 'rule-1', name: 'SSN Detection' })
+        .mockResolvedValueOnce({ id: 'rule-2', name: 'Phone Number Detection' })
+        .mockResolvedValueOnce({ id: 'rule-3', name: 'Email Detection' });
+
+      const res = await request(app)
+        .post('/api/v1/compliance-rules/packs')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ packId: 'hippo' });
+
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveLength(3);
+      expect(mockedPrisma.complianceRule.create).toHaveBeenCalledTimes(3);
+    });
+
+    it('POST /api/v1/compliance-rules/packs with invalid pack → 400', async () => {
+      const token = getAuthToken();
+
+      const res = await request(app)
+        .post('/api/v1/compliance-rules/packs')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ packId: 'unknown' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('DELETE /api/v1/compliance-rules/packs/:id → 200', async () => {
+      const token = getAuthToken();
+      mockedPrisma.complianceRule.deleteMany.mockResolvedValue({ count: 3 });
+
+      const res = await request(app)
+        .delete('/api/v1/compliance-rules/packs/hippo')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.deleted).toBe(3);
+    });
+
+    it('DELETE /api/v1/compliance-rules/packs/:id with invalid pack → 400', async () => {
+      const token = getAuthToken();
+
+      const res = await request(app)
+        .delete('/api/v1/compliance-rules/packs/unknown')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(400);
     });
   });
 

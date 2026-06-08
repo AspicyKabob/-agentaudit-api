@@ -89,6 +89,7 @@ model ComplianceRule {
   condition     Json
   severity      String   @default("warning")
   isActive      Boolean  @default(true)
+  packId        String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
