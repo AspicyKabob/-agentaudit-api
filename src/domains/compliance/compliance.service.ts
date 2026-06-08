@@ -79,6 +79,10 @@ export const complianceService = {
       throw new Error('Compliance rule not found');
     }
 
+    if (rule.packId) {
+      throw new Error(`This rule belongs to pack ${rule.packId}. Delete the pack instead, or remove packId first.`);
+    }
+
     await prisma.complianceRule.delete({ where: { id } });
   },
 
@@ -91,26 +95,50 @@ export const complianceService = {
     });
   },
 
+  async installedPacks(organizationId: string) {
+    const rows = await prisma.complianceRule.findMany({
+      distinct: ['packId'],
+      select: { packId: true },
+      where: { organizationId, packId: { not: null } },
+    });
+    return rows.map((r) => {
+      const pack = PACKS[r.packId as PackId];
+      return {
+        id: r.packId,
+        name: pack?.name,
+        description: pack?.description,
+        rules: pack?.rules?.length ?? 0,
+      };
+    });
+  },
+
   async installPack(organizationId: string, packId: PackId) {
     const pack = PACKS[packId];
     if (!pack) {
       throw new Error(`Unknown pack: ${packId}`);
     }
 
-    const created = [];
-    for (const rule of pack.rules) {
-      const r = await prisma.complianceRule.create({
-        data: {
-          organizationId,
-          name: rule.name,
-          ruleType: rule.ruleType,
-          condition: rule.condition as Prisma.InputJsonValue,
-          severity: rule.severity,
-          packId,
-        },
-      });
-      created.push(r);
+    const existing = await prisma.complianceRule.findMany({
+      where: { organizationId, packId },
+    });
+    if (existing.length > 0) {
+      throw new Error(`Pack ${packId} is already installed.`);
     }
+
+    const created = await prisma.$transaction(
+      pack.rules.map((rule) =>
+        prisma.complianceRule.create({
+          data: {
+            organizationId,
+            name: rule.name,
+            ruleType: rule.ruleType,
+            condition: rule.condition as Prisma.InputJsonValue,
+            severity: rule.severity,
+            packId,
+          },
+        })
+      )
+    );
     return created;
   },
 

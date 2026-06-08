@@ -8,6 +8,7 @@ const router = Router();
 
 // ─── Packs must come before /:id to avoid id='packs' shadowing ────
 router.get('/packs', authenticate, complianceController.listPacks);
+router.get('/packs/installed', authenticate, complianceController.installedPacks);
 router.post('/packs', authenticate, validate(installPackSchema), complianceController.installPack);
 router.delete('/packs/:id', authenticate, validate(packIdParamSchema), complianceController.removePack);
 

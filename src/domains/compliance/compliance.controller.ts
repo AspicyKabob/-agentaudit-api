@@ -51,6 +51,12 @@ export const complianceController = {
     res.status(200).json(packs);
   }),
 
+  installedPacks: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const packs = await complianceService.installedPacks(organizationId);
+    res.status(200).json(packs);
+  }),
+
   installPack: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
     const { packId } = req.body;
