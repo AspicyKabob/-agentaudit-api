@@ -5,6 +5,8 @@ const CONFLICT_MESSAGES = [
   'Email already in use',
   'already exists',
   'already in use',
+  'already installed',
+  'belongs to pack',
 ];
 
 const UNAUTHORIZED_MESSAGES = [

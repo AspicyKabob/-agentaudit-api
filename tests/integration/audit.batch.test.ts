@@ -71,6 +71,12 @@ jest.mock('bcryptjs', () => ({
   compare: jest.fn().mockResolvedValue(true),
 }));
 
+jest.mock('../../src/utils/apiKey', () => ({
+  __esModule: true,
+  generateApiKey: jest.fn().mockReturnValue('aa_testapikey'),
+  hashApiKey: jest.fn().mockReturnValue('testkeyhash'),
+}));
+
 import { prisma } from '../../src/db/prisma';
 
 const mockedPrisma = prisma as unknown as {
@@ -122,6 +128,21 @@ async function getAuthTokens() {
 describe('Audit Batch API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedPrisma.apiKey.findUnique.mockResolvedValue({
+      id: 'key-1',
+      organizationId: 'org-1',
+      revokedAt: null,
+      organization: {
+        id: 'org-1',
+        name: 'Test Org',
+        email: 'test@example.com',
+        plan: 'free',
+        apiQuota: 1000,
+        apiUsed: 0,
+        notifyWebhook: false,
+        notifyEmail: false,
+      },
+    });
   });
 
   describe('POST /api/v1/audit-logs/batch', () => {
@@ -139,7 +160,7 @@ describe('Audit Batch API', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ name: 'Test Key' });
 
-      mockedPrisma.apiKey.findUnique.mockResolvedValueOnce({
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
         id: 'key-1',
         organizationId: 'org-1',
         revokedAt: null,

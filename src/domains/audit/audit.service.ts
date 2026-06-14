@@ -4,6 +4,7 @@ import { SubmitAuditBody, QueryAuditQuery } from './audit.types';
 import { logger } from '../../utils/logger';
 import { evaluateSentiment } from './sentiment-evaluator';
 import { evaluateCustomValidator } from './custom-validator';
+import { detectPII } from './pii-detector';
 import { alertService } from '../alerts/alert.service';
 import { emailService } from '../../services/email.service';
 
@@ -302,7 +303,7 @@ async function evaluateComplianceRules(
 
     switch (rule.ruleType) {
       case 'pii_detect':
-        triggered = detectPII(data.prompt || '') || detectPII(data.response || '');
+        triggered = detectPII(data.prompt || '', condition) || detectPII(data.response || '', condition);
         break;
       case 'keyword_match':
         triggered = checkKeywords(data.prompt || '', condition.keywords) ||
@@ -331,16 +332,6 @@ async function evaluateComplianceRules(
   }
 
   return flags;
-}
-
-function detectPII(text: string): boolean {
-  const piiPatterns = [
-    /\b\d{3}-\d{2}-\d{4}\b/, // SSN
-    /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, // Email
-    /\b(?:\d[ -]*?){13,16}\b/, // Credit card-ish
-    /\b\d{3}-\d{3}-\d{4}\b/, // Phone
-  ];
-  return piiPatterns.some((pattern) => pattern.test(text));
 }
 
 function checkKeywords(text: string, keywords: string[]): boolean {

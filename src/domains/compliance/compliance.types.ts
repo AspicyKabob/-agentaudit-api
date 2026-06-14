@@ -1,34 +1,52 @@
 ﻿import { z } from 'zod';
+import { PIIPatternType } from '../audit/pii-detector';
 
 export const PACK_IDS = ['hippo', 'finance', 'gdpr'] as const;
 export type PackId = (typeof PACK_IDS)[number];
 
-export const PACKS: Record<PackId, { name: string; description: string; rules: { name: string; ruleType: string; condition: Record<string, unknown>; severity: 'warning' | 'critical' }[] }> = {
+type PackRule = {
+  name: string;
+  ruleType: 'pii_detect' | 'keyword_match' | 'rate_limit' | 'regex_match' | 'sentiment_analysis' | 'custom_validator';
+  condition: Record<string, unknown>;
+  severity: 'warning' | 'critical';
+};
+
+type PackDefinition = {
+  name: string;
+  description: string;
+  category: string;
+  rules: PackRule[];
+};
+
+export const PACKS: Record<PackId, PackDefinition> = {
   hippo: {
     name: 'Healthcare (HIPAA)',
     description: 'Detects PHI, medical IDs, and SSNs to help satisfy HIPAA requirements.',
+    category: 'healthcare',
     rules: [
-      { name: 'SSN Detection', ruleType: 'pii_detect', condition: { patterns: ['ssn'] }, severity: 'critical' },
-      { name: 'Phone Number Detection', ruleType: 'pii_detect', condition: { patterns: ['phone'] }, severity: 'critical' },
-      { name: 'Email Detection', ruleType: 'pii_detect', condition: { patterns: ['email'] }, severity: 'warning' },
+      { name: 'SSN Detection', ruleType: 'pii_detect', condition: { patterns: ['ssn'] as PIIPatternType[] }, severity: 'critical' },
+      { name: 'Phone Number Detection', ruleType: 'pii_detect', condition: { patterns: ['phone'] as PIIPatternType[] }, severity: 'critical' },
+      { name: 'Email Detection', ruleType: 'pii_detect', condition: { patterns: ['email'] as PIIPatternType[] }, severity: 'warning' },
     ],
   },
   finance: {
     name: 'Finance (PCI-DSS)',
     description: 'Flags credit card numbers, bank accounts, and insider-trading keywords for PCI-DSS and SOX.',
+    category: 'finance',
     rules: [
-      { name: 'Credit Card Detection', ruleType: 'pii_detect', condition: { patterns: ['credit_card'] }, severity: 'critical' },
-      { name: 'Bank Account Detection', ruleType: 'pii_detect', condition: { patterns: ['bank_account'] }, severity: 'critical' },
+      { name: 'Credit Card Detection', ruleType: 'pii_detect', condition: { patterns: ['credit_card'] as PIIPatternType[] }, severity: 'critical' },
+      { name: 'Bank Account Detection', ruleType: 'pii_detect', condition: { patterns: ['bank_account'] as PIIPatternType[] }, severity: 'critical' },
       { name: 'Insider Trading Keywords', ruleType: 'keyword_match', condition: { keywords: ['material nonpublic information', 'mnpi', 'inside information', 'confidential offering'] }, severity: 'critical' },
     ],
   },
   gdpr: {
     name: 'Data Protection (GDPR/CCPA)',
     description: 'Detects email, phone, and address leakage for GDPR and CCPA compliance.',
+    category: 'privacy',
     rules: [
-      { name: 'Email Detection', ruleType: 'pii_detect', condition: { patterns: ['email'] }, severity: 'warning' },
-      { name: 'Phone Number Detection', ruleType: 'pii_detect', condition: { patterns: ['phone'] }, severity: 'warning' },
-      { name: 'Address Detection', ruleType: 'pii_detect', condition: { patterns: ['address'] }, severity: 'warning' },
+      { name: 'Email Detection', ruleType: 'pii_detect', condition: { patterns: ['email'] as PIIPatternType[] }, severity: 'warning' },
+      { name: 'Phone Number Detection', ruleType: 'pii_detect', condition: { patterns: ['phone'] as PIIPatternType[] }, severity: 'warning' },
+      { name: 'Address Detection', ruleType: 'pii_detect', condition: { patterns: ['address'] as PIIPatternType[] }, severity: 'warning' },
     ],
   },
 };

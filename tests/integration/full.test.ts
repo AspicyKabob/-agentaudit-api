@@ -15,6 +15,15 @@ jest.mock('../../src/db/prisma', () => ({
   prisma: {
     $disconnect: jest.fn(),
     $executeRaw: jest.fn(),
+    $transaction: jest.fn((input: any) => {
+      if (Array.isArray(input)) {
+        return Promise.all(input);
+      }
+      return input({
+        auditLog: { create: jest.fn() },
+        complianceRule: { create: jest.fn() },
+      });
+    }),
     rateLimit: {
       upsert: jest.fn(),
       update: jest.fn(),
@@ -91,6 +100,12 @@ jest.mock('bcryptjs', () => ({
   compare: jest.fn().mockResolvedValue(true),
 }));
 
+jest.mock('../../src/utils/apiKey', () => ({
+  __esModule: true,
+  generateApiKey: jest.fn().mockReturnValue('aa_testapikey'),
+  hashApiKey: jest.fn().mockReturnValue('testkeyhash'),
+}));
+
 describe('AgentAudit API Full Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -105,6 +120,20 @@ describe('AgentAudit API Full Integration', () => {
       notifyEmail: true,
       notifyMinSeverity: 'warning',
     });
+    mockedPrisma.apiKey.findUnique.mockResolvedValue({
+      id: 'key-1',
+      organizationId: 'org-1',
+      revokedAt: null,
+      organization: {
+        id: 'org-1',
+        name: 'Test Corp',
+        email: 'test@example.com',
+        plan: 'free',
+        apiQuota: 1000,
+        apiUsed: 0,
+      },
+    });
+    mockedPrisma.complianceRule.findMany.mockResolvedValue([]);
   });
 
   afterAll(async () => {
@@ -669,6 +698,71 @@ describe('AgentAudit API Full Integration', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(400);
+    });
+
+    // ─── Pack installed & guards ──────────────────────────────────────
+
+    it('GET /api/v1/compliance-rules/packs/installed → 200', async () => {
+      const token = getAuthToken();
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([
+        { packId: 'hippo' },
+        { packId: 'finance' },
+      ]);
+
+      const res = await request(app)
+        .get('/api/v1/compliance-rules/packs/installed')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0]).toHaveProperty('id');
+      expect(res.body[0]).toHaveProperty('name');
+    });
+
+    it('POST /api/v1/compliance-rules/packs with duplicate → 409', async () => {
+      const token = getAuthToken();
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([
+        { id: 'rule-existing', packId: 'hippo' },
+      ]);
+
+      const res = await request(app)
+        .post('/api/v1/compliance-rules/packs')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ packId: 'hippo' });
+
+      expect(res.status).toBe(409);
+    });
+
+    // ─── Individual rule deletion guard ─────────────────────────────────
+
+    it('DELETE /api/v1/compliance-rules/:id with packId → 409', async () => {
+      const token = getAuthToken();
+      mockedPrisma.complianceRule.findFirst.mockResolvedValue({
+        id: '00000000-0000-0000-0000-000000000001',
+        packId: 'hippo',
+      });
+
+      const res = await request(app)
+        .delete('/api/v1/compliance-rules/00000000-0000-0000-0000-000000000001')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(409);
+    });
+
+    it('DELETE /api/v1/compliance-rules/:id without packId → 204', async () => {
+      const token = getAuthToken();
+      mockedPrisma.complianceRule.findFirst.mockResolvedValue({
+        id: '00000000-0000-0000-0000-000000000001',
+        packId: null,
+      });
+      mockedPrisma.complianceRule.delete.mockResolvedValue({});
+
+      const res = await request(app)
+        .delete('/api/v1/compliance-rules/00000000-0000-0000-0000-000000000001')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(res.status).toBe(204);
     });
   });
 

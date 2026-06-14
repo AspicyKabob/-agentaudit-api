@@ -72,6 +72,12 @@ jest.mock('bcryptjs', () => ({
   compare: jest.fn().mockResolvedValue(true),
 }));
 
+jest.mock('../../src/utils/apiKey', () => ({
+  __esModule: true,
+  generateApiKey: jest.fn().mockReturnValue('aa_testapikey'),
+  hashApiKey: jest.fn().mockReturnValue('testkeyhash'),
+}));
+
 import { prisma } from '../../src/db/prisma';
 
 const mockedPrisma = prisma as unknown as {
@@ -126,6 +132,21 @@ describe('LangChain Integration', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockedPrisma.apiKey.findUnique.mockResolvedValue({
+      id: 'key-langchain',
+      organizationId: 'org-1',
+      revokedAt: null,
+      organization: {
+        id: 'org-1',
+        name: 'Test Org',
+        email: 'test@example.com',
+        plan: 'free',
+        apiQuota: 1000,
+        apiUsed: 0,
+        notifyWebhook: false,
+        notifyEmail: false,
+      },
+    });
     const auth = await setupAuth();
     accessToken = auth.accessToken;
 
@@ -144,7 +165,7 @@ describe('LangChain Integration', () => {
   });
 
   it('should accept langchain audit log format', async () => {
-    mockedPrisma.apiKey.findUnique.mockResolvedValueOnce({
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
       id: 'key-langchain',
       organizationId: 'org-1',
       revokedAt: null,

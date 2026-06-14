@@ -28,10 +28,12 @@ export async function authenticateApiKey(
     }
 
     // Update last used — fire-and-forget so it never blocks the request
-    prisma.apiKey.update({
-      where: { id: apiKeyRecord.id },
-      data: { lastUsedAt: new Date() },
-    }).catch(() => {
+    Promise.resolve(
+      prisma.apiKey.update({
+        where: { id: apiKeyRecord.id },
+        data: { lastUsedAt: new Date() },
+      })
+    ).catch(() => {
       // Non-critical: lastUsedAt staleness is acceptable
     });
 
