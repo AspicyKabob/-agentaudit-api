@@ -69,6 +69,7 @@ export const createRuleSchema = z.object({
     ruleType: z.enum(['pii_detect', 'keyword_match', 'rate_limit', 'regex_match', 'sentiment_analysis', 'custom_validator']),
     condition: z.record(z.any()),
     severity: z.enum(['warning', 'critical']).default('warning'),
+    policyId: z.string().uuid().optional(),
     packId: z.string().optional(),
   }),
 });

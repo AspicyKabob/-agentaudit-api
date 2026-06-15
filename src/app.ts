@@ -7,6 +7,7 @@ import authRoutes from './domains/auth/auth.routes';
 import agentRoutes from './domains/agents/agent.routes';
 import auditRoutes from './domains/audit/audit.routes';
 import complianceRoutes from './domains/compliance/compliance.routes';
+import policyRoutes from './domains/policies/policy.routes';
 import reportRoutes from './domains/reports/report.routes';
 import alertRoutes from './domains/alerts/alert.routes';
 import billingRoutes from './domains/billing/billing.routes';
@@ -88,6 +89,7 @@ export function createApp() {
   app.use('/api/v1/agents', agentRoutes);
   app.use('/api/v1/audit-logs', auditRoutes);
   app.use('/api/v1/compliance-rules', complianceRoutes);
+  app.use('/api/v1/policies', policyRoutes);
   app.use('/api/v1/reports', reportRoutes);
   app.use('/api/v1/alerts', alertRoutes);
   app.use('/api/v1/billing', billingRoutes);

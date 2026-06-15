@@ -288,14 +288,36 @@ export const auditService = {
   },
 };
 
+async function buildRuleScope(organizationId: string, agentId?: string) {
+  const scope: any = { organizationId, isActive: true };
+
+  if (!agentId) {
+    scope.policyId = null;
+    return scope;
+  }
+
+  const assignments = await prisma.agentPolicy.findMany({
+    where: { agentId },
+    select: { policyId: true },
+  });
+  const policyIds = assignments.map((a) => a.policyId);
+
+  if (policyIds.length > 0) {
+    scope.OR = [{ policyId: null }, { policyId: { in: policyIds } }];
+  } else {
+    scope.policyId = null;
+  }
+
+  return scope;
+}
+
 async function evaluateComplianceRules(
   organizationId: string,
   data: SubmitAuditBody
 ): Promise<string[]> {
   const flags: string[] = [];
-  const rules = await prisma.complianceRule.findMany({
-    where: { organizationId, isActive: true },
-  });
+  const where = await buildRuleScope(organizationId, data.agentId);
+  const rules = await prisma.complianceRule.findMany({ where });
 
   for (const rule of rules) {
     const condition = rule.condition as any;

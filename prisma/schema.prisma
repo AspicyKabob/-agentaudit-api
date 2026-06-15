@@ -29,6 +29,7 @@ model Organization {
   apiKeys       ApiKey[]
   agents        Agent[]
   auditLogs     AuditLog[]
+  policies      Policy[]
   complianceRules ComplianceRule[]
   reports       ComplianceReport[]
   alerts        Alert[]
@@ -58,6 +59,7 @@ model Agent {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   auditLogs     AuditLog[]
+  agentPolicies AgentPolicy[]
 }
 
 model AuditLog {
@@ -81,9 +83,41 @@ model AuditLog {
   @@index([organizationId, createdAt])
 }
 
+model Policy {
+  id            String   @id @default(uuid())
+  organizationId String
+  name          String
+  description   String?
+  isActive      Boolean  @default(true)
+  sourcePackId  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rules        ComplianceRule[]
+  agentPolicies AgentPolicy[]
+
+  @@index([organizationId, isActive])
+}
+
+model AgentPolicy {
+  id        String   @id @default(uuid())
+  agentId   String
+  policyId  String
+  createdAt DateTime @default(now())
+
+  agent     Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  policy    Policy  @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, policyId])
+  @@index([agentId])
+  @@index([policyId])
+}
+
 model ComplianceRule {
   id            String   @id @default(uuid())
   organizationId String
+  policyId      String?
   name          String
   ruleType      String
   condition     Json
@@ -94,7 +128,10 @@ model ComplianceRule {
   updatedAt     DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policy       Policy?      @relation(fields: [policyId], references: [id], onDelete: Cascade)
   alerts       Alert[]
+
+  @@index([organizationId, policyId])
 }
 
 model ComplianceReport {

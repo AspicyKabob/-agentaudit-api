@@ -16,9 +16,19 @@ export const complianceService = {
   },
 
   async create(organizationId: string, data: CreateRuleBody) {
+    if (data.policyId) {
+      const policy = await prisma.policy.findFirst({
+        where: { id: data.policyId, organizationId },
+      });
+      if (!policy) {
+        throw new Error('Policy not found');
+      }
+    }
+
     return prisma.complianceRule.create({
       data: {
         organizationId,
+        policyId: data.policyId ?? null,
         name: data.name,
         ruleType: data.ruleType,
         condition: data.condition,
