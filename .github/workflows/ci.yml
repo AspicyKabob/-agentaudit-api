@@ -20,6 +20,8 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+      - name: Install native build tools for isolated-vm
+        run: sudo apt-get update && sudo apt-get install -y python3 make g++ linux-headers-generic
       - run: npm ci
       - run: npx prisma generate
       - run: npm run build
