@@ -131,6 +131,25 @@ class GuardrailResult:
     audit_log_id: Optional[str] = None
 
 
+@dataclass
+class PolicyAnalytics:
+    """Analytics for a single policy."""
+
+    policy_id: str
+    policy_name: str
+    mode: str
+    priority: int
+    window: Dict[str, Any]
+    total_audits: int
+    total_violations: int
+    block_count: int
+    flag_count: int
+    log_count: int
+    rule_breakdown: List[Dict[str, Any]]
+    agent_breakdown: List[Dict[str, Any]]
+    daily_trend: List[Dict[str, Any]]
+
+
 # ---------------------------------------------------------------------------
 # Retry policy
 # ---------------------------------------------------------------------------
@@ -498,6 +517,55 @@ class AgentAudit:
         )
         return resp.json()
 
+    def get_policy_analytics(
+        self,
+        policy_id: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        rule_type: Optional[str] = None,
+        severity: Optional[str] = None,
+    ) -> PolicyAnalytics:
+        """Get analytics for a single policy."""
+        params: Dict[str, Any] = {}
+        if start_date:
+            params["startDate"] = start_date
+        if end_date:
+            params["endDate"] = end_date
+        if agent_id:
+            params["agentId"] = agent_id
+        if rule_type:
+            params["ruleType"] = rule_type
+        if severity:
+            params["severity"] = severity
+
+        resp = self._request("GET", f"/policies/{policy_id}/analytics", params=params)
+        return PolicyAnalytics(**resp.json())
+
+    def get_all_policy_analytics(
+        self,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        rule_type: Optional[str] = None,
+        severity: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Get analytics summary for all policies in the organization."""
+        params: Dict[str, Any] = {}
+        if start_date:
+            params["startDate"] = start_date
+        if end_date:
+            params["endDate"] = end_date
+        if agent_id:
+            params["agentId"] = agent_id
+        if rule_type:
+            params["ruleType"] = rule_type
+        if severity:
+            params["severity"] = severity
+
+        resp = self._request("GET", "/policies/analytics", params=params)
+        return resp.json()
+
     # ------------------------------------------------------------------
     # Agent registration
     # ------------------------------------------------------------------
@@ -708,6 +776,39 @@ class AgentAuditAsync:
         return await self._loop.run_in_executor(
             self._thread_pool,
             lambda: self._client.remove_policy(policy_id, agent_id),
+        )
+
+    async def get_policy_analytics(
+        self,
+        policy_id: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        rule_type: Optional[str] = None,
+        severity: Optional[str] = None,
+    ) -> PolicyAnalytics:
+        """Async get analytics for a single policy."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.get_policy_analytics(
+                policy_id, start_date, end_date, agent_id, rule_type, severity
+            ),
+        )
+
+    async def get_all_policy_analytics(
+        self,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        rule_type: Optional[str] = None,
+        severity: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Async get analytics summary for all policies."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.get_all_policy_analytics(
+                start_date, end_date, agent_id, rule_type, severity
+            ),
         )
 
 

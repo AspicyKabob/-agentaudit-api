@@ -2,7 +2,8 @@ import { Router } from 'express';
 import { policyController } from './policy.controller';
 import { validate } from '../../middleware/validate.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { createPolicySchema, updatePolicySchema, policyIdSchema, clonePackToPolicySchema } from './policy.types';
+import { createPolicySchema, updatePolicySchema, policyIdSchema, clonePackToPolicySchema, policyAnalyticsQuerySchema } from './policy.types';
+import { policyAnalyticsController } from './policy-analytics.controller';
 import { z } from 'zod';
 
 const agentAssignmentSchema = z.object({
@@ -19,7 +20,9 @@ const router = Router();
 router.get('/', authenticate, policyController.list);
 router.post('/', authenticate, validate(createPolicySchema), policyController.create);
 router.post('/clone-pack', authenticate, validate(clonePackToPolicySchema), policyController.clonePack);
+router.get('/analytics', authenticate, validate(policyAnalyticsQuerySchema), policyAnalyticsController.getOrganizationPolicyAnalytics);
 router.get('/:id', authenticate, validate(policyIdSchema), policyController.get);
+router.get('/:id/analytics', authenticate, validate(policyAnalyticsQuerySchema), policyAnalyticsController.getPolicyAnalytics);
 router.patch('/:id', authenticate, validate(updatePolicySchema), policyController.update);
 router.delete('/:id', authenticate, validate(policyIdSchema), policyController.remove);
 router.post('/:id/agents', authenticate, validate(agentAssignmentSchema), policyController.assignToAgent);

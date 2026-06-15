@@ -349,6 +349,46 @@ Example: a policy that only applies to CrewAI agents in production during busine
 
 Use the **Policies API** or the SDK helpers (`createPolicy`, `clonePack`, `assignAgent`, `removeAgent`) to manage policies without writing raw HTTP calls.
 
+#### Policy Analytics
+
+Track how each policy is performing over time. Analytics attribute violations to the policy that owned the triggered rule, taking priority and action resolution into account.
+
+| Endpoint | What it returns |
+|---|---|
+| `GET /api/v1/policies/analytics` | Summary across all policies: audits, violations, blocks, flags, logs. |
+| `GET /api/v1/policies/:id/analytics` | Detailed view for one policy, including rule/agent breakdowns and daily trend. |
+
+Query parameters for both endpoints:
+
+| Parameter | Type | Description |
+|---|---|---|
+| `startDate` | ISO 8601 | Start of the window (defaults to 30 days ago). |
+| `endDate` | ISO 8601 | End of the window (defaults to now). |
+| `agentId` | UUID | Filter to a single agent. |
+| `ruleType` | string | Filter to a rule type, e.g. `pii_detect`. |
+| `severity` | `warning` \| `critical` | Filter to severity. |
+
+SDK examples:
+
+```typescript
+const analytics = await audit.getPolicyAnalytics(policyId, {
+  startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+  severity: 'critical',
+});
+
+const orgSummary = await audit.getAllPolicyAnalytics();
+```
+
+```python
+analytics = audit.get_policy_analytics(
+    policy_id=policy_id,
+    start_date=(datetime.utcnow() - timedelta(days=7)).isoformat(),
+    severity="critical",
+)
+
+org_summary = audit.get_all_policy_analytics()
+```
+
 ---
 
 ## API Reference
@@ -381,6 +421,8 @@ Use the **Policies API** or the SDK helpers (`createPolicy`, `clonePack`, `assig
 | `POST` | `/api/v1/policies/clone-pack` | JWT | Clone a pre-built pack into a policy |
 | `POST` | `/api/v1/policies/:id/agents` | JWT | Assign policy to an agent |
 | `DELETE` | `/api/v1/policies/:id/agents` | JWT | Remove policy from an agent |
+| `GET` | `/api/v1/policies/analytics` | JWT | Organization-wide policy analytics summary |
+| `GET` | `/api/v1/policies/:id/analytics` | JWT | Detailed analytics for a single policy |
 | `GET` | `/api/v1/alerts` | JWT | List alerts |
 | `PATCH` | `/api/v1/alerts/:id/resolve` | JWT | Resolve alert |
 

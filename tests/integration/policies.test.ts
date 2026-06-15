@@ -721,4 +721,134 @@ describe('Policies API', () => {
       expect(res.body.complianceFlags).toHaveLength(0);
     });
   });
+
+  describe('GET /api/v1/policies/:id/analytics', () => {
+    it('returns detailed analytics for a policy', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000002',
+        organizationId: 'org-1',
+        name: 'Production Guard',
+        mode: 'block',
+        priority: 10,
+        agentPolicies: [],
+      });
+
+      mockedPrisma.auditLog.findMany.mockResolvedValueOnce([
+        {
+          id: 'log-1',
+          organizationId: 'org-1',
+          agentId: '00000000-0000-0000-0000-000000000003',
+          action: 'prompt_submitted',
+          enforcementAction: 'block',
+          violationDetails: [
+            { ruleId: 'rule-ssn', policyId: '00000000-0000-0000-0000-000000000002', name: 'SSN Detection', ruleType: 'pii_detect', severity: 'critical' },
+          ],
+          createdAt: new Date(),
+          agent: { id: '00000000-0000-0000-0000-000000000003', name: 'Researcher' },
+        },
+        {
+          id: 'log-2',
+          organizationId: 'org-1',
+          agentId: null,
+          action: 'prompt_submitted',
+          enforcementAction: 'allow',
+          violationDetails: [],
+          createdAt: new Date(),
+          agent: null,
+        },
+      ]);
+
+      const res = await request(app)
+        .get('/api/v1/policies/00000000-0000-0000-0000-000000000002/analytics')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.policyId).toBe('00000000-0000-0000-0000-000000000002');
+      expect(res.body.policyName).toBe('Production Guard');
+      expect(res.body.totalAudits).toBe(1);
+      expect(res.body.totalViolations).toBe(1);
+      expect(res.body.blockCount).toBe(1);
+      expect(res.body.ruleBreakdown).toHaveLength(1);
+      expect(res.body.ruleBreakdown[0].ruleName).toBe('SSN Detection');
+    });
+
+    it('returns 404 when policy is not found', async () => {
+      const { accessToken } = await getAuthTokens();
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce(null);
+
+      const res = await request(app)
+        .get('/api/v1/policies/00000000-0000-0000-0000-000000000999/analytics')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe('GET /api/v1/policies/analytics', () => {
+    it('returns analytics summary for all policies', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.policy.findMany.mockResolvedValueOnce([
+        {
+          id: '00000000-0000-0000-0000-000000000002',
+          organizationId: 'org-1',
+          name: 'Production Guard',
+          mode: 'block',
+          priority: 10,
+        },
+        {
+          id: '00000000-0000-0000-0000-000000000003',
+          organizationId: 'org-1',
+          name: 'Audit Only',
+          mode: 'log',
+          priority: 0,
+        },
+      ]);
+
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000002',
+        organizationId: 'org-1',
+        name: 'Production Guard',
+        mode: 'block',
+        priority: 10,
+        agentPolicies: [],
+      });
+      mockedPrisma.auditLog.findMany.mockResolvedValueOnce([
+        {
+          id: 'log-1',
+          organizationId: 'org-1',
+          agentId: '00000000-0000-0000-0000-000000000003',
+          action: 'prompt_submitted',
+          enforcementAction: 'block',
+          violationDetails: [
+            { ruleId: 'rule-ssn', policyId: '00000000-0000-0000-0000-000000000002', name: 'SSN Detection', ruleType: 'pii_detect', severity: 'critical' },
+          ],
+          createdAt: new Date(),
+          agent: { id: '00000000-0000-0000-0000-000000000003', name: 'Researcher' },
+        },
+      ]);
+
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000003',
+        organizationId: 'org-1',
+        name: 'Audit Only',
+        mode: 'log',
+        priority: 0,
+        agentPolicies: [],
+      });
+      mockedPrisma.auditLog.findMany.mockResolvedValueOnce([]);
+
+      const res = await request(app)
+        .get('/api/v1/policies/analytics')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toHaveLength(2);
+      expect(res.body.data[0].policyName).toBe('Production Guard');
+      expect(res.body.data[0].totalViolations).toBe(1);
+      expect(res.body.data[1].totalViolations).toBe(0);
+    });
+  });
 });

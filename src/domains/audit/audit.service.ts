@@ -298,6 +298,7 @@ type EnforcementAction = 'allow' | 'block' | 'flag' | 'log';
 
 interface Violation {
   ruleId: string;
+  policyId?: string;
   name: string;
   ruleType: string;
   severity: 'warning' | 'critical';
@@ -517,6 +518,7 @@ async function evaluateComplianceRules(
     const severity = rule.severity as 'warning' | 'critical';
     violations.push({
       ruleId: rule.id,
+      policyId: rule.policyId ?? undefined,
       name: rule.name,
       ruleType: rule.ruleType,
       severity,

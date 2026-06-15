@@ -91,6 +91,49 @@ export interface Alert {
   resolvedAt?: string;
 }
 
+export interface PolicyAnalytics {
+  policyId: string;
+  policyName: string;
+  mode: 'block' | 'flag' | 'log';
+  priority: number;
+  window: { start: string; end: string };
+  totalAudits: number;
+  totalViolations: number;
+  blockCount: number;
+  flagCount: number;
+  logCount: number;
+  ruleBreakdown: Array<{
+    ruleId: string;
+    ruleName: string;
+    ruleType: string;
+    severity: string;
+    count: number;
+  }>;
+  agentBreakdown: Array<{
+    agentId: string | null;
+    agentName: string | null;
+    count: number;
+  }>;
+  dailyTrend: Array<{
+    date: string;
+    audits: number;
+    violations: number;
+    blocks: number;
+  }>;
+}
+
+export interface PolicyAnalyticsSummary {
+  policyId: string;
+  policyName: string;
+  mode: 'block' | 'flag' | 'log';
+  priority: number;
+  totalAudits: number;
+  totalViolations: number;
+  blockCount: number;
+  flagCount: number;
+  logCount: number;
+}
+
 export interface GuardrailResult {
   allowed: boolean;
   action: 'allow' | 'block' | 'flag' | 'log';
@@ -154,6 +197,53 @@ export class AgentAudit {
    */
   async listPolicies(): Promise<Policy[]> {
     const { data } = await this.client.get<Policy[]>('/policies');
+    return data;
+  }
+
+  /**
+   * Get analytics for a single policy.
+   */
+  async getPolicyAnalytics(
+    policyId: string,
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      agentId?: string;
+      ruleType?: string;
+      severity?: 'warning' | 'critical';
+    }
+  ): Promise<PolicyAnalytics> {
+    const params = new URLSearchParams();
+    if (options?.startDate) params.append('startDate', options.startDate.toISOString());
+    if (options?.endDate) params.append('endDate', options.endDate.toISOString());
+    if (options?.agentId) params.append('agentId', options.agentId);
+    if (options?.ruleType) params.append('ruleType', options.ruleType);
+    if (options?.severity) params.append('severity', options.severity);
+
+    const { data } = await this.client.get<PolicyAnalytics>(`/policies/${policyId}/analytics?${params.toString()}`);
+    return data;
+  }
+
+  /**
+   * Get analytics summary for all policies in the organization.
+   */
+  async getAllPolicyAnalytics(
+    options?: {
+      startDate?: Date;
+      endDate?: Date;
+      agentId?: string;
+      ruleType?: string;
+      severity?: 'warning' | 'critical';
+    }
+  ): Promise<{ data: PolicyAnalyticsSummary[] }> {
+    const params = new URLSearchParams();
+    if (options?.startDate) params.append('startDate', options.startDate.toISOString());
+    if (options?.endDate) params.append('endDate', options.endDate.toISOString());
+    if (options?.agentId) params.append('agentId', options.agentId);
+    if (options?.ruleType) params.append('ruleType', options.ruleType);
+    if (options?.severity) params.append('severity', options.severity);
+
+    const { data } = await this.client.get<{ data: PolicyAnalyticsSummary[] }>(`/policies/analytics?${params.toString()}`);
     return data;
   }
 
