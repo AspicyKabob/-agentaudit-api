@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS "PolicyVersion" (
+-- CreateTable
+CREATE TABLE "PolicyVersion" (
     "id" TEXT NOT NULL,
     "policyId" TEXT NOT NULL,
     "organizationId" TEXT NOT NULL,
@@ -11,15 +12,21 @@ CREATE TABLE IF NOT EXISTS "PolicyVersion" (
     "rules" JSONB NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "restoredFromId" TEXT,
+
     CONSTRAINT "PolicyVersion_pkey" PRIMARY KEY ("id")
 );
 
-CREATE INDEX IF NOT EXISTS "PolicyVersion_organizationId_policyId_idx" ON "PolicyVersion"("organizationId", "policyId");
-CREATE INDEX IF NOT EXISTS "PolicyVersion_policyId_versionNumber_idx" ON "PolicyVersion"("policyId", "versionNumber");
-CREATE UNIQUE INDEX IF NOT EXISTS "PolicyVersion_policyId_versionNumber_key" ON "PolicyVersion"("policyId", "versionNumber");
+-- CreateIndex
+CREATE INDEX "PolicyVersion_organizationId_policyId_idx" ON "PolicyVersion"("organizationId", "policyId");
 
-ALTER TABLE "PolicyVersion" DROP CONSTRAINT IF EXISTS "PolicyVersion_policyId_fkey";
+-- CreateIndex
+CREATE INDEX "PolicyVersion_policyId_versionNumber_idx" ON "PolicyVersion"("policyId", "versionNumber");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PolicyVersion_policyId_versionNumber_key" ON "PolicyVersion"("policyId", "versionNumber");
+
+-- AddForeignKey
 ALTER TABLE "PolicyVersion" ADD CONSTRAINT "PolicyVersion_policyId_fkey" FOREIGN KEY ("policyId") REFERENCES "Policy"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE "PolicyVersion" DROP CONSTRAINT IF EXISTS "PolicyVersion_organizationId_fkey";
+-- AddForeignKey
 ALTER TABLE "PolicyVersion" ADD CONSTRAINT "PolicyVersion_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
