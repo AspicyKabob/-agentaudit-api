@@ -1,6 +1,16 @@
 ﻿import { prisma } from '../../db/prisma';
 import { Prisma } from '@prisma/client';
 import { CreateRuleBody, UpdateRuleBody, PACKS, PackId, PACK_IDS } from './compliance.types';
+import { policyVersionService } from '../policies/policy-version.service';
+
+async function snapshotPolicyIfRuleChanged(policyId: string | null | undefined, organizationId: string) {
+  if (!policyId) return;
+  const policy = await prisma.policy.findFirst({ where: { id: policyId, organizationId } });
+  if (!policy) return;
+  await policyVersionService.createVersion(organizationId, policyId, {
+    name: `${policy.name} (auto-saved before rule change)`,
+  });
+}
 
 export const complianceService = {
   async list(organizationId: string) {
@@ -23,6 +33,7 @@ export const complianceService = {
       if (!policy) {
         throw new Error('Policy not found');
       }
+      await snapshotPolicyIfRuleChanged(data.policyId, organizationId);
     }
 
     return prisma.complianceRule.create({
@@ -59,6 +70,8 @@ export const complianceService = {
       throw new Error('Compliance rule not found');
     }
 
+    await snapshotPolicyIfRuleChanged(rule.policyId, organizationId);
+
     const updateData: any = {
       name: data.name ?? rule.name,
     };
@@ -79,6 +92,20 @@ export const complianceService = {
       updateData.actionOverride = data.actionOverride ?? null;
     }
 
+    if (data.policyId !== undefined) {
+      if (data.policyId) {
+        const policy = await prisma.policy.findFirst({
+          where: { id: data.policyId, organizationId },
+        });
+        if (!policy) {
+          throw new Error('Policy not found');
+        }
+      }
+      await snapshotPolicyIfRuleChanged(rule.policyId, organizationId);
+      await snapshotPolicyIfRuleChanged(data.policyId, organizationId);
+      updateData.policyId = data.policyId ?? null;
+    }
+
     return prisma.complianceRule.update({
       where: { id },
       data: updateData,
@@ -93,6 +120,8 @@ export const complianceService = {
     if (!rule) {
       throw new Error('Compliance rule not found');
     }
+
+    await snapshotPolicyIfRuleChanged(rule.policyId, organizationId);
 
     if (rule.packId) {
       throw new Error(`This rule belongs to pack ${rule.packId}. Delete the pack instead, or remove packId first.`);

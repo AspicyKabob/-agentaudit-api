@@ -2,6 +2,7 @@ import { prisma } from '../../db/prisma';
 import { Prisma } from '@prisma/client';
 import { CreatePolicyBody, UpdatePolicyBody, ClonePackToPolicyBody } from './policy.types';
 import { PACKS, PackId } from '../compliance/compliance.types';
+import { policyVersionService } from './policy-version.service';
 
 export const policyService = {
   async list(organizationId: string) {
@@ -45,6 +46,10 @@ export const policyService = {
     if (!policy) {
       throw new Error('Policy not found');
     }
+
+    await policyVersionService.createVersion(organizationId, id, {
+      name: `${policy.name} (auto-saved before update)`,
+    });
 
     const updateData: any = {
       name: data.name ?? policy.name,

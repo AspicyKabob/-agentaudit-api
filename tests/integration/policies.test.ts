@@ -82,6 +82,11 @@ jest.mock('../../src/db/prisma', () => ({
       findFirst: jest.fn(),
       delete: jest.fn(),
     },
+    policyVersion: {
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
     alert: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
@@ -105,12 +110,14 @@ jest.mock('../../src/utils/apiKey', () => ({
 import { prisma } from '../../src/db/prisma';
 
 const mockedPrisma = prisma as unknown as {
+  $transaction: any;
   organization: any;
   agent: any;
   apiKey: any;
   auditLog: any;
   complianceRule: any;
   policy: any;
+  policyVersion: any;
   agentPolicy: any;
   alert: any;
 };
@@ -161,6 +168,9 @@ describe('Policies API', () => {
     mockedPrisma.alert.create.mockReset();
     mockedPrisma.agentPolicy.findMany.mockReset();
     mockedPrisma.agent.findFirst.mockReset();
+    mockedPrisma.policyVersion.findFirst.mockReset();
+    mockedPrisma.policyVersion.findMany.mockReset();
+    mockedPrisma.policyVersion.create.mockReset();
   });
 
   describe('GET /api/v1/policies', () => {
@@ -783,6 +793,195 @@ describe('Policies API', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(404);
+    });
+  });
+
+  describe('POST /api/v1/policies/:id/versions', () => {
+    it('creates a manual policy version', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000001',
+        organizationId: 'org-1',
+        name: 'Custom Policy',
+        description: 'My policy',
+        mode: 'flag',
+        priority: 0,
+        conditions: null,
+        rules: [],
+      });
+      mockedPrisma.policyVersion.findFirst.mockResolvedValueOnce(null);
+      mockedPrisma.policyVersion.create.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000010',
+        policyId: '00000000-0000-0000-0000-000000000001',
+        versionNumber: 1,
+        name: 'Manual Snapshot',
+        description: 'My policy',
+        mode: 'flag',
+        priority: 0,
+        restoredFromId: null,
+        createdAt: new Date().toISOString(),
+      });
+
+      const res = await request(app)
+        .post('/api/v1/policies/00000000-0000-0000-0000-000000000001/versions')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ name: 'Manual Snapshot' });
+
+      expect(res.status).toBe(201);
+      expect(res.body.versionNumber).toBe(1);
+      expect(res.body.name).toBe('Manual Snapshot');
+    });
+  });
+
+  describe('GET /api/v1/policies/:id/versions', () => {
+    it('lists policy versions', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000001',
+        organizationId: 'org-1',
+      });
+      mockedPrisma.policyVersion.findMany.mockResolvedValueOnce([
+        {
+          id: '00000000-0000-0000-0000-000000000011',
+          policyId: '00000000-0000-0000-0000-000000000001',
+          versionNumber: 2,
+          name: 'v2',
+          description: null,
+          mode: 'block',
+          priority: 10,
+          restoredFromId: null,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: '00000000-0000-0000-0000-000000000010',
+          policyId: '00000000-0000-0000-0000-000000000001',
+          versionNumber: 1,
+          name: 'v1',
+          description: null,
+          mode: 'flag',
+          priority: 0,
+          restoredFromId: null,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+
+      const res = await request(app)
+        .get('/api/v1/policies/00000000-0000-0000-0000-000000000001/versions')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].versionNumber).toBe(2);
+    });
+  });
+
+  describe('GET /api/v1/policies/:id/versions/:versionId', () => {
+    it('returns a specific version with rules', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.policyVersion.findFirst.mockResolvedValueOnce({
+        id: '00000000-0000-0000-0000-000000000011',
+        policyId: '00000000-0000-0000-0000-000000000001',
+        versionNumber: 2,
+        name: 'v2',
+        description: null,
+        mode: 'block',
+        priority: 10,
+        conditions: null,
+        rules: [{ id: 'rule-1', name: 'SSN Detection', ruleType: 'pii_detect', severity: 'critical' }],
+        restoredFromId: null,
+        createdAt: new Date().toISOString(),
+      });
+
+      const res = await request(app)
+        .get('/api/v1/policies/00000000-0000-0000-0000-000000000001/versions/00000000-0000-0000-0000-000000000011')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.versionNumber).toBe(2);
+      expect(res.body.rules).toHaveLength(1);
+    });
+  });
+
+  describe('POST /api/v1/policies/:id/versions/:versionId/restore', () => {
+    it('restores a policy from a previous version', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      const restoredVersionId = '00000000-0000-0000-0000-000000000012';
+      const versionId = '00000000-0000-0000-0000-000000000011';
+      const policyId = '00000000-0000-0000-0000-000000000001';
+
+      mockedPrisma.policyVersion.findFirst.mockResolvedValueOnce({
+        id: versionId,
+        policyId,
+        versionNumber: 2,
+        name: 'v2',
+        description: null,
+        mode: 'block',
+        priority: 10,
+        conditions: null,
+        rules: [{ id: 'rule-1', name: 'SSN Detection', ruleType: 'pii_detect', severity: 'critical' }],
+        restoredFromId: null,
+        createdAt: new Date().toISOString(),
+      });
+      mockedPrisma.policy.findFirst.mockResolvedValueOnce({
+        id: policyId,
+        organizationId: 'org-1',
+        name: 'v2',
+        mode: 'block',
+        priority: 10,
+      });
+      let txResolve: any;
+      mockedPrisma.policyVersion.findFirst.mockResolvedValueOnce({
+        id: versionId,
+        policyId,
+        versionNumber: 2,
+        name: 'v2',
+        description: null,
+        mode: 'block',
+        priority: 10,
+        conditions: null,
+        rules: [{ id: 'rule-1', name: 'SSN Detection', ruleType: 'pii_detect', severity: 'critical' }],
+        restoredFromId: null,
+        createdAt: new Date().toISOString(),
+      });
+      mockedPrisma.$transaction.mockImplementationOnce(async (fn: any) => {
+        const tx = {
+          policy: {
+            update: jest.fn().mockResolvedValue({
+              id: policyId,
+              organizationId: 'org-1',
+              name: 'v2',
+              mode: 'block',
+              priority: 10,
+            }),
+          },
+          complianceRule: { deleteMany: jest.fn().mockResolvedValue({ count: 0 }), create: jest.fn().mockResolvedValue({ id: 'rule-1' }) },
+        };
+        return await fn(tx);
+      });
+      mockedPrisma.policyVersion.findFirst.mockResolvedValueOnce(null);
+      mockedPrisma.policyVersion.create.mockResolvedValueOnce({
+        id: restoredVersionId,
+        policyId,
+        versionNumber: 3,
+        name: 'v2 (restored from v2)',
+        description: null,
+        mode: 'block',
+        priority: 10,
+        restoredFromId: versionId,
+        createdAt: new Date().toISOString(),
+      });
+
+      const res = await request(app)
+        .post(`/api/v1/policies/${policyId}/versions/${versionId}/restore`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.versionNumber).toBe(3);
+      expect(res.body.restoredFromId).toBe(versionId);
     });
   });
 

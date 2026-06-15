@@ -134,6 +134,20 @@ export interface PolicyAnalyticsSummary {
   logCount: number;
 }
 
+export interface PolicyVersion {
+  id: string;
+  policyId: string;
+  versionNumber: number;
+  name: string;
+  description?: string;
+  mode: 'block' | 'flag' | 'log';
+  priority: number;
+  restoredFromId?: string;
+  createdAt: string;
+  conditions?: PolicyConditions;
+  rules?: ComplianceRule[];
+}
+
 export interface GuardrailResult {
   allowed: boolean;
   action: 'allow' | 'block' | 'flag' | 'log';
@@ -221,6 +235,38 @@ export class AgentAudit {
     if (options?.severity) params.append('severity', options.severity);
 
     const { data } = await this.client.get<PolicyAnalytics>(`/policies/${policyId}/analytics?${params.toString()}`);
+    return data;
+  }
+
+  /**
+   * Create a manual version snapshot of a policy.
+   */
+  async createPolicyVersion(policyId: string, name?: string): Promise<PolicyVersion> {
+    const { data } = await this.client.post<PolicyVersion>(`/policies/${policyId}/versions`, name ? { name } : {});
+    return data;
+  }
+
+  /**
+   * List all versions of a policy.
+   */
+  async listPolicyVersions(policyId: string): Promise<PolicyVersion[]> {
+    const { data } = await this.client.get<PolicyVersion[]>(`/policies/${policyId}/versions`);
+    return data;
+  }
+
+  /**
+   * Get a specific policy version, including its rules.
+   */
+  async getPolicyVersion(policyId: string, versionId: string): Promise<PolicyVersion> {
+    const { data } = await this.client.get<PolicyVersion>(`/policies/${policyId}/versions/${versionId}`);
+    return data;
+  }
+
+  /**
+   * Restore a policy to a previous version. Returns the new version created from the restore.
+   */
+  async restorePolicyVersion(policyId: string, versionId: string): Promise<PolicyVersion> {
+    const { data } = await this.client.post<PolicyVersion>(`/policies/${policyId}/versions/${versionId}/restore`);
     return data;
   }
 

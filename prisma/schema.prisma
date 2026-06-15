@@ -31,6 +31,7 @@ model Organization {
   auditLogs     AuditLog[]
   policies      Policy[]
   complianceRules ComplianceRule[]
+  policyVersions PolicyVersion[]
   reports       ComplianceReport[]
   alerts        Alert[]
 }
@@ -101,8 +102,31 @@ model Policy {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rules        ComplianceRule[]
   agentPolicies AgentPolicy[]
+  versions      PolicyVersion[]
 
   @@index([organizationId, isActive])
+}
+
+model PolicyVersion {
+  id            String   @id @default(uuid())
+  policyId      String
+  organizationId String
+  versionNumber Int
+  name          String
+  description   String?
+  mode          String   @default("flag")
+  priority      Int      @default(0)
+  conditions    Json?
+  rules         Json
+  createdAt     DateTime @default(now())
+  restoredFromId String?
+
+  policy       Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([policyId, versionNumber])
+  @@index([organizationId, policyId])
+  @@index([policyId, versionNumber])
 }
 
 model AgentPolicy {

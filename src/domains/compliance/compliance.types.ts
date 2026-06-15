@@ -87,6 +87,7 @@ export const updateRuleSchema = z.object({
     severity: z.enum(['warning', 'critical']).optional(),
     actionOverride: enforcementActionSchema,
     isActive: z.boolean().optional(),
+    policyId: z.string().uuid().optional().nullable(),
   }),
 });
 

@@ -64,6 +64,22 @@ export const policyAnalyticsQuerySchema = z.object({
   }),
 });
 
+export const createVersionSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+  body: z.object({
+    name: z.string().min(1).max(100).optional(),
+  }),
+});
+
+export const policyVersionIdSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+    versionId: z.string().uuid(),
+  }),
+});
+
 export const clonePackToPolicySchema = z.object({
   body: z.object({
     name: z.string().min(1).max(100),

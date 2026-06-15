@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { policyController } from './policy.controller';
 import { validate } from '../../middleware/validate.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { createPolicySchema, updatePolicySchema, policyIdSchema, clonePackToPolicySchema, policyAnalyticsQuerySchema } from './policy.types';
+import { createPolicySchema, updatePolicySchema, policyIdSchema, clonePackToPolicySchema, policyAnalyticsQuerySchema, createVersionSchema, policyVersionIdSchema } from './policy.types';
 import { policyAnalyticsController } from './policy-analytics.controller';
+import { policyVersionController } from './policy-version.controller';
 import { z } from 'zod';
 
 const agentAssignmentSchema = z.object({
@@ -23,6 +24,10 @@ router.post('/clone-pack', authenticate, validate(clonePackToPolicySchema), poli
 router.get('/analytics', authenticate, validate(policyAnalyticsQuerySchema), policyAnalyticsController.getOrganizationPolicyAnalytics);
 router.get('/:id', authenticate, validate(policyIdSchema), policyController.get);
 router.get('/:id/analytics', authenticate, validate(policyAnalyticsQuerySchema), policyAnalyticsController.getPolicyAnalytics);
+router.post('/:id/versions', authenticate, validate(createVersionSchema), policyVersionController.createVersion);
+router.get('/:id/versions', authenticate, validate(policyIdSchema), policyVersionController.listVersions);
+router.get('/:id/versions/:versionId', authenticate, validate(policyVersionIdSchema), policyVersionController.getVersion);
+router.post('/:id/versions/:versionId/restore', authenticate, validate(policyVersionIdSchema), policyVersionController.restoreVersion);
 router.patch('/:id', authenticate, validate(updatePolicySchema), policyController.update);
 router.delete('/:id', authenticate, validate(policyIdSchema), policyController.remove);
 router.post('/:id/agents', authenticate, validate(agentAssignmentSchema), policyController.assignToAgent);

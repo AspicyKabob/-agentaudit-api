@@ -150,6 +150,23 @@ class PolicyAnalytics:
     daily_trend: List[Dict[str, Any]]
 
 
+@dataclass
+class PolicyVersion:
+    """A point-in-time snapshot of a policy."""
+
+    id: str
+    policy_id: str
+    version_number: int
+    name: str
+    mode: str
+    priority: int
+    description: Optional[str] = None
+    restored_from_id: Optional[str] = None
+    created_at: Optional[str] = None
+    conditions: Optional[Dict[str, Any]] = None
+    rules: Optional[List[Dict[str, Any]]] = None
+
+
 # ---------------------------------------------------------------------------
 # Retry policy
 # ---------------------------------------------------------------------------
@@ -566,6 +583,36 @@ class AgentAudit:
         resp = self._request("GET", "/policies/analytics", params=params)
         return resp.json()
 
+    def create_policy_version(
+        self,
+        policy_id: str,
+        name: Optional[str] = None,
+    ) -> PolicyVersion:
+        """Create a manual version snapshot of a policy."""
+        payload: Dict[str, Any] = {}
+        if name is not None:
+            payload["name"] = name
+        resp = self._request("POST", f"/policies/{policy_id}/versions", json=payload)
+        return PolicyVersion(**resp.json())
+
+    def list_policy_versions(self, policy_id: str) -> List[PolicyVersion]:
+        """List all versions of a policy."""
+        resp = self._request("GET", f"/policies/{policy_id}/versions")
+        return [PolicyVersion(**item) for item in resp.json()]
+
+    def get_policy_version(self, policy_id: str, version_id: str) -> PolicyVersion:
+        """Get a specific policy version, including its rules."""
+        resp = self._request("GET", f"/policies/{policy_id}/versions/{version_id}")
+        return PolicyVersion(**resp.json())
+
+    def restore_policy_version(self, policy_id: str, version_id: str) -> PolicyVersion:
+        """Restore a policy to a previous version."""
+        resp = self._request(
+            "POST",
+            f"/policies/{policy_id}/versions/{version_id}/restore",
+        )
+        return PolicyVersion(**resp.json())
+
     # ------------------------------------------------------------------
     # Agent registration
     # ------------------------------------------------------------------
@@ -809,6 +856,34 @@ class AgentAuditAsync:
             lambda: self._client.get_all_policy_analytics(
                 start_date, end_date, agent_id, rule_type, severity
             ),
+        )
+
+    async def create_policy_version(self, policy_id: str, name: Optional[str] = None) -> PolicyVersion:
+        """Async create manual policy version."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.create_policy_version(policy_id, name),
+        )
+
+    async def list_policy_versions(self, policy_id: str) -> List[PolicyVersion]:
+        """Async list policy versions."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.list_policy_versions(policy_id),
+        )
+
+    async def get_policy_version(self, policy_id: str, version_id: str) -> PolicyVersion:
+        """Async get policy version."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.get_policy_version(policy_id, version_id),
+        )
+
+    async def restore_policy_version(self, policy_id: str, version_id: str) -> PolicyVersion:
+        """Async restore policy version."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.restore_policy_version(policy_id, version_id),
         )
 
 

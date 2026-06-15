@@ -389,6 +389,29 @@ analytics = audit.get_policy_analytics(
 org_summary = audit.get_all_policy_analytics()
 ```
 
+#### Policy Versioning
+
+Every policy change is reversible. AgentAudit automatically snapshots a policy when you update it or add, edit, or remove its rules. You can also save manual versions before risky changes.
+
+| Endpoint | Description |
+|---|---|
+| `POST /api/v1/policies/:id/versions` | Save a manual version snapshot. |
+| `GET /api/v1/policies/:id/versions` | List versions, newest first. |
+| `GET /api/v1/policies/:id/versions/:versionId` | View a version and its rules. |
+| `POST /api/v1/policies/:id/versions/:versionId/restore` | Restore the policy to that version. A new version is created so the restore itself is tracked. |
+
+```typescript
+await audit.createPolicyVersion(policyId, 'Before holiday freeze');
+const versions = await audit.listPolicyVersions(policyId);
+await audit.restorePolicyVersion(policyId, versions[0].id);
+```
+
+```python
+audit.create_policy_version(policy_id, name="Before holiday freeze")
+versions = audit.list_policy_versions(policy_id)
+audit.restore_policy_version(policy_id, versions[0].id)
+```
+
 ---
 
 ## API Reference
@@ -423,6 +446,10 @@ org_summary = audit.get_all_policy_analytics()
 | `DELETE` | `/api/v1/policies/:id/agents` | JWT | Remove policy from an agent |
 | `GET` | `/api/v1/policies/analytics` | JWT | Organization-wide policy analytics summary |
 | `GET` | `/api/v1/policies/:id/analytics` | JWT | Detailed analytics for a single policy |
+| `POST` | `/api/v1/policies/:id/versions` | JWT | Create a manual version snapshot |
+| `GET` | `/api/v1/policies/:id/versions` | JWT | List policy versions |
+| `GET` | `/api/v1/policies/:id/versions/:versionId` | JWT | Get a specific version |
+| `POST` | `/api/v1/policies/:id/versions/:versionId/restore` | JWT | Restore policy to a previous version |
 | `GET` | `/api/v1/alerts` | JWT | List alerts |
 | `PATCH` | `/api/v1/alerts/:id/resolve` | JWT | Resolve alert |
 
