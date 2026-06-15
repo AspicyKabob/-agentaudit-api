@@ -319,6 +319,34 @@ Individual rules can override a policy's mode via `actionOverride`. When an agen
 
 Audit log responses now include `enforcementAction` (`allow`, `block`, `flag`, or `log`) and `violationDetails` so callers can decide whether to deliver agent output.
 
+#### Conditional Policies
+
+Policies can also be gated by runtime conditions. Conditions are ANDed together; a policy only applies when every condition matches the current request context.
+
+| Condition | Description | Example |
+|-----------|-------------|---------|
+| `timeOfDay` | Active only between local start and end times. | `{ "start": "09:00", "end": "17:00", "timezone": "America/New_York" }` |
+| `daysOfWeek` | Active on selected days (0 = Sunday). | `[1, 2, 3, 4, 5]` |
+| `agentTypes` | Active for listed agent types. | `["crewai", "autogpt"]` |
+| `metadata` | Active when audit-log metadata matches. | `[{ "key": "env", "operator": "eq", "value": "production" }]` |
+
+Example: a policy that only applies to CrewAI agents in production during business hours:
+
+```json
+{
+  "name": "Production CrewAI Guard",
+  "mode": "block",
+  "conditions": {
+    "timeOfDay": { "start": "09:00", "end": "17:00", "timezone": "America/New_York" },
+    "daysOfWeek": [1, 2, 3, 4, 5],
+    "agentTypes": ["crewai"],
+    "metadata": [
+      { "key": "env", "operator": "eq", "value": "production" }
+    ]
+  }
+}
+```
+
 Use the **Policies API** or the SDK helpers (`createPolicy`, `clonePack`, `assignAgent`, `removeAgent`) to manage policies without writing raw HTTP calls.
 
 ---

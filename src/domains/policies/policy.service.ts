@@ -22,6 +22,7 @@ export const policyService = {
         description: data.description,
         mode: data.mode ?? 'flag',
         priority: data.priority ?? 0,
+        conditions: data.conditions ? (data.conditions as Prisma.InputJsonValue) : Prisma.JsonNull,
         sourcePackId: data.sourcePackId ?? null,
       },
     });
@@ -60,6 +61,9 @@ export const policyService = {
     }
     if (data.isActive !== undefined) {
       updateData.isActive = data.isActive;
+    }
+    if (data.conditions !== undefined) {
+      updateData.conditions = data.conditions ? (data.conditions as Prisma.InputJsonValue) : Prisma.JsonNull;
     }
 
     return prisma.policy.update({

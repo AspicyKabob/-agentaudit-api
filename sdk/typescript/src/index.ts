@@ -21,12 +21,28 @@ export interface Agent {
   updatedAt: string;
 }
 
+export interface PolicyConditions {
+  timeOfDay?: {
+    start: string;
+    end: string;
+    timezone?: string;
+  };
+  daysOfWeek?: number[];
+  agentTypes?: Array<'langchain' | 'crewai' | 'autogpt' | 'custom'>;
+  metadata?: Array<{
+    key: string;
+    operator: 'eq' | 'ne' | 'contains' | 'gt' | 'lt' | 'gte' | 'lte';
+    value: any;
+  }>;
+}
+
 export interface Policy {
   id: string;
   name: string;
   description?: string;
   mode: 'block' | 'flag' | 'log';
   priority: number;
+  conditions?: PolicyConditions;
   isActive: boolean;
   sourcePackId: string | null;
   rules?: ComplianceRule[];
@@ -149,6 +165,7 @@ export class AgentAudit {
     description?: string;
     mode?: 'block' | 'flag' | 'log';
     priority?: number;
+    conditions?: PolicyConditions;
   }): Promise<Policy> {
     const { data } = await this.client.post<Policy>('/policies', options);
     return data;
@@ -171,6 +188,7 @@ export class AgentAudit {
     packId: 'hippo' | 'finance' | 'gdpr';
     mode?: 'block' | 'flag' | 'log';
     priority?: number;
+    conditions?: PolicyConditions;
   }): Promise<Policy> {
     const { data } = await this.client.post<Policy>('/policies/clone-pack', options);
     return data;

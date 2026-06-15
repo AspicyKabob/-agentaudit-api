@@ -155,6 +155,12 @@ async function getAuthTokens() {
 describe('Policies API', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset implementations that accumulate mockResolvedValueOnce queues across tests.
+    mockedPrisma.complianceRule.findMany.mockReset();
+    mockedPrisma.auditLog.create.mockReset();
+    mockedPrisma.alert.create.mockReset();
+    mockedPrisma.agentPolicy.findMany.mockReset();
+    mockedPrisma.agent.findFirst.mockReset();
   });
 
   describe('GET /api/v1/policies', () => {
@@ -521,6 +527,7 @@ describe('Policies API', () => {
         notifyMinSeverity: 'warning',
       });
       mockedPrisma.organization.update.mockResolvedValueOnce({ id: 'org-1' });
+      mockedPrisma.alert.create.mockResolvedValue({ id: 'alert-1', severity: 'critical' });
 
       const res = await request(app)
         .post('/api/v1/audit-logs')
@@ -535,6 +542,183 @@ describe('Policies API', () => {
       expect(res.status).toBe(201);
       expect(res.body.enforcementAction).toBe('log');
       expect(res.body.complianceFlags).toContain('CRITICAL_pii_detect_SSN Detection');
+    });
+
+    it('skips policy rules when agent type condition does not match', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.apiKey.create.mockResolvedValueOnce({
+        id: 'key-1',
+        name: 'Test Key',
+        createdAt: new Date().toISOString(),
+      });
+
+      const apiKeyRes = await request(app)
+        .post('/api/v1/auth/api-keys')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ name: 'Test Key' });
+
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Org',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+          notifyWebhook: false,
+          notifyEmail: false,
+        },
+      });
+
+      mockedPrisma.agent.findFirst.mockResolvedValueOnce({ id: '00000000-0000-0000-0000-000000000003', type: 'langchain' });
+      mockedPrisma.agentPolicy.findMany.mockResolvedValueOnce([
+        { policyId: '00000000-0000-0000-0000-000000000002', policy: { conditions: { agentTypes: ['crewai'] } } },
+      ]);
+      mockedPrisma.complianceRule.findMany.mockResolvedValueOnce([]);
+      mockedPrisma.auditLog.create.mockImplementationOnce((args: any) =>
+        Promise.resolve({ id: 'log-1', ...args.data, createdAt: new Date().toISOString() })
+      );
+      mockedPrisma.organization.update.mockResolvedValueOnce({ id: 'org-1' });
+
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', apiKeyRes.body.key)
+        .send({
+          action: 'prompt_submitted',
+          agentId: '00000000-0000-0000-0000-000000000003',
+          prompt: 'My SSN is 123-45-6789',
+          response: 'Here is your info',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.enforcementAction).toBe('allow');
+      expect(res.body.complianceFlags).toHaveLength(0);
+    });
+
+    it('applies policy rules when metadata conditions match', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.apiKey.create.mockResolvedValueOnce({
+        id: 'key-1',
+        name: 'Test Key',
+        createdAt: new Date().toISOString(),
+      });
+
+      const apiKeyRes = await request(app)
+        .post('/api/v1/auth/api-keys')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ name: 'Test Key' });
+
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Org',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+          notifyWebhook: false,
+          notifyEmail: false,
+        },
+      });
+
+      mockedPrisma.agent.findFirst.mockResolvedValueOnce({ id: '00000000-0000-0000-0000-000000000003', type: 'custom' });
+      mockedPrisma.agentPolicy.findMany.mockResolvedValueOnce([
+        { policyId: '00000000-0000-0000-0000-000000000002', policy: { conditions: { metadata: [{ key: 'env', operator: 'eq', value: 'production' }] } } },
+      ]);
+      mockedPrisma.complianceRule.findMany.mockResolvedValueOnce([
+        { id: 'rule-ssn', organizationId: 'org-1', policyId: '00000000-0000-0000-0000-000000000002', name: 'SSN Detection', ruleType: 'pii_detect', condition: { patterns: ['ssn'] }, severity: 'critical', isActive: true, actionOverride: null, policy: { mode: 'block', priority: 0 } },
+      ]);
+      mockedPrisma.auditLog.create.mockImplementationOnce((args: any) =>
+        Promise.resolve({ id: 'log-1', ...args.data, createdAt: new Date().toISOString() })
+      );
+      mockedPrisma.organization.findUnique.mockResolvedValueOnce({
+        id: 'org-1',
+        email: 'test@example.com',
+        notifyWebhook: false,
+        notifyEmail: false,
+        notifyMinSeverity: 'warning',
+      });
+      mockedPrisma.organization.update.mockResolvedValueOnce({ id: 'org-1' });
+      mockedPrisma.alert.create.mockResolvedValue({ id: 'alert-1', severity: 'critical' });
+
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', apiKeyRes.body.key)
+        .send({
+          action: 'prompt_submitted',
+          agentId: '00000000-0000-0000-0000-000000000003',
+          prompt: 'My SSN is 123-45-6789',
+          response: 'Here is your info',
+          metadata: { env: 'production' },
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.enforcementAction).toBe('block');
+      expect(res.body.complianceFlags).toContain('CRITICAL_pii_detect_SSN Detection');
+    });
+
+    it('skips policy rules when metadata conditions do not match', async () => {
+      const { accessToken } = await getAuthTokens();
+
+      mockedPrisma.apiKey.create.mockResolvedValueOnce({
+        id: 'key-1',
+        name: 'Test Key',
+        createdAt: new Date().toISOString(),
+      });
+
+      const apiKeyRes = await request(app)
+        .post('/api/v1/auth/api-keys')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ name: 'Test Key' });
+
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Org',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+          notifyWebhook: false,
+          notifyEmail: false,
+        },
+      });
+
+      mockedPrisma.agent.findFirst.mockResolvedValueOnce({ id: '00000000-0000-0000-0000-000000000003', type: 'custom' });
+      mockedPrisma.agentPolicy.findMany.mockResolvedValueOnce([
+        { policyId: '00000000-0000-0000-0000-000000000002', policy: { conditions: { metadata: [{ key: 'env', operator: 'eq', value: 'production' }] } } },
+      ]);
+      mockedPrisma.complianceRule.findMany.mockResolvedValueOnce([]);
+      mockedPrisma.auditLog.create.mockImplementationOnce((args: any) =>
+        Promise.resolve({ id: 'log-1', ...args.data, createdAt: new Date().toISOString() })
+      );
+      mockedPrisma.organization.update.mockResolvedValueOnce({ id: 'org-1' });
+
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', apiKeyRes.body.key)
+        .send({
+          action: 'prompt_submitted',
+          agentId: '00000000-0000-0000-0000-000000000003',
+          prompt: 'My SSN is 123-45-6789',
+          response: 'Here is your info',
+          metadata: { env: 'staging' },
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.enforcementAction).toBe('allow');
+      expect(res.body.complianceFlags).toHaveLength(0);
     });
   });
 });

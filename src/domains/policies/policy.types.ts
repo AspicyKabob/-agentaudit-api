@@ -3,6 +3,23 @@ import { PACK_IDS } from '../compliance/compliance.types';
 
 const enforcementModeSchema = z.enum(['block', 'flag', 'log']).default('flag');
 
+const metadataConditionSchema = z.object({
+  key: z.string().min(1),
+  operator: z.enum(['eq', 'ne', 'contains', 'gt', 'lt', 'gte', 'lte']),
+  value: z.any(),
+});
+
+const policyConditionsSchema = z.object({
+  timeOfDay: z.object({
+    start: z.string().regex(/^\d{2}:\d{2}$/),
+    end: z.string().regex(/^\d{2}:\d{2}$/),
+    timezone: z.string().optional(),
+  }).optional(),
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).optional(),
+  agentTypes: z.array(z.enum(['langchain', 'crewai', 'autogpt', 'custom'])).optional(),
+  metadata: z.array(metadataConditionSchema).optional(),
+}).optional();
+
 export const createPolicySchema = z.object({
   body: z.object({
     name: z.string().min(1).max(100),
@@ -10,6 +27,7 @@ export const createPolicySchema = z.object({
     sourcePackId: z.enum([...PACK_IDS] as [string, ...string[]]).optional(),
     mode: enforcementModeSchema.optional(),
     priority: z.number().int().default(0),
+    conditions: policyConditionsSchema,
   }),
 });
 
@@ -22,6 +40,7 @@ export const updatePolicySchema = z.object({
     description: z.string().max(500).optional().nullable(),
     mode: enforcementModeSchema.optional(),
     priority: z.number().int().optional(),
+    conditions: policyConditionsSchema.nullable(),
     isActive: z.boolean().optional(),
   }),
 });

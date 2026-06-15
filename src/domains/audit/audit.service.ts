@@ -326,22 +326,125 @@ function resolveAction(action?: string | null): EnforcementAction {
   return 'flag';
 }
 
-async function buildRuleScope(organizationId: string, agentId?: string) {
+interface PolicyConditions {
+  timeOfDay?: {
+    start: string;
+    end: string;
+    timezone?: string;
+  };
+  daysOfWeek?: number[];
+  agentTypes?: string[];
+  metadata?: Array<{
+    key: string;
+    operator: 'eq' | 'ne' | 'contains' | 'gt' | 'lt' | 'gte' | 'lte';
+    value: any;
+  }>;
+}
+
+function toMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+}
+
+function evaluatePolicyConditions(
+  conditions: PolicyConditions | null | undefined,
+  agentType: string | null | undefined,
+  metadata: Record<string, any> | null | undefined,
+  now: Date
+): boolean {
+  if (!conditions) return true;
+
+  if (conditions.timeOfDay) {
+    const tz = conditions.timeOfDay.timezone || 'UTC';
+    const timeString = now.toLocaleTimeString('en-US', {
+      timeZone: tz,
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    const currentMinutes = toMinutes(timeString);
+    const startMinutes = toMinutes(conditions.timeOfDay.start);
+    const endMinutes = toMinutes(conditions.timeOfDay.end);
+    const inWindow = startMinutes <= endMinutes
+      ? currentMinutes >= startMinutes && currentMinutes <= endMinutes
+      : currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+    if (!inWindow) return false;
+  }
+
+  if (conditions.daysOfWeek && conditions.daysOfWeek.length > 0) {
+    const day = now.getDay();
+    if (!conditions.daysOfWeek.includes(day)) return false;
+  }
+
+  if (conditions.agentTypes && conditions.agentTypes.length > 0) {
+    if (!agentType || !conditions.agentTypes.includes(agentType)) return false;
+  }
+
+  if (conditions.metadata && conditions.metadata.length > 0) {
+    const meta = metadata || {};
+    for (const criterion of conditions.metadata) {
+      const actual = meta[criterion.key];
+      const expected = criterion.value;
+      let match = false;
+      switch (criterion.operator) {
+        case 'eq':
+          match = actual === expected;
+          break;
+        case 'ne':
+          match = actual !== expected;
+          break;
+        case 'contains':
+          match = typeof actual === 'string' && actual.includes(String(expected));
+          break;
+        case 'gt':
+          match = typeof actual === 'number' && actual > expected;
+          break;
+        case 'lt':
+          match = typeof actual === 'number' && actual < expected;
+          break;
+        case 'gte':
+          match = typeof actual === 'number' && actual >= expected;
+          break;
+        case 'lte':
+          match = typeof actual === 'number' && actual <= expected;
+          break;
+      }
+      if (!match) return false;
+    }
+  }
+
+  return true;
+}
+
+async function buildRuleScope(
+  organizationId: string,
+  data: SubmitAuditBody,
+  now: Date = new Date()
+) {
   const scope: any = { organizationId, isActive: true };
 
-  if (!agentId) {
+  if (!data.agentId) {
     scope.policyId = null;
     return scope;
   }
 
-  const assignments = await prisma.agentPolicy.findMany({
-    where: { agentId },
-    select: { policyId: true },
-  });
-  const policyIds = assignments.map((a) => a.policyId);
+  const [agent, assignments] = await Promise.all([
+    prisma.agent.findFirst({
+      where: { id: data.agentId, organizationId },
+      select: { type: true },
+    }),
+    prisma.agentPolicy.findMany({
+      where: { agentId: data.agentId },
+      select: { policyId: true, policy: { select: { conditions: true } } },
+    }),
+  ]);
 
-  if (policyIds.length > 0) {
-    scope.OR = [{ policyId: null }, { policyId: { in: policyIds } }];
+  const activePolicyIds = assignments
+    .filter((a) => evaluatePolicyConditions(a.policy?.conditions as PolicyConditions | null, agent?.type, data.metadata, now))
+    .map((a) => a.policyId);
+
+  if (activePolicyIds.length > 0) {
+    scope.OR = [{ policyId: null }, { policyId: { in: activePolicyIds } }];
   } else {
     scope.policyId = null;
   }
@@ -354,7 +457,7 @@ async function evaluateComplianceRules(
   data: SubmitAuditBody
 ): Promise<EvaluationResult> {
   const violations: Violation[] = [];
-  const where = await buildRuleScope(organizationId, data.agentId);
+  const where = await buildRuleScope(organizationId, data);
   const rules = await prisma.complianceRule.findMany({
     where,
     include: { policy: { select: { mode: true, priority: true } } },
