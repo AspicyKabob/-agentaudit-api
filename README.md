@@ -305,7 +305,19 @@ result = crew.kickoff()
 
 ### Policies
 
-Policies are reusable containers for compliance rules. Create an empty policy and add rules over time, or clone a pre-built pack into a policy in one call. Assign policies to agents so only the rules in those policies are evaluated for that agent. Rules that are not attached to any policy still apply organization-wide.
+Policies are reusable containers for compliance rules. Each policy has an enforcement **mode** and a **priority**:
+
+| Mode | Behavior |
+|------|----------|
+| `block` | Violations from this policy cause the request to be rejected. |
+| `flag` | Violations are logged and alerts are created, but the request is allowed. |
+| `log` | Violations are recorded in the audit log without alerts or flags. |
+
+Create an empty policy and add rules over time, or clone a pre-built pack into a policy in one call. Assign policies to agents so only the rules in those policies are evaluated for that agent. Rules that are not attached to any policy still apply organization-wide with default `flag` behavior.
+
+Individual rules can override a policy's mode via `actionOverride`. When an agent is assigned multiple policies that contain the same rule, the highest **priority** policy wins; if priorities are tied, the more restrictive action wins (`block > flag > log`).
+
+Audit log responses now include `enforcementAction` (`allow`, `block`, `flag`, or `log`) and `violationDetails` so callers can decide whether to deliver agent output.
 
 Use the **Policies API** or the SDK helpers (`createPolicy`, `clonePack`, `assignAgent`, `removeAgent`) to manage policies without writing raw HTTP calls.
 

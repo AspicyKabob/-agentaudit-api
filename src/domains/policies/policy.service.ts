@@ -20,6 +20,8 @@ export const policyService = {
         organizationId,
         name: data.name,
         description: data.description,
+        mode: data.mode ?? 'flag',
+        priority: data.priority ?? 0,
         sourcePackId: data.sourcePackId ?? null,
       },
     });
@@ -49,6 +51,12 @@ export const policyService = {
 
     if (data.description !== undefined) {
       updateData.description = data.description;
+    }
+    if (data.mode !== undefined) {
+      updateData.mode = data.mode;
+    }
+    if (data.priority !== undefined) {
+      updateData.priority = data.priority;
     }
     if (data.isActive !== undefined) {
       updateData.isActive = data.isActive;

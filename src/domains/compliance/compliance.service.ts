@@ -33,6 +33,7 @@ export const complianceService = {
         ruleType: data.ruleType,
         condition: data.condition,
         severity: data.severity,
+        actionOverride: data.actionOverride ?? null,
         packId: data.packId ?? null,
       },
     });
@@ -72,6 +73,10 @@ export const complianceService = {
 
     if (data.isActive !== undefined) {
       updateData.isActive = data.isActive;
+    }
+
+    if (data.actionOverride !== undefined) {
+      updateData.actionOverride = data.actionOverride ?? null;
     }
 
     return prisma.complianceRule.update({

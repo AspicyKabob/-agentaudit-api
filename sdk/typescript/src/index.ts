@@ -25,6 +25,8 @@ export interface Policy {
   id: string;
   name: string;
   description?: string;
+  mode: 'block' | 'flag' | 'log';
+  priority: number;
   isActive: boolean;
   sourcePackId: string | null;
   rules?: ComplianceRule[];
@@ -46,6 +48,7 @@ export interface ComplianceRule {
   condition: Record<string, any>;
   severity: 'warning' | 'critical';
   isActive: boolean;
+  actionOverride?: 'block' | 'flag' | 'log';
   policyId?: string;
   packId?: string;
   createdAt: string;
@@ -74,7 +77,7 @@ export interface Alert {
 
 export interface GuardrailResult {
   allowed: boolean;
-  action: 'allow' | 'block' | 'flag';
+  action: 'allow' | 'block' | 'flag' | 'log';
   violations: string[];
   severity: 'warning' | 'critical';
   auditLogId?: string;
@@ -144,6 +147,8 @@ export class AgentAudit {
   async createPolicy(options: {
     name: string;
     description?: string;
+    mode?: 'block' | 'flag' | 'log';
+    priority?: number;
   }): Promise<Policy> {
     const { data } = await this.client.post<Policy>('/policies', options);
     return data;
@@ -164,6 +169,8 @@ export class AgentAudit {
     name: string;
     description?: string;
     packId: 'hippo' | 'finance' | 'gdpr';
+    mode?: 'block' | 'flag' | 'log';
+    priority?: number;
   }): Promise<Policy> {
     const { data } = await this.client.post<Policy>('/policies/clone-pack', options);
     return data;
@@ -275,18 +282,12 @@ export class AgentAudit {
 
     const { data } = await this.client.post<AuditLog>('/audit-logs', payload);
     const flags = data.complianceFlags || [];
-    const severity = flags.some((f: string) => f.includes('PII') || f.toLowerCase().includes('block'))
-      ? 'critical'
-      : 'warning';
-    const actionResult: GuardrailResult['action'] = severity === 'critical' && flags.length > 0
-      ? 'block'
-      : flags.length > 0
-        ? 'flag'
-        : 'allow';
+    const enforcementAction = (data as any).enforcementAction || 'allow';
+    const severity = flags.some((f: string) => f.startsWith('CRITICAL')) ? 'critical' : 'warning';
 
     return {
-      allowed: actionResult !== 'block',
-      action: actionResult,
+      allowed: enforcementAction !== 'block',
+      action: enforcementAction,
       violations: flags,
       severity,
       auditLogId: data.id,

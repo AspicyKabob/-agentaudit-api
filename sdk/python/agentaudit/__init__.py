@@ -84,6 +84,8 @@ class Policy:
     id: str
     name: str
     is_active: bool
+    mode: str = "flag"
+    priority: int = 0
     source_pack_id: Optional[str] = None
     description: Optional[str] = None
     rules: Optional[List[Dict[str, Any]]] = None
@@ -111,6 +113,7 @@ class ComplianceRule:
     condition: Dict[str, Any]
     severity: str
     is_active: bool
+    action_override: Optional[str] = None
     policy_id: Optional[str] = None
     pack_id: Optional[str] = None
     created_at: str = ""
@@ -429,11 +432,17 @@ class AgentAudit:
         self,
         name: str,
         description: Optional[str] = None,
+        mode: Optional[str] = None,
+        priority: Optional[int] = None,
     ) -> Policy:
         """Create an empty compliance policy."""
         payload: Dict[str, Any] = {"name": name}
         if description is not None:
             payload["description"] = description
+        if mode is not None:
+            payload["mode"] = mode
+        if priority is not None:
+            payload["priority"] = priority
 
         resp = self._request("POST", "/policies", json=payload)
         data = resp.json()
@@ -449,11 +458,17 @@ class AgentAudit:
         name: str,
         pack_id: str,
         description: Optional[str] = None,
+        mode: Optional[str] = None,
+        priority: Optional[int] = None,
     ) -> Policy:
         """Clone a pre-built compliance pack into a new policy."""
         payload: Dict[str, Any] = {"name": name, "packId": pack_id}
         if description is not None:
             payload["description"] = description
+        if mode is not None:
+            payload["mode"] = mode
+        if priority is not None:
+            payload["priority"] = priority
 
         resp = self._request("POST", "/policies/clone-pack", json=payload)
         return Policy(**resp.json())

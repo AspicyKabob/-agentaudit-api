@@ -63,6 +63,8 @@ export const packIdParamSchema = z.object({
   }),
 });
 
+const enforcementActionSchema = z.enum(['block', 'flag', 'log']).optional();
+
 export const createRuleSchema = z.object({
   body: z.object({
     name: z.string().min(1).max(100),
@@ -71,6 +73,7 @@ export const createRuleSchema = z.object({
     severity: z.enum(['warning', 'critical']).default('warning'),
     policyId: z.string().uuid().optional(),
     packId: z.string().optional(),
+    actionOverride: enforcementActionSchema,
   }),
 });
 
@@ -82,6 +85,7 @@ export const updateRuleSchema = z.object({
     name: z.string().min(1).max(100).optional(),
     condition: z.record(z.any()).optional(),
     severity: z.enum(['warning', 'critical']).optional(),
+    actionOverride: enforcementActionSchema,
     isActive: z.boolean().optional(),
   }),
 });

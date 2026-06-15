@@ -51,7 +51,7 @@ export const auditService = {
   async submit(organizationId: string, data: SubmitAuditBody) {
     await enforceQuota(organizationId, 1);
 
-    const flags = await evaluateComplianceRules(organizationId, data);
+    const evaluation = await evaluateComplianceRules(organizationId, data);
 
     const log = await prisma.auditLog.create({
       data: {
@@ -61,7 +61,9 @@ export const auditService = {
         prompt: data.prompt,
         response: data.response,
         metadata: data.metadata ?? Prisma.JsonNull,
-        complianceFlags: flags,
+        complianceFlags: evaluation.flags,
+        enforcementAction: evaluation.action,
+        violationDetails: evaluation.violations.length > 0 ? (evaluation.violations as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
         traceId: data.traceId ?? null,
         parentSpanId: data.parentSpanId ?? null,
       },
@@ -72,15 +74,16 @@ export const auditService = {
       where: { id: organizationId },
       select: { email: true, notifyWebhook: true, notifyEmail: true, notifyMinSeverity: true },
     });
-    for (const flag of flags) {
-      const severity = flag.startsWith('CRITICAL') ? 'critical' : 'warning';
+    for (const violation of evaluation.violations) {
+      const severity = violation.severity;
+      const flag = `${severity.toUpperCase()}_${violation.ruleType}_${violation.name}`;
       const alert = await prisma.alert.create({
         data: {
           organizationId,
           auditLogId: log.id,
           severity,
           message: `Compliance flag triggered: ${flag}`,
-          details: { action: data.action, agentId: data.agentId },
+          details: { action: data.action, agentId: data.agentId, enforcementAction: violation.action },
         },
       });
 
@@ -115,14 +118,14 @@ export const auditService = {
   async submitBatch(organizationId: string, entries: SubmitAuditBody[]) {
     await enforceQuota(organizationId, entries.length);
 
-    const results: Array<{ id: string; action: string; complianceFlags: string[]; createdAt: Date | string }> = [];
+    const results: Array<{ id: string; action: string; complianceFlags: string[]; enforcementAction: string; createdAt: Date | string }> = [];
     let errors = 0;
 
     // Evaluate compliance and create logs in a single Prisma transaction for atomicity
     await prisma.$transaction(async (tx) => {
       for (const data of entries) {
         try {
-          const flags = await evaluateComplianceRules(organizationId, data);
+          const evaluation = await evaluateComplianceRules(organizationId, data);
           const log = await tx.auditLog.create({
             data: {
               organizationId,
@@ -131,7 +134,9 @@ export const auditService = {
               prompt: data.prompt,
               response: data.response,
               metadata: data.metadata ?? Prisma.JsonNull,
-              complianceFlags: flags,
+              complianceFlags: evaluation.flags,
+              enforcementAction: evaluation.action,
+              violationDetails: evaluation.violations.length > 0 ? (evaluation.violations as unknown as Prisma.InputJsonValue) : Prisma.JsonNull,
               traceId: data.traceId ?? null,
               parentSpanId: data.parentSpanId ?? null,
             },
@@ -140,6 +145,7 @@ export const auditService = {
             id: log.id,
             action: log.action,
             complianceFlags: log.complianceFlags,
+            enforcementAction: log.enforcementAction,
             createdAt: log.createdAt,
           });
 
@@ -288,6 +294,38 @@ export const auditService = {
   },
 };
 
+type EnforcementAction = 'allow' | 'block' | 'flag' | 'log';
+
+interface Violation {
+  ruleId: string;
+  name: string;
+  ruleType: string;
+  severity: 'warning' | 'critical';
+  action: EnforcementAction;
+}
+
+interface EvaluationResult {
+  action: EnforcementAction;
+  flags: string[];
+  violations: Violation[];
+}
+
+const ACTION_RANK: Record<EnforcementAction, number> = {
+  allow: 0,
+  log: 1,
+  flag: 2,
+  block: 3,
+};
+
+function strongerAction(a: EnforcementAction, b: EnforcementAction): EnforcementAction {
+  return ACTION_RANK[a] >= ACTION_RANK[b] ? a : b;
+}
+
+function resolveAction(action?: string | null): EnforcementAction {
+  if (action === 'block' || action === 'flag' || action === 'log') return action;
+  return 'flag';
+}
+
 async function buildRuleScope(organizationId: string, agentId?: string) {
   const scope: any = { organizationId, isActive: true };
 
@@ -314,10 +352,16 @@ async function buildRuleScope(organizationId: string, agentId?: string) {
 async function evaluateComplianceRules(
   organizationId: string,
   data: SubmitAuditBody
-): Promise<string[]> {
-  const flags: string[] = [];
+): Promise<EvaluationResult> {
+  const violations: Violation[] = [];
   const where = await buildRuleScope(organizationId, data.agentId);
-  const rules = await prisma.complianceRule.findMany({ where });
+  const rules = await prisma.complianceRule.findMany({
+    where,
+    include: { policy: { select: { mode: true, priority: true } } },
+  });
+
+  // Group triggered rules by ruleId so overlapping policies can be resolved.
+  const triggeredByRuleId = new Map<string, { rule: typeof rules[number]; actions: EnforcementAction[] }>();
 
   for (const rule of rules) {
     const condition = rule.condition as any;
@@ -349,11 +393,41 @@ async function evaluateComplianceRules(
     }
 
     if (triggered) {
-      flags.push(`${rule.severity.toUpperCase()}_${rule.ruleType}_${rule.name}`);
+      const existing = triggeredByRuleId.get(rule.id);
+      const action = resolveAction(rule.actionOverride ?? rule.policy?.mode ?? 'flag');
+      if (existing) {
+        existing.actions.push(action);
+      } else {
+        triggeredByRuleId.set(rule.id, { rule, actions: [action] });
+      }
     }
   }
 
-  return flags;
+  for (const { rule, actions } of triggeredByRuleId.values()) {
+    const priorities = rule.policy ? [rule.policy.priority] : [0];
+    // Combine priority with action restrictiveness for deterministic resolution.
+    // Higher priority wins; on tie, stronger action wins.
+    const bestAction = actions
+      .map((action, idx) => ({ action, priority: priorities[idx] ?? 0 }))
+      .sort((a, b) => (b.priority - a.priority) || (ACTION_RANK[b.action] - ACTION_RANK[a.action]))[0].action;
+
+    const severity = rule.severity as 'warning' | 'critical';
+    violations.push({
+      ruleId: rule.id,
+      name: rule.name,
+      ruleType: rule.ruleType,
+      severity,
+      action: bestAction,
+    });
+  }
+
+  const flags = violations.map((v) => `${v.severity.toUpperCase()}_${v.ruleType}_${v.name}`);
+  const finalAction = violations.reduce(
+    (acc, v) => strongerAction(acc, v.action),
+    'allow' as EnforcementAction
+  );
+
+  return { action: finalAction, flags, violations };
 }
 
 function checkKeywords(text: string, keywords: string[]): boolean {
@@ -388,7 +462,7 @@ function checkRegex(text: string, pattern: string): boolean {
 
 async function createBatchAlerts(
   organizationId: string,
-  results: Array<{ id: string; action: string; complianceFlags: string[]; createdAt: Date | string }>
+  results: Array<{ id: string; action: string; complianceFlags: string[]; enforcementAction: string; createdAt: Date | string }>
 ) {
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
@@ -405,7 +479,7 @@ async function createBatchAlerts(
           auditLogId: result.id,
           severity,
           message: `Compliance flag triggered: ${flag}`,
-          details: { action: result.action },
+          details: { action: result.action, enforcementAction: result.enforcementAction },
         },
       });
 
