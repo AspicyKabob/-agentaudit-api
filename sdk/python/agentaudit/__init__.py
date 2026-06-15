@@ -65,6 +65,58 @@ class AuditLog:
 
 
 @dataclass
+class Agent:
+    """Represents a registered agent."""
+
+    id: str
+    name: str
+    type: str
+    description: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class Policy:
+    """Represents a reusable compliance policy."""
+
+    id: str
+    name: str
+    is_active: bool
+    source_pack_id: Optional[str] = None
+    description: Optional[str] = None
+    rules: Optional[List[Dict[str, Any]]] = None
+    agents: Optional[List[Dict[str, Any]]] = None
+    created_at: Optional[str] = None
+
+
+@dataclass
+class AgentPolicy:
+    """Represents a policy assignment to an agent."""
+
+    id: str
+    agent_id: str
+    policy_id: str
+    created_at: str = ""
+
+
+@dataclass
+class ComplianceRule:
+    """Represents a compliance rule."""
+
+    id: str
+    name: str
+    rule_type: str
+    condition: Dict[str, Any]
+    severity: str
+    is_active: bool
+    policy_id: Optional[str] = None
+    pack_id: Optional[str] = None
+    created_at: str = ""
+
+
+@dataclass
 class GuardrailResult:
     """Result of a compliance guardrail check."""
 
@@ -368,6 +420,62 @@ class AgentAudit:
             for item in data.get("data", [])
         ]
 
+    def list_policies(self) -> List[Policy]:
+        """List all policies for the organization."""
+        resp = self._request("GET", "/policies")
+        return [Policy(**item) for item in resp.json()]
+
+    def create_policy(
+        self,
+        name: str,
+        description: Optional[str] = None,
+    ) -> Policy:
+        """Create an empty compliance policy."""
+        payload: Dict[str, Any] = {"name": name}
+        if description is not None:
+            payload["description"] = description
+
+        resp = self._request("POST", "/policies", json=payload)
+        data = resp.json()
+        return Policy(**data)
+
+    def get_policy(self, policy_id: str) -> Policy:
+        """Get a single policy, including its rules and agent assignments."""
+        resp = self._request("GET", f"/policies/{policy_id}")
+        return Policy(**resp.json())
+
+    def clone_pack(
+        self,
+        name: str,
+        pack_id: str,
+        description: Optional[str] = None,
+    ) -> Policy:
+        """Clone a pre-built compliance pack into a new policy."""
+        payload: Dict[str, Any] = {"name": name, "packId": pack_id}
+        if description is not None:
+            payload["description"] = description
+
+        resp = self._request("POST", "/policies/clone-pack", json=payload)
+        return Policy(**resp.json())
+
+    def assign_policy(self, policy_id: str, agent_id: str) -> AgentPolicy:
+        """Assign a policy to an agent."""
+        resp = self._request(
+            "POST",
+            f"/policies/{policy_id}/agents",
+            json={"agentId": agent_id},
+        )
+        return AgentPolicy(**resp.json())
+
+    def remove_policy(self, policy_id: str, agent_id: str) -> Dict[str, Any]:
+        """Remove a policy assignment from an agent."""
+        resp = self._request(
+            "DELETE",
+            f"/policies/{policy_id}/agents",
+            json={"agentId": agent_id},
+        )
+        return resp.json()
+
     # ------------------------------------------------------------------
     # Agent registration
     # ------------------------------------------------------------------
@@ -536,6 +644,48 @@ class AgentAuditAsync:
         return await self._loop.run_in_executor(
             self._thread_pool,
             self._client.health_check,
+        )
+
+    async def list_policies(self) -> List[Policy]:
+        """Async list policies."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            self._client.list_policies,
+        )
+
+    async def create_policy(self, **kwargs) -> Policy:
+        """Async create policy."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.create_policy(**kwargs),
+        )
+
+    async def get_policy(self, policy_id: str) -> Policy:
+        """Async get policy."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.get_policy(policy_id),
+        )
+
+    async def clone_pack(self, **kwargs) -> Policy:
+        """Async clone pack to policy."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.clone_pack(**kwargs),
+        )
+
+    async def assign_policy(self, policy_id: str, agent_id: str) -> AgentPolicy:
+        """Async assign policy to agent."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.assign_policy(policy_id, agent_id),
+        )
+
+    async def remove_policy(self, policy_id: str, agent_id: str) -> Dict[str, Any]:
+        """Async remove policy from agent."""
+        return await self._loop.run_in_executor(
+            self._thread_pool,
+            lambda: self._client.remove_policy(policy_id, agent_id),
         )
 
 

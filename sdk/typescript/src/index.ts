@@ -21,6 +21,36 @@ export interface Agent {
   updatedAt: string;
 }
 
+export interface Policy {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  sourcePackId: string | null;
+  rules?: ComplianceRule[];
+  agents?: AgentPolicy[];
+  createdAt: string;
+}
+
+export interface AgentPolicy {
+  id: string;
+  agentId: string;
+  policyId: string;
+  createdAt: string;
+}
+
+export interface ComplianceRule {
+  id: string;
+  name: string;
+  ruleType: string;
+  condition: Record<string, any>;
+  severity: 'warning' | 'critical';
+  isActive: boolean;
+  policyId?: string;
+  packId?: string;
+  createdAt: string;
+}
+
 export interface Pagination {
   page: number;
   limit: number;
@@ -98,6 +128,60 @@ export class AgentAudit {
 
     const { data } = await this.client.post<AuditLog>('/audit-logs', payload);
     return data;
+  }
+
+  /**
+   * List all policies for the organization.
+   */
+  async listPolicies(): Promise<Policy[]> {
+    const { data } = await this.client.get<Policy[]>('/policies');
+    return data;
+  }
+
+  /**
+   * Create an empty policy.
+   */
+  async createPolicy(options: {
+    name: string;
+    description?: string;
+  }): Promise<Policy> {
+    const { data } = await this.client.post<Policy>('/policies', options);
+    return data;
+  }
+
+  /**
+   * Get a single policy by ID, including its rules and agent assignments.
+   */
+  async getPolicy(policyId: string): Promise<Policy> {
+    const { data } = await this.client.get<Policy>(`/policies/${policyId}`);
+    return data;
+  }
+
+  /**
+   * Clone a pre-built compliance pack into a new policy.
+   */
+  async clonePack(options: {
+    name: string;
+    description?: string;
+    packId: 'hippo' | 'finance' | 'gdpr';
+  }): Promise<Policy> {
+    const { data } = await this.client.post<Policy>('/policies/clone-pack', options);
+    return data;
+  }
+
+  /**
+   * Assign a policy to an agent.
+   */
+  async assignPolicy(policyId: string, agentId: string): Promise<AgentPolicy> {
+    const { data } = await this.client.post<AgentPolicy>(`/policies/${policyId}/agents`, { agentId });
+    return data;
+  }
+
+  /**
+   * Remove a policy assignment from an agent.
+   */
+  async removePolicy(policyId: string, agentId: string): Promise<void> {
+    await this.client.delete(`/policies/${policyId}/agents`, { data: { agentId } });
   }
 
   /**

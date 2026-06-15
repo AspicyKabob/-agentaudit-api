@@ -303,6 +303,12 @@ result = crew.kickoff()
 - **Finance (SOX/PCI)** — Credit cards, bank accounts, insider trading, SOX keywords
 - **Data Protection (GDPR/CCPA)** — Emails, phone numbers, addresses, GDPR keywords
 
+### Policies
+
+Policies are reusable containers for compliance rules. Create an empty policy and add rules over time, or clone a pre-built pack into a policy in one call. Assign policies to agents so only the rules in those policies are evaluated for that agent. Rules that are not attached to any policy still apply organization-wide.
+
+Use the **Policies API** or the SDK helpers (`createPolicy`, `clonePack`, `assignAgent`, `removeAgent`) to manage policies without writing raw HTTP calls.
+
 ---
 
 ## API Reference
@@ -329,6 +335,12 @@ result = crew.kickoff()
 | `GET` | `/api/v1/audit-logs/:id/chain` | JWT | Reconstruct chain |
 | `GET` | `/api/v1/compliance-rules` | JWT | List rules |
 | `POST` | `/api/v1/compliance-rules` | JWT | Create rule |
+| `GET` | `/api/v1/policies` | JWT | List policies |
+| `POST` | `/api/v1/policies` | JWT | Create empty policy |
+| `GET` | `/api/v1/policies/:id` | JWT | Get policy details |
+| `POST` | `/api/v1/policies/clone-pack` | JWT | Clone a pre-built pack into a policy |
+| `POST` | `/api/v1/policies/:id/agents` | JWT | Assign policy to an agent |
+| `DELETE` | `/api/v1/policies/:id/agents` | JWT | Remove policy from an agent |
 | `GET` | `/api/v1/alerts` | JWT | List alerts |
 | `PATCH` | `/api/v1/alerts/:id/resolve` | JWT | Resolve alert |
 
