@@ -888,6 +888,21 @@ class AgentAuditAsync:
 
 
 # ---------------------------------------------------------------------------
+# LangChain callback handler (optional dependency)
+# ---------------------------------------------------------------------------
+
+def __getattr__(name: str) -> Any:
+    """Lazy import so langchain-core is not loaded unless the user asks for it."""
+    if name == "AgentAuditCallbackHandler":
+        from agentaudit.langchain import AgentAuditCallbackHandler
+        return AgentAuditCallbackHandler
+    if name == "ComplianceViolation":
+        from agentaudit.langchain import ComplianceViolation
+        return ComplianceViolation
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+# ---------------------------------------------------------------------------
 # Back-compat
 # ---------------------------------------------------------------------------
 

@@ -8,6 +8,8 @@ Real-time guardrails and automatic audit logging for LangChain agents, chains, a
 pip install agentaudit-client[langchain]
 ```
 
+This installs the Python SDK with `langchain-core>=0.2.0`.
+
 ## Usage — Guardrails Enabled (Default)
 
 By default the callback handler **enforces guardrails** on every LLM call, tool execution, and chain run.
@@ -15,19 +17,17 @@ If a compliance violation is detected (PII, forbidden keywords, etc.), a `Compli
 is raised and the chain halts before the output is delivered.
 
 ```python
-from langchain.callbacks import AgentAuditCallbackHandler
-from langchain.llms import OpenAI
+from agentaudit import AgentAuditCallbackHandler
+from langchain_openai import ChatOpenAI
 
-# Create handler with guardrails enabled (default)
 handler = AgentAuditCallbackHandler(
     api_key="aa_your_key_here",
     agent_id="uuid-of-your-agent",
     guard=True   # default
 )
 
-# Pass to any LangChain component
-llm = OpenAI(callbacks=[handler])
-llm.predict("What is the weather?")
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
+llm.invoke("What is the weather?")
 # Automatically logged + guarded
 ```
 
@@ -45,16 +45,18 @@ handler = AgentAuditCallbackHandler(
 
 ## Distributed Tracing
 
-When `guard=True` the handler generates a trace ID in `on_chain_start`
-(or `on_llm_start` for single LLM calls) and propagates it to every
-subsequent event with `parent_span_id` linking so the full chain can
+The handler generates a trace ID on the first callback (`on_chain_start` or `on_llm_start`)
+and propagates it to every subsequent event with `parent_span_id` linking so the full chain can
 be queried later via the API.
 
 ```python
-handler = AgentAuditCallbackHandler(api_key="aa_key", agent_id="uuid", guard=True)
-llm = OpenAI(callbacks=[handler])
+from agentaudit import AgentAuditCallbackHandler
+from langchain_openai import ChatOpenAI
 
-# After execution, inspect the trace
+handler = AgentAuditCallbackHandler(api_key="aa_key", agent_id="uuid", guard=True)
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
+
+llm.invoke("What is the weather?")
 print(handler.trace_id)  # "trace-uuid-123"
 ```
 
@@ -69,14 +71,39 @@ curl https://api.agentaudit.io/api/v1/audit-logs/trace/<trace_id> \
 Catch `ComplianceViolation` to inspect what was blocked:
 
 ```python
-from agentaudit_callback import ComplianceViolation
+from agentaudit import ComplianceViolation
+from langchain_openai import ChatOpenAI
+
+handler = AgentAuditCallbackHandler(api_key="aa_key", agent_id="uuid", guard=True)
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
 
 try:
-    result = chain.run("User: My SSN is 123-45-6789")
+    result = llm.invoke("User: My SSN is 123-45-6789")
 except ComplianceViolation as e:
     print(f"Blocked: {e.violations}")
     print(f"Severity: {e.severity}")
-    print(f"Action: {e.action}")
+```
+
+## TypeScript / JavaScript
+
+The TypeScript SDK also ships a LangChain callback handler as an optional peer dependency:
+
+```bash
+npm install agentaudit-client @langchain/core
+```
+
+```typescript
+import { AgentAuditCallbackHandler } from 'agentaudit-client/langchain';
+import { ChatOpenAI } from '@langchain/openai';
+
+const handler = new AgentAuditCallbackHandler(
+  { apiKey: 'aa_your_key_here', agentId: 'uuid-of-your-agent' },
+  { guard: true }
+);
+
+const llm = new ChatOpenAI({ model: 'gpt-4o', callbacks: [handler.asHandler()] });
+await llm.invoke('What is the weather?');
+console.log(handler.trace_id);
 ```
 
 ## What Gets Logged

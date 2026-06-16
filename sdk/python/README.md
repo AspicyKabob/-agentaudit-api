@@ -32,20 +32,24 @@ audit.log(
 
 ## LangChain Integration
 
-```python
-from langchain.callbacks import AgentAuditCallbackHandler
-from langchain.llms import OpenAI
+```bash
+pip install agentaudit-client[langchain]
+```
 
-# Setup audit callback
+```python
+from agentaudit import AgentAuditCallbackHandler
+from langchain_openai import ChatOpenAI
+
 audit_handler = AgentAuditCallbackHandler(
     api_key="aa_your_key_here",
-    agent_id="uuid-of-your-agent"
+    agent_id="uuid-of-your-agent",
+    guard=True   # default
 )
 
 # Use with any LangChain component
-llm = OpenAI(callbacks=[audit_handler])
-llm.predict("What is the weather?")
-# Automatically logged to AgentAudit!
+llm = ChatOpenAI(model="gpt-4o", callbacks=[audit_handler])
+llm.invoke("What is the weather?")
+# Automatically logged + guarded to AgentAudit!
 ```
 
 ## Features

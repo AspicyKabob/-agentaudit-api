@@ -24,6 +24,14 @@ await audit.log({
   response: 'It is sunny today.',
   metadata: { model: 'gpt-4', tokens: 150 }
 });
+
+// LangChain callback handler (install @langchain/core separately)
+import { AgentAuditCallbackHandler } from 'agentaudit-client/langchain';
+
+const handler = new AgentAuditCallbackHandler(
+  { apiKey: 'aa_your_key_here', agentId: 'uuid-of-your-agent' },
+  { guard: true }
+);
 ```
 
 ## Real-Time Guardrails

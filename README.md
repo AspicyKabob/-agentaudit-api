@@ -261,6 +261,55 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/
 
 ---
 
+## LangChain Integration
+
+### Python
+
+```bash
+pip install agentaudit-client[langchain]
+```
+
+```python
+from agentaudit import AgentAuditCallbackHandler
+from langchain_openai import ChatOpenAI
+
+handler = AgentAuditCallbackHandler(
+    api_key="aa_your_key_here",
+    agent_id="uuid-of-your-agent",
+    guard=True  # Enable real-time blocking
+)
+
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
+llm.invoke("What is the weather?")
+# Automatically logged + guarded
+print(handler.trace_id)  # "trace-uuid-123"
+```
+
+### TypeScript / JavaScript
+
+```bash
+npm install agentaudit-client @langchain/core
+```
+
+```typescript
+import { AgentAuditCallbackHandler } from 'agentaudit-client/langchain';
+import { ChatOpenAI } from '@langchain/openai';
+
+const handler = new AgentAuditCallbackHandler(
+  { apiKey: 'aa_your_key_here', agentId: 'uuid-of-your-agent' },
+  { guard: true }
+);
+
+const llm = new ChatOpenAI({
+  model: 'gpt-4o',
+  callbacks: [handler.asHandler()]
+});
+await llm.invoke('What is the weather?');
+console.log(handler.trace_id);  // "trace-uuid-123"
+```
+
+---
+
 ## CrewAI Integration
 
 ```python

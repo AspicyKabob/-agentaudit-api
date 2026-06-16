@@ -306,11 +306,11 @@
           </p>
           <div class="install-cmd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            pip install agentaudit-client
+            pip install agentaudit-client[langchain]
           </div>
           <div class="integration-code">
-            <pre><code><span class="code-kw">from</span> langchain.callbacks <span class="code-kw">import</span> AgentAuditCallbackHandler
-<span class="code-kw">from</span> langchain.llms <span class="code-kw">import</span> OpenAI
+            <pre><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditCallbackHandler
+<span class="code-kw">from</span> langchain_openai <span class="code-kw">import</span> ChatOpenAI
 
 <span class="code-comment"># One callback guards every LLM call + traces the full chain</span>
 handler = AgentAuditCallbackHandler(
@@ -319,8 +319,8 @@ handler = AgentAuditCallbackHandler(
     guard=<span class="code-kw">True</span>
 )
 
-llm = OpenAI(callbacks=[handler])
-llm.predict(<span class="code-str">"What is the weather?"</span>)
+llm = ChatOpenAI(model=<span class="code-str">"gpt-4o"</span>, callbacks=[handler])
+llm.invoke(<span class="code-str">"What is the weather?"</span>)
 
 <span class="code-comment"># Query the trace after execution</span>
 <span class="code-kw">print</span>(handler.trace_id)  <span class="code-comment"># "trace-uuid-123"</span></code></pre>

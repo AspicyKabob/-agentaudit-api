@@ -4,6 +4,18 @@
   "description": "Audit \u0026 Compliance SDK for AI Agents (TypeScript)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./langchain": {
+      "import": "./dist/langchain.js",
+      "require": "./dist/langchain.js",
+      "types": "./dist/langchain.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -25,14 +37,18 @@
     "axios": "^1.6.0"
   },
   "devDependencies": {
+    "@langchain/core": "^0.2.0",
+    "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "langchain": ">=0.1.0"
+    "@langchain/core": ">=0.2.0"
   },
   "peerDependenciesMeta": {
-    "langchain": {
+    "@langchain/core": {
       "optional": true
     }
   }

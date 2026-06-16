@@ -14,8 +14,8 @@ setup(
         "requests>=2.25.0",
     ],
     extras_require={
-        "langchain": ["langchain>=0.1.0"],
-        "dev": ["pytest>=7.0", "black", "mypy"],
+        "langchain": ["langchain-core>=0.2.0"],
+        "dev": ["pytest>=7.0", "pytest-asyncio>=0.23.0", "black", "mypy", "agentaudit-client[langchain]"],
     },
     python_requires=">=3.8",
     classifiers=[
