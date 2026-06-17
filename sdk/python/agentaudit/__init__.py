@@ -896,6 +896,9 @@ def __getattr__(name: str) -> Any:
     if name == "AgentAuditCallbackHandler":
         from agentaudit.langchain import AgentAuditCallbackHandler
         return AgentAuditCallbackHandler
+    if name == "AgentAuditAsyncCallbackHandler":
+        from agentaudit.langchain import AgentAuditAsyncCallbackHandler
+        return AgentAuditAsyncCallbackHandler
     if name == "ComplianceViolation":
         from agentaudit.langchain import ComplianceViolation
         return ComplianceViolation

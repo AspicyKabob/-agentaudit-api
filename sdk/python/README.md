@@ -52,6 +52,26 @@ llm.invoke("What is the weather?")
 # Automatically logged + guarded to AgentAudit!
 ```
 
+### Async chains and agents
+
+Use ``AgentAuditAsyncCallbackHandler`` with ``ainvoke`` so API calls do not
+block the event loop:
+
+```python
+from agentaudit import AgentAuditAsyncCallbackHandler
+from langchain_openai import ChatOpenAI
+
+handler = AgentAuditAsyncCallbackHandler(
+    api_key="aa_your_key_here",
+    agent_id="uuid-of-your-agent",
+    guard=True,
+)
+
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
+await llm.ainvoke("What is the weather?")
+print(handler.trace_id)
+```
+
 ## Features
 
 - **Simple logging**: One-line audit log submission

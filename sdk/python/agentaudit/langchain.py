@@ -37,7 +37,7 @@ from agentaudit import AgentAudit, GuardrailResult
 
 
 try:
-    from langchain_core.callbacks import BaseCallbackHandler
+    from langchain_core.callbacks import BaseCallbackHandler, AsyncCallbackHandler
     from langchain_core.outputs import LLMResult
 except ImportError as exc:
     raise ImportError(
@@ -46,7 +46,7 @@ except ImportError as exc:
     ) from exc
 
 
-__all__ = ["AgentAuditCallbackHandler"]
+__all__ = ["AgentAuditCallbackHandler", "AgentAuditAsyncCallbackHandler", "ComplianceViolation"]
 
 
 class ComplianceViolation(Exception):
@@ -58,40 +58,24 @@ class ComplianceViolation(Exception):
         self.severity = severity
 
 
-class AgentAuditCallbackHandler(BaseCallbackHandler):
-    """
-    LangChain callback handler that submits audit logs and optionally enforces
-    real-time guardrails on every LLM call, tool execution, and chain run.
-
-    The handler is stateful per instance: start a fresh instance for each
-    independent trace to avoid leaking ``trace_id`` across runs.
-    """
-
-    def __init__(
-        self,
-        api_key: str,
-        agent_id: Optional[str] = None,
-        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
-        guard: bool = True,
-        fail_open: bool = True,
-    ):
-        super().__init__()
-        self._client = AgentAudit(api_key=api_key, base_url=base_url, agent_id=agent_id)
-        self._guard = guard
-        self._fail_open = fail_open
-        self._trace_id: Optional[str] = None
-        self._root_span_id: Optional[str] = None
-        self._current_span_id: Optional[str] = None
-
-    @property
-    def trace_id(self) -> Optional[str]:
-        """Active trace ID for the current execution."""
-        return self._trace_id
+class _BaseHandlerMixin:
+    """Shared trace/guardrail logic for sync and async LangChain handlers."""
 
     def _start_trace(self, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Start a new distributed trace."""
         self._trace_id = str(uuid.uuid4())
         log = self._client.log(
+            action="langchain_trace_start",
+            metadata=metadata,
+            trace_id=self._trace_id,
+        )
+        self._root_span_id = log.id
+        self._current_span_id = self._root_span_id
+
+    async def _astart_trace(self, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Async variant of _start_trace."""
+        self._trace_id = str(uuid.uuid4())
+        log = await self._client.alog(
             action="langchain_trace_start",
             metadata=metadata,
             trace_id=self._trace_id,
@@ -136,6 +120,71 @@ class AgentAuditCallbackHandler(BaseCallbackHandler):
             parent_span_id=self._current_span_id,
         )
         return None
+
+    async def _aguard_or_log(
+        self,
+        action: str,
+        response: Optional[str] = None,
+        prompt: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Optional[GuardrailResult]:
+        """Async variant of _guard_or_log."""
+        if self._guard:
+            result = await self._client.aguardrail(
+                action=action,
+                prompt=prompt,
+                response=response,
+                metadata=metadata,
+                trace_id=self._trace_id,
+                parent_span_id=self._current_span_id,
+            )
+            if not result.allowed:
+                raise ComplianceViolation(
+                    message=f"Blocked by AgentAudit guardrail ({action}): {result.violations}",
+                    violations=result.violations,
+                    severity=result.severity,
+                )
+            return result
+        await self._client.alog(
+            action=action,
+            prompt=prompt,
+            response=response,
+            metadata=metadata,
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+        return None
+
+
+class AgentAuditCallbackHandler(BaseCallbackHandler, _BaseHandlerMixin):
+    """
+    LangChain callback handler that submits audit logs and optionally enforces
+    real-time guardrails on every LLM call, tool execution, and chain run.
+
+    The handler is stateful per instance: start a fresh instance for each
+    independent trace to avoid leaking ``trace_id`` across runs.
+    """
+
+    def __init__(
+        self,
+        api_key: str,
+        agent_id: Optional[str] = None,
+        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        guard: bool = True,
+        fail_open: bool = True,
+    ):
+        super().__init__()
+        self._client = AgentAudit(api_key=api_key, base_url=base_url, agent_id=agent_id)
+        self._guard = guard
+        self._fail_open = fail_open
+        self._trace_id: Optional[str] = None
+        self._root_span_id: Optional[str] = None
+        self._current_span_id: Optional[str] = None
+
+    @property
+    def trace_id(self) -> Optional[str]:
+        """Active trace ID for the current execution."""
+        return self._trace_id
 
     # ------------------------------------------------------------------
     # LLM lifecycle
@@ -339,6 +388,243 @@ class AgentAuditCallbackHandler(BaseCallbackHandler):
             metadata["log"] = finish.log
 
         self._guard_or_log(
+            action="agent_finish",
+            response=output_text,
+            metadata=metadata,
+        )
+
+
+class AgentAuditAsyncCallbackHandler(AsyncCallbackHandler, _BaseHandlerMixin):
+    """
+    Async LangChain callback handler. Use this with ``await chain.ainvoke()``,
+    ``await llm.ainvoke()``, agents, and tools that run in async contexts.
+
+    The handler mirrors :class:`AgentAuditCallbackHandler` but uses the async
+    SDK client (``AgentAuditAsync``) so API calls do not block the event loop.
+    """
+
+    def __init__(
+        self,
+        api_key: str,
+        agent_id: Optional[str] = None,
+        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        guard: bool = True,
+        fail_open: bool = True,
+    ):
+        super().__init__()
+        from agentaudit import AgentAuditAsync
+        self._client = AgentAuditAsync(api_key=api_key, base_url=base_url, agent_id=agent_id)
+        self._guard = guard
+        self._fail_open = fail_open
+        self._trace_id: Optional[str] = None
+        self._root_span_id: Optional[str] = None
+        self._current_span_id: Optional[str] = None
+
+    @property
+    def trace_id(self) -> Optional[str]:
+        """Active trace ID for the current execution."""
+        return self._trace_id
+
+    # ------------------------------------------------------------------
+    # LLM lifecycle
+    # ------------------------------------------------------------------
+
+    async def on_llm_start(
+        self,
+        serialized: Dict[str, Any],
+        prompts: List[str],
+        **kwargs: Any,
+    ) -> None:
+        if not self._trace_id:
+            await self._astart_trace(metadata={"model": _extract_model(serialized)})
+
+        log = await self._client.alog(
+            action="llm_start",
+            prompt="\n".join(prompts),
+            metadata={"model": _extract_model(serialized), "event": "llm_start"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+        self._update_span(log.id)
+
+    async def on_chat_model_start(
+        self,
+        serialized: Dict[str, Any],
+        messages: List[List[Any]],
+        **kwargs: Any,
+    ) -> None:
+        if not self._trace_id:
+            await self._astart_trace(metadata={"model": _extract_model(serialized)})
+
+        prompt = _stringify_messages(messages)
+        log = await self._client.alog(
+            action="llm_start",
+            prompt=prompt,
+            metadata={"model": _extract_model(serialized), "event": "chat_model_start"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+        self._update_span(log.id)
+
+    async def on_llm_end(
+        self,
+        response: LLMResult,
+        **kwargs: Any,
+    ) -> None:
+        outputs = [gen.text for gen_list in response.generations for gen in gen_list]
+        output_text = "\n".join(outputs)
+        token_usage = _extract_token_usage(response)
+
+        await self._aguard_or_log(
+            action="llm_end",
+            response=output_text,
+            metadata={"token_usage": token_usage, "event": "llm_end"},
+        )
+
+    async def on_llm_error(
+        self,
+        error: BaseException,
+        **kwargs: Any,
+    ) -> None:
+        await self._client.alog(
+            action="llm_error",
+            response=str(error),
+            metadata={"event": "llm_error"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+
+    # ------------------------------------------------------------------
+    # Chain lifecycle
+    # ------------------------------------------------------------------
+
+    async def on_chain_start(
+        self,
+        serialized: Dict[str, Any],
+        inputs: Dict[str, Any],
+        **kwargs: Any,
+    ) -> None:
+        if not self._trace_id:
+            await self._astart_trace(metadata={"chain": serialized.get("name", "unknown")})
+
+        log = await self._client.alog(
+            action="chain_start",
+            prompt=str(inputs),
+            metadata={"chain": serialized.get("name", "unknown"), "event": "chain_start"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+        self._update_span(log.id)
+
+    async def on_chain_end(
+        self,
+        outputs: Dict[str, Any],
+        **kwargs: Any,
+    ) -> None:
+        await self._aguard_or_log(
+            action="chain_end",
+            response=str(outputs),
+            metadata={"event": "chain_end"},
+        )
+
+    async def on_chain_error(
+        self,
+        error: BaseException,
+        **kwargs: Any,
+    ) -> None:
+        await self._client.alog(
+            action="chain_error",
+            response=str(error),
+            metadata={"event": "chain_error"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+
+    # ------------------------------------------------------------------
+    # Tool lifecycle
+    # ------------------------------------------------------------------
+
+    async def on_tool_start(
+        self,
+        serialized: Dict[str, Any],
+        input_str: str,
+        **kwargs: Any,
+    ) -> None:
+        if not self._trace_id:
+            await self._astart_trace()
+
+        log = await self._client.alog(
+            action="tool_start",
+            prompt=input_str,
+            metadata={"tool": serialized.get("name", "unknown"), "event": "tool_start"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+        self._update_span(log.id)
+
+    async def on_tool_end(
+        self,
+        output: Any,
+        **kwargs: Any,
+    ) -> None:
+        await self._aguard_or_log(
+            action="tool_end",
+            response=str(output),
+            metadata={"event": "tool_end"},
+        )
+
+    async def on_tool_error(
+        self,
+        error: BaseException,
+        **kwargs: Any,
+    ) -> None:
+        await self._client.alog(
+            action="tool_error",
+            response=str(error),
+            metadata={"event": "tool_error"},
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+
+    # ------------------------------------------------------------------
+    # Agent lifecycle
+    # ------------------------------------------------------------------
+
+    async def on_agent_action(
+        self,
+        action: Any,
+        **kwargs: Any,
+    ) -> None:
+        if not self._trace_id:
+            await self._astart_trace()
+
+        log = await self._client.alog(
+            action="agent_action",
+            prompt=getattr(action, "log", ""),
+            metadata={
+                "tool": getattr(action, "tool", "unknown"),
+                "tool_input": str(getattr(action, "tool_input", "")),
+                "event": "agent_action",
+            },
+            trace_id=self._trace_id,
+            parent_span_id=self._current_span_id,
+        )
+        self._update_span(log.id)
+
+    async def on_agent_finish(
+        self,
+        finish: Any,
+        **kwargs: Any,
+    ) -> None:
+        output_text = ""
+        if hasattr(finish, "return_values"):
+            output_text = str(finish.return_values.get("output", ""))
+
+        metadata: Dict[str, Any] = {"event": "agent_finish"}
+        if hasattr(finish, "log"):
+            metadata["log"] = finish.log
+
+        await self._aguard_or_log(
             action="agent_finish",
             response=output_text,
             metadata=metadata,
