@@ -411,4 +411,8 @@ def _extract_token_usage(response: LLMResult) -> Dict[str, Any]:
             "total_tokens": llm_output.get("total_tokens", 0),
         }
 
-    return {}
+    return {
+        "prompt_tokens": 0,
+        "completion_tokens": 0,
+        "total_tokens": 0,
+    }
