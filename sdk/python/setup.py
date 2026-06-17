@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="agentaudit-client",
-    version="1.0.2",
+    version="1.0.3",
     description="Audit \u0026 Compliance SDK for AI Agents",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
