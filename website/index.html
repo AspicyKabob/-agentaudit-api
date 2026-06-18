@@ -381,14 +381,16 @@ if (!result.allowed) {
           <button class="fw-tab" data-fw="openai">OpenAI</button>
         </div>
         <div class="framework-code">
-          <pre class="fw-content active" data-fw="langchain"><code><span class="code-kw">from</span> langchain.callbacks <span class="code-kw">import</span> AgentAuditCallbackHandler
-<span class="code-kw">from</span> langchain.llms <span class="code-kw">import</span> OpenAI
+          <pre class="fw-content active" data-fw="langchain"><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditCallbackHandler
+<span class="code-kw">from</span> langchain_openai <span class="code-kw">import</span> ChatOpenAI
 
-<span class="code-comment"># One line to audit all LangChain calls</span>
-llm = OpenAI(callbacks=[AgentAuditCallbackHandler(
-    api_key=<span class="code-str">"aa_your_key_here"</span>
+<span class="code-comment"># One callback guards every LangChain call</span>
+llm = ChatOpenAI(model=<span class="code-str">"gpt-4o"</span>, callbacks=[AgentAuditCallbackHandler(
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
+    agent_id=<span class="code-str">"uuid-of-your-agent"</span>,
+    guard=<span class="code-kw">True</span>
 )])
-llm.predict(<span class="code-str">"What is the weather?"</span>)
+llm.invoke(<span class="code-str">"What is the weather?"</span>)
 <span class="code-comment"># Automatically logged + guarded</span></code></pre>
 
           <pre class="fw-content" data-fw="crewai"><code><span class="code-kw">from</span> crewai <span class="code-kw">import</span> Crew, Agent, Task
@@ -409,30 +411,31 @@ crew = Crew(
 crew.kickoff()
 <span class="code-comment"># Every task traced, violations blocked</span></code></pre>
 
-          <pre class="fw-content" data-fw="autogpt"><code><span class="code-kw">from</span> agentaudit_autogpt <span class="code-kw">import</span> guard, ComplianceViolation
+          <pre class="fw-content" data-fw="autogpt"><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditAutoGPT, ComplianceViolationAutoGPT
 
 <span class="code-comment"># One decorator guards your entire agent</span>
-<span class="code-kw">@guard</span>(api_key=<span class="code-str">"aa_your_key_here"</span>, agent_name=<span class="code-str">"MyAutoGPT"</span>)
+<span class="code-kw">@AgentAuditAutoGPT.guard</span>(api_key=<span class="code-str">"aa_your_key_here"</span>, agent_name=<span class="code-str">"MyAutoGPT"</span>)
 <span class="code-kw">def</span> run_agent(task: str) -> str:
     <span class="code-kw">return</span> agent.run(task)
 
 <span class="code-kw">try</span>:
     result = run_agent(<span class="code-str">"Research topic X"</span>)
-<span class="code-kw">except</span> ComplianceViolation <span class="code-kw">as</span> e:
+<span class="code-kw">except</span> ComplianceViolationAutoGPT <span class="code-kw">as</span> e:
     <span class="code-kw">print</span>(<span class="code-str">f"Blocked: {e.violations}"</span>)
 <span class="code-comment"># Automatically traced + guarded</span></code></pre>
 
-          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">from</span> agentaudit_openai <span class="code-kw">import</span> AuditOpenAI
+          <pre class="fw-content" data-fw="openai"><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditOpenAI
 
 <span class="code-comment"># One wrapper guards every OpenAI call</span>
-client = AuditOpenAI(
+client = AgentAuditOpenAI(
     openai_api_key=<span class="code-str">"sk-..."</span>,
-    agentaudit_api_key=<span class="code-str">"aa_your_key_here"</span>,
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
+    agent_id=<span class="code-str">"uuid-of-your-agent"</span>,
     guard=<span class="code-kw">True</span>  <span class="code-comment"># Block violations automatically</span>
 )
 
 response = client.chat_completions_create(
-    model=<span class="code-str">"gpt-4"</span>,
+    model=<span class="code-str">"gpt-4o"</span>,
     messages=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
 )
 <span class="code-comment"># Every call traced, violations blocked</span></code></pre>
@@ -556,7 +559,7 @@ response = client.chat_completions_create(
             <span>HIPAA keywords</span>
           </div>
           <p>Detects patient identifiers, medical record numbers, and HIPAA-sensitive terms.</p>
-          <button class="btn btn-primary btn-sm">Activate Pack</button>
+          <a href="/dashboard.html" class="btn btn-primary btn-sm">Activate Pack</a>
         </div>
         <div class="pack-card">
           <h3>Finance (SOX/PCI)</h3>
@@ -567,7 +570,7 @@ response = client.chat_completions_create(
             <span>SOX keywords</span>
           </div>
           <p>Flags payment data, account numbers, and financial compliance violations.</p>
-          <button class="btn btn-primary btn-sm">Activate Pack</button>
+          <a href="/dashboard.html" class="btn btn-primary btn-sm">Activate Pack</a>
         </div>
         <div class="pack-card">
           <h3>AI Safety &amp; Content Moderation</h3>
@@ -578,7 +581,7 @@ response = client.chat_completions_create(
             <span>Prompt injection</span>
           </div>
           <p>Flags harmful outputs, jailbreak attempts, and model-exploitation patterns in real-time.</p>
-          <button class="btn btn-primary btn-sm">Activate Pack</button>
+          <a href="/dashboard.html" class="btn btn-primary btn-sm">Activate Pack</a>
         </div>
         <div class="pack-card">
           <h3>Data Protection (GDPR/CCPA)</h3>
@@ -589,7 +592,7 @@ response = client.chat_completions_create(
             <span>GDPR keywords</span>
           </div>
           <p>Protects PII and flags data privacy policy violations automatically.</p>
-          <button class="btn btn-primary btn-sm">Activate Pack</button>
+          <a href="/dashboard.html" class="btn btn-primary btn-sm">Activate Pack</a>
         </div>
       </div>
     </div>
