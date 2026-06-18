@@ -1,5 +1,6 @@
 import { prisma } from '../../db/prisma';
 import { logger } from '../../utils/logger';
+import { safePostJson, validateWebhookUrl } from '../../utils/ssrf';
 
 interface ListFilters {
   isResolved?: boolean;
@@ -62,6 +63,12 @@ export const alertService = {
 
       if (!org?.webhookUrl) return;
 
+      const safety = validateWebhookUrl(org.webhookUrl);
+      if (!safety.ok) {
+        logger.warn({ alertId: alert.id, reason: safety.reason }, 'Webhook URL rejected (SSRF protection)');
+        return;
+      }
+
       const payload = {
         event: 'compliance.violation',
         alert: {
@@ -73,18 +80,8 @@ export const alertService = {
         },
       };
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
-
-      await fetch(org.webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-      logger.info({ alertId: alert.id }, 'Webhook delivered');
+      const { statusCode } = await safePostJson(org.webhookUrl, payload, 5000);
+      logger.info({ alertId: alert.id, statusCode }, 'Webhook delivered');
     } catch (err) {
       logger.warn({ alertId: alert.id, error: (err as Error).message }, 'Webhook delivery failed');
     }
