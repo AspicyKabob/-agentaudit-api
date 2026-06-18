@@ -39,12 +39,17 @@
     .panel-body { padding: 0; }
 
     /* Rows */
-    .key-row, .log-row, .alert-row { display: grid; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--dash-border); font-size: 13px; align-items: center; }
-    .key-row:last-child, .log-row:last-child, .alert-row:last-child { border-bottom: none; }
-    .key-row:hover, .log-row:hover, .alert-row:hover { background: var(--dash-bg); }
+    .key-row, .log-row, .alert-row, .pack-row { display: grid; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--dash-border); font-size: 13px; align-items: center; }
+    .key-row:last-child, .log-row:last-child, .alert-row:last-child, .pack-row:last-child { border-bottom: none; }
+    .key-row:hover, .log-row:hover, .alert-row:hover, .pack-row:hover { background: var(--dash-bg); }
     .key-row { grid-template-columns: 1fr auto; }
     .log-row { grid-template-columns: 140px 1fr 120px 80px; }
     .alert-row { grid-template-columns: 70px 1fr 120px 90px; }
+    .pack-row { grid-template-columns: 1fr auto; }
+    .pack-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .pack-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+    .pack-status { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #22c55e; }
+    .pack-status.pending { color: var(--text-muted); }
     .key-name { font-size: 13px; font-weight: 500; color: var(--text); }
     .key-meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
     .log-time, .alert-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
@@ -162,6 +167,14 @@
         <button class="btn-dash btn-dash-primary" id="btn-new-key">+ New Key</button>
       </div>
       <div class="panel-body" id="keys-list"><div class="empty-state">Loading...</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Compliance Packs</span>
+        <a href="/docs" class="btn-dash">Pack Docs</a>
+      </div>
+      <div class="panel-body" id="packs-list"><div class="empty-state">Loading...</div></div>
     </div>
 
     <div class="panel">

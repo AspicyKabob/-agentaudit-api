@@ -149,6 +149,23 @@
     });
   });
 
+  window.removePack = async function(id) {
+    if (!confirm('Remove this compliance pack? The rules it installed will be deleted.')) return;
+    try {
+      await api('DELETE', '/api/v1/compliance-rules/packs/' + id);
+      toast('Pack removed', 'info');
+      loadDashboard();
+    } catch(err) { toast(err.message, 'error'); }
+  };
+
+  window.installPack = async function(id) {
+    try {
+      await api('POST', '/api/v1/compliance-rules/packs', { packId: id });
+      toast('Pack installed', 'success');
+      loadDashboard();
+    } catch(err) { toast(err.message, 'error'); }
+  };
+
   window.revokeKey = async function(id) {
     if (!confirm('Revoke this key? Agents using it will stop working immediately.')) return;
     try {
@@ -261,6 +278,29 @@
         alertsList.innerHTML = '<div class="empty-state">No alerts yet.<br><small>Compliance violations will appear here automatically.</small></div>';
       }
     } catch(e) { console.error('[Dashboard] Alerts load failed:', e); document.getElementById('alerts-list').innerHTML = '<div class="empty-state">Unable to load alerts.</div>'; }
+
+    try {
+      var packs = await api('GET', '/api/v1/compliance-rules/packs');
+      var installed = await api('GET', '/api/v1/compliance-rules/packs/installed');
+      var installedIds = new Set((installed || []).map(function(p){ return p.id; }));
+      var packsList = document.getElementById('packs-list');
+      if (packs && packs.length) {
+        packsList.innerHTML = packs.map(function(p) {
+          var isInstalled = installedIds.has(p.id);
+          var status = isInstalled ? '<span class="pack-status">Installed</span>' : '<span class="pack-status pending">Not installed</span>';
+          var action = isInstalled
+            ? '<button class="btn-dash btn-dash-danger" onclick="removePack(\'' + p.id + '\')">Remove</button>'
+            : '<button class="btn-dash btn-dash-primary" onclick="installPack(\'' + p.id + '\')">Install</button>';
+          return '<div class="pack-row">' +
+            '<div><div class="pack-name">' + p.name + '</div>' +
+            '<div class="pack-meta">' + (p.description || '') + '</div></div>' +
+            '<div style="display:flex;align-items:center;gap:12px;">' + status + action + '</div>' +
+            '</div>';
+        }).join('');
+      } else {
+        packsList.innerHTML = '<div class="empty-state">No compliance packs available.</div>';
+      }
+    } catch(e) { console.error('[Dashboard] Packs load failed:', e); document.getElementById('packs-list').innerHTML = '<div class="empty-state">Unable to load packs.</div>'; }
 
     console.log('[Dashboard] Load complete.');
   }

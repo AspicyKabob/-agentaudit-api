@@ -385,20 +385,24 @@ crew.kickoff()
             pip install agentaudit-client
           </div>
           <div class="integration-code">
-            <pre><code><span class="code-kw">from</span> agentaudit_autogpt <span class="code-kw">import</span> guard, ComplianceViolation
+            <pre><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditAutoGPT, ComplianceViolationAutoGPT
 
 <span class="code-comment"># One decorator guards your entire agent function</span>
-<span class="code-kw">@guard</span>(api_key=<span class="code-str">"aa_your_key_here"</span>, agent_name=<span class="code-str">"MyAutoGPT"</span>)
+<span class="code-kw">@AgentAuditAutoGPT.guard</span>(api_key=<span class="code-str">"aa_your_key_here"</span>, agent_name=<span class="code-str">"MyAutoGPT"</span>)
 <span class="code-kw">def</span> run_agent(task: str) -> str:
     <span class="code-kw">return</span> agent.run(task)
 
 <span class="code-kw">try</span>:
     result = run_agent(<span class="code-str">"Research topic X"</span>)
-<span class="code-kw">except</span> ComplianceViolation <span class="code-kw">as</span> e:
+<span class="code-kw">except</span> ComplianceViolationAutoGPT <span class="code-kw">as</span> e:
     <span class="code-kw">print</span>(<span class="code-str">f"Blocked: {e.violations}"</span>)
 
 <span class="code-comment"># Or use the context manager for multi-step traces</span>
-<span class="code-kw">from</span> agentaudit_autogpt <span class="code-kw">import</span> AutoGPTLogger
+logger = AgentAuditAutoGPT(
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
+    agent_name=<span class="code-str">"MyAutoGPT"</span>,
+    guard=<span class="code-kw">True</span>
+)
 <span class="code-kw">with</span> logger.trace() <span class="code-kw">as</span> t:
     t.log_action(<span class="code-str">"think"</span>, prompt=<span class="code-str">"Plan?"</span>, response=<span class="code-str">"Research"</span>)
     t.log_action(<span class="code-str">"execute"</span>, prompt=<span class="code-str">"Search"</span>, response=<span class="code-str">"Found 3"</span>)</code></pre>
@@ -421,67 +425,62 @@ crew.kickoff()
           </p>
           <div class="install-cmd">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-            pip install agentaudit-client openai
+            pip install agentaudit-client[openai]
           </div>
           <div class="code-tabs">
             <div class="code-tabs-header">
               <button class="code-tab active" data-tab="python">Python</button>
               <button class="code-tab" data-tab="typescript">TypeScript</button>
-              <button class="code-tab" data-tab="curl">cURL</button>
             </div>
             <div class="integration-code active" data-tab-content="python">
-              <pre><code><span class="code-kw">from</span> agentaudit_openai <span class="code-kw">import</span> AuditOpenAI
+              <pre><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditOpenAI, ComplianceViolationOpenAI
 
-client = AuditOpenAI(
+client = AgentAuditOpenAI(
     openai_api_key=<span class="code-str">"sk-..."</span>,
-    agentaudit_api_key=<span class="code-str">"aa_your_key_here"</span>,
+    api_key=<span class="code-str">"aa_your_key_here"</span>,
     agent_id=<span class="code-str">"uuid-of-your-agent"</span>,
     guard=<span class="code-kw">True</span>
 )
 
-response = client.chat_completions_create(
-    model=<span class="code-str">"gpt-4"</span>,
-    messages=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
-)
+try:
+    response = client.chat_completions_create(
+        model=<span class="code-str">"gpt-4o"</span>,
+        messages=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
+    )
+except ComplianceViolationOpenAI <span class="code-kw">as</span> e:
+    <span class="code-kw">print</span>(<span class="code-str">f"Blocked: {e.violations}"</span>)
 
-<span class="code-comment"># If output violates a rule, ComplianceViolation is raised</span>
 <span class="code-kw">print</span>(client.trace_id)  <span class="code-comment"># "trace-uuid-123"</span></code></pre>
             </div>
-            <div class="integration-code" data-tab-content="typescript">
+                        <div class="integration-code" data-tab-content="typescript">
               <pre><code><span class="code-comment">// TypeScript Example</span>
 <span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
-<span class="code-comment">// Initialize with your API key</span>
-const audit = new AgentAudit({
-  apiKey: <span class="code-str">'aa_your_key_here'</span>
+<span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({ apiKey: <span class="code-str">'aa_your_key_here'</span> });
+
+<span class="code-comment">// Guard any prompt/response pair before delivery</span>
+<span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
+  action: <span class="code-str">'openai_chat_end'</span>,
+  prompt: <span class="code-str">'User: Hello!'</span>,
+  response: <span class="code-str">'Assistant: Hi there.'</span>,
+  metadata: { model: <span class="code-str">'gpt-4o'</span> }
 });
 
-<span class="code-comment">// Guardrail: intercept and block violations before delivery</span>
-const result = await audit.guardrail({
-  action: <span class="code-str">'prompt_submitted'</span>,
-  prompt: <span class="code-str">'User: My SSN is 123-45-6789'</span>,
-  response: <span class="code-str">'Here is your account info...'</span>
-});
-
-if (!result.allowed) {
-  throw new Error(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
-}
-
-<span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code></pre>
+<span class="code-kw">if</span> (!result.allowed) {
+  <span class="code-kw">throw</span> <span class="code-kw">new</span> Error(<span class="code-str">'Blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
+}</code></pre>
             </div>
             <div class="integration-code" data-tab-content="curl">
               <pre><code><span class="code-comment"># cURL Example</span>
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
-  -H "X-API-Key: aa_your_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "action": "prompt_submitted",
-    "prompt": "User: My SSN is 123-45-6789",
-    "response": "Here is your account info...",
-    "agentId": "uuid-of-your-agent"
+curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs   -H "X-API-Key: aa_your_key_here"   -H "Content-Type: application/json"   -d '{
+    "action": "openai_chat_end",
+    "prompt": "User: Hello!",
+    "response": "Assistant: Hi there.",
+    "agentId": "uuid-of-your-agent",
+    "metadata": { "model": "gpt-4o" }
   }'
 
-<span class="code-comment"># Response: {"id": "...", "complianceFlags": ["CRITICAL_pii_detect_SSN"]}</span>
+<span class="code-comment"># Response: {"id": "...", "complianceFlags": [...]}</span>
 <span class="code-comment"># Your code checks complianceFlags and blocks before delivery.</span></code></pre>
             </div>
           </div>
