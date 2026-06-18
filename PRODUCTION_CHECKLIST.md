@@ -24,8 +24,8 @@ git push -u origin main
 
 | Variable | Value | Status |
 |----------|-------|--------|
-| `JWT_SECRET` | `4a571bb6eda21ae3a3a9f23bd853d72ad011b2b817357a2e6d44e65aab9a522d` | ✅ Generated |
-| `API_KEY_SALT` | `a751f362617d69c14412f8cf8b330fc8` | ✅ Generated |
+| `JWT_SECRET` | Generate with `openssl rand -hex 32` — set in Railway only, never commit | 🔲 Generate |
+| `API_KEY_SALT` | Generate with `openssl rand -hex 16` — set in Railway only, never commit | 🔲 Generate |
 | `NODE_ENV` | `production` | ✅ Auto-set |
 | `FRONTEND_URL` | `https://your-railway-domain.up.railway.app` | 🔲 After deploy |
 | `STRIPE_SECRET_KEY` | `sk_live_...` | 🔲 Get from Stripe |
