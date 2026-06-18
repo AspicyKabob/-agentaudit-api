@@ -17,6 +17,7 @@ model Organization {
   plan          String   @default("free")
   apiQuota      Int      @default(5000)
   apiUsed       Int      @default(0)
+  usagePeriodStart DateTime @default(now())
   stripeCustomerId     String?
   stripeSubscriptionId String?
   webhookUrl          String?
