@@ -1,3 +1,4 @@
+import RE2 from 're2';
 import { prisma } from '../../db/prisma';
 import { Prisma } from '@prisma/client';
 import { SubmitAuditBody, QueryAuditQuery } from './audit.types';
@@ -555,14 +556,37 @@ async function checkRateLimit(
   return count > maxRequests;
 }
 
-function checkRegex(text: string, pattern: string): boolean {
-  if (!text || !pattern || pattern.length > 500) return false;
+const MAX_REGEX_PATTERN_LENGTH = 500;
+const REGEX_CACHE_LIMIT = 500;
+const regexCache = new Map<string, RE2 | null>();
+
+function compileRegex(pattern: string): RE2 | null {
+  const cached = regexCache.get(pattern);
+  if (cached !== undefined) return cached;
+
+  let compiled: RE2 | null;
   try {
-    const regex = new RegExp(pattern);
-    return regex.test(text);
+    // RE2 matches in linear time with no backtracking, so a malicious or
+    // accidental catastrophic pattern cannot stall the event loop (ReDoS).
+    compiled = new RE2(pattern);
   } catch {
-    return false;
+    // Unsupported syntax (backreferences, lookarounds, etc.) — safe-fail.
+    compiled = null;
   }
+
+  if (regexCache.size >= REGEX_CACHE_LIMIT) {
+    const oldest = regexCache.keys().next().value;
+    if (oldest !== undefined) regexCache.delete(oldest);
+  }
+  regexCache.set(pattern, compiled);
+  return compiled;
+}
+
+function checkRegex(text: string, pattern: string): boolean {
+  if (!text || !pattern || pattern.length > MAX_REGEX_PATTERN_LENGTH) return false;
+  const regex = compileRegex(pattern);
+  if (!regex) return false;
+  return regex.test(text);
 }
 
 async function createBatchAlerts(

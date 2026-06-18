@@ -449,6 +449,49 @@ describe('AgentAudit API Full Integration', () => {
       expect(res.body.complianceFlags).toContain('CRITICAL_regex_match_SSN Detection');
     });
 
+    it('POST /api/v1/audit-logs survives a catastrophic regex_match pattern without ReDoS', async () => {
+      mockedPrisma.apiKey.findUnique.mockResolvedValue({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: null,
+        organization: {
+          id: 'org-1',
+          name: 'Test Corp',
+          email: 'test@example.com',
+          plan: 'free',
+          apiQuota: 1000,
+          apiUsed: 0,
+        },
+      });
+      // Classic catastrophic-backtracking pattern; would hang a native RegExp.
+      mockedPrisma.complianceRule.findMany.mockResolvedValue([
+        { id: 'rule-redos-1', name: 'Catastrophic', ruleType: 'regex_match', condition: { pattern: '(a+)+$' }, severity: 'warning', isActive: true },
+      ]);
+      mockedPrisma.auditLog.create.mockImplementation((args: any) =>
+        Promise.resolve({
+          id: 'log-redos-1',
+          ...args.data,
+          createdAt: new Date().toISOString(),
+        })
+      );
+      mockedPrisma.organization.update.mockResolvedValue({ id: 'org-1' });
+
+      const start = Date.now();
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', 'aa_test_api_key_12345')
+        .send({
+          action: 'prompt_submitted',
+          prompt: `${'a'.repeat(50)}!`,
+          response: 'Okay',
+        });
+      const elapsed = Date.now() - start;
+
+      expect(res.status).toBe(201);
+      // RE2 matches in linear time, so this completes near-instantly.
+      expect(elapsed).toBeLessThan(2000);
+    });
+
     it('POST /api/v1/audit-logs evaluates sentiment_analysis rules → 201 with flags', async () => {
       mockedPrisma.apiKey.findUnique.mockResolvedValue({
         id: 'key-1',
