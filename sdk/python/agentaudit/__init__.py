@@ -177,6 +177,38 @@ _DEFAULT_RETRY_BACKOFF_MAX = 30.0
 _DEFAULT_TIMEOUT = 10.0
 
 
+def _parse_guardrail_result(data: Dict[str, Any]) -> GuardrailResult:
+    """Build a :class:`GuardrailResult` from an audit-log response.
+
+    The server returns an authoritative ``enforcementAction`` (one of
+    ``allow``/``block``/``flag``/``log``) which is the single source of truth
+    for the decision: ``action`` mirrors it and ``allowed`` is ``True`` unless
+    the server said ``block``.  ``severity`` is computed for display only and
+    must never influence ``allowed``/``action``.
+
+    Shared by the sync and async clients so they always agree.
+    """
+    flags = data.get("complianceFlags", []) or []
+    severity = "critical" if any("CRITICAL" in f for f in flags) else "warning"
+
+    enforcement_action = data.get("enforcementAction")
+    if not enforcement_action:
+        # Fallback only for older servers that omit ``enforcementAction``.
+        # When the server provides the field we always prefer it; this
+        # flag-based derivation is a last resort to preserve legacy behaviour.
+        enforcement_action = (
+            "block" if severity == "critical" and flags else ("flag" if flags else "allow")
+        )
+
+    return GuardrailResult(
+        allowed=enforcement_action != "block",
+        action=enforcement_action,
+        violations=flags,
+        severity=severity,
+        audit_log_id=data.get("id"),
+    )
+
+
 def _make_retry(
     total: int = _DEFAULT_RETRY_TOTAL,
     backoff_factor: float = _DEFAULT_RETRY_BACKOFF,
@@ -348,21 +380,7 @@ class AgentAudit:
             payload["parentSpanId"] = parent_span_id
 
         resp = self._request("POST", "/audit-logs", json=payload)
-        data = resp.json()
-
-        flags = data.get("complianceFlags", [])
-        severity = "critical" if any("CRITICAL" in f for f in flags) else "warning"
-        action_result = (
-            "block" if severity == "critical" and flags else ("flag" if flags else "allow")
-        )
-
-        return GuardrailResult(
-            allowed=action_result != "block",
-            action=action_result,
-            violations=flags,
-            severity=severity,
-            audit_log_id=data.get("id"),
-        )
+        return _parse_guardrail_result(resp.json())
 
     # ------------------------------------------------------------------
     # Logging
