@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { validateWebhookUrl } from '../../utils/ssrf';
 
 export const registerSchema = z.object({
   body: z.object({
@@ -33,7 +34,13 @@ export type CreateApiKeyBody = z.infer<typeof createApiKeySchema>['body'];
 
 export const updateProfileSchema = z.object({
   body: z.object({
-    webhookUrl: z.string().url().optional(),
+    webhookUrl: z
+      .string()
+      .url()
+      .refine((value) => validateWebhookUrl(value).ok, {
+        message: 'Webhook URL must use https and must not target localhost, private, link-local, or reserved addresses',
+      })
+      .optional(),
     notifyWebhook: z.boolean().optional(),
     notifyEmail: z.boolean().optional(),
     notifyMinSeverity: z.enum(['warning', 'critical']).optional(),
