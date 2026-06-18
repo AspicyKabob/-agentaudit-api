@@ -130,4 +130,53 @@ export const config = convict({
 
 config.validate({ allowed: 'strict' });
 
+function isPlaceholder(value: string, placeholders: string[]): boolean {
+  return placeholders.includes(value) || value.toLowerCase().includes('placeholder');
+}
+
+function assertProductionConfig(): void {
+  if (config.get('env') !== 'production') return;
+
+  const unsafeValues: string[] = [];
+
+  const databaseUrl = config.get('databaseUrl');
+  if (databaseUrl === 'postgresql://user:password@localhost:5432/agentaudit?schema=public') {
+    unsafeValues.push('DATABASE_URL');
+  }
+
+  const jwtSecret = config.get('jwtSecret');
+  if (isPlaceholder(jwtSecret, ['change-me-in-production-jwt-secret-min-32-chars-long'])) {
+    unsafeValues.push('JWT_SECRET');
+  }
+
+  const apiKeySalt = config.get('apiKeySalt');
+  if (isPlaceholder(apiKeySalt, ['change-me-in-production-api-key-salt'])) {
+    unsafeValues.push('API_KEY_SALT');
+  }
+
+  const stripeSecretKey = config.get('stripeSecretKey');
+  const billingEnabled = stripeSecretKey !== '' && !isPlaceholder(stripeSecretKey, ['sk_test_placeholder']);
+
+  if (billingEnabled) {
+    const stripeFields: Array<[string, string, string[]]> = [
+      ['STRIPE_WEBHOOK_SECRET', config.get('stripeWebhookSecret'), ['whsec_placeholder']],
+      ['STRIPE_PRICE_PRO', config.get('stripePricePro'), ['price_pro']],
+      ['STRIPE_PRICE_BUSINESS', config.get('stripePriceBusiness'), ['price_business']],
+      ['STRIPE_PRICE_ENTERPRISE', config.get('stripePriceEnterprise'), ['price_enterprise']],
+    ];
+
+    for (const [name, value, placeholders] of stripeFields) {
+      if (value === '' || isPlaceholder(value, placeholders)) {
+        unsafeValues.push(name);
+      }
+    }
+  }
+
+  if (unsafeValues.length > 0) {
+    throw new Error(`Unsafe production configuration: ${unsafeValues.join(', ')} must be set to non-placeholder values`);
+  }
+}
+
+assertProductionConfig();
+
 export type Config = typeof config;
