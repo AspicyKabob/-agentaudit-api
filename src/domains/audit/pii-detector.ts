@@ -47,7 +47,7 @@ function hasLuhnValidSequence(text: string): boolean {
 function hasPhoneNumber(text: string): boolean {
   // US-style: (555) 123-4567, 555-123-4567, 555.123.4567, +1 555 123 4567
   const phonePattern =
-    /(?:\+\d{1,3}[\s\-]?)?\(?\d{3}\)?[\s\-.]{0,2}\d{3}[\s\-.]{0,2}\d{4}/;
+    /(?:\+\d{1,3}[\s-]?)?\(?\d{3}\)?[\s.-]{0,2}\d{3}[\s.-]{0,2}\d{4}/;
   return phonePattern.test(text);
 }
 
@@ -63,7 +63,7 @@ function hasSSN(text: string): boolean {
 
 function hasBankAccount(text: string): boolean {
   // US routing + account: 9-digit routing followed by account, or account-like 8-17 digits
-  const routingAccountPattern = /\b\d{9}\s+[\d\-]{8,17}\b/;
+  const routingAccountPattern = /\b\d{9}\s+[\d-]{8,17}\b/;
   const accountOnlyPattern = /\b(?:account\s*(?:#|number|no)?[:\s]*)?\d{8,17}\b/i;
   return routingAccountPattern.test(text) || accountOnlyPattern.test(text);
 }
