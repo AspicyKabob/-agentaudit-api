@@ -1,3 +1,4 @@
+import RE2 from 're2';
 import { prisma } from '../../db/prisma';
 import { Prisma } from '@prisma/client';
 import { SubmitAuditBody, QueryAuditQuery } from './audit.types';
@@ -7,6 +8,7 @@ import { evaluateCustomValidator } from './custom-validator';
 import { detectPII } from './pii-detector';
 import { alertService } from '../alerts/alert.service';
 import { emailService } from '../../services/email.service';
+import { getQuotaForPlan } from '../billing/plans';
 
 interface QueryOptions {
   action?: string;
@@ -18,38 +20,66 @@ interface QueryOptions {
   limit: number;
 }
 
-const PLAN_QUOTAS: Record<string, number> = {
-  free: 5000,
-  pro: 50000,
-  business: 250000,
-  enterprise: Infinity,
-};
+/** Start of the current monthly billing window (UTC), used to reset usage. */
+function currentPeriodStart(now: Date = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
+}
 
-async function enforceQuota(organizationId: string, requestedCount: number) {
+/**
+ * Atomically reserve `requestedCount` units of monthly quota for an org.
+ *
+ * Usage is scoped to the current calendar-month billing window: if the org's
+ * stored `usagePeriodStart` predates the current window, usage is reset before
+ * the reservation. Both the reset and the check-and-increment are expressed as
+ * conditional `updateMany` statements (single guarded SQL UPDATEs), so
+ * concurrent requests cannot exceed the quota or double-reset the window.
+ */
+async function reserveQuota(organizationId: string, requestedCount: number) {
   const org = await prisma.organization.findUnique({
     where: { id: organizationId },
-    select: { plan: true, apiUsed: true, apiQuota: true },
+    select: { plan: true, apiUsed: true, apiQuota: true, usagePeriodStart: true },
   });
 
   if (!org) {
     throw new Error('Organization not found');
   }
 
-  const quota = org.apiQuota || PLAN_QUOTAS[org.plan] || PLAN_QUOTAS.free;
-  const remaining = quota - org.apiUsed;
+  const periodStart = currentPeriodStart();
+  const quota = org.apiQuota && org.apiQuota > 0 ? org.apiQuota : getQuotaForPlan(org.plan);
 
-  if (remaining <= 0) {
-    throw new Error(`Monthly audit log quota exceeded (${org.apiUsed}/${quota}). Upgrade your plan to continue logging.`);
+  // Roll the usage window forward at the period boundary. Guarded on
+  // `usagePeriodStart` so only the first concurrent request performs the reset.
+  if (!org.usagePeriodStart || org.usagePeriodStart < periodStart) {
+    await prisma.organization.updateMany({
+      where: { id: organizationId, usagePeriodStart: { lt: periodStart } },
+      data: { apiUsed: 0, usagePeriodStart: periodStart },
+    });
   }
 
-  if (requestedCount > remaining) {
-    throw new Error(`Batch too large. Only ${remaining} logs remaining this month. Upgrade your plan to continue logging.`);
+  // Atomic check-and-increment: only succeeds while apiUsed + requestedCount
+  // stays within quota. count === 0 means the quota would be exceeded.
+  const reserved = await prisma.organization.updateMany({
+    where: { id: organizationId, apiUsed: { lte: quota - requestedCount } },
+    data: { apiUsed: { increment: requestedCount } },
+  });
+
+  if (reserved.count === 0) {
+    const current = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { apiUsed: true },
+    });
+    const used = current?.apiUsed ?? quota;
+    if (requestedCount > 1) {
+      const remaining = Math.max(0, quota - used);
+      throw new Error(`Batch too large. Only ${remaining} logs remaining this month. Upgrade your plan to continue logging.`);
+    }
+    throw new Error(`Monthly audit log quota exceeded (${used}/${quota}). Upgrade your plan to continue logging.`);
   }
 }
 
 export const auditService = {
   async submit(organizationId: string, data: SubmitAuditBody) {
-    await enforceQuota(organizationId, 1);
+    await reserveQuota(organizationId, 1);
 
     const evaluation = await evaluateComplianceRules(organizationId, data);
 
@@ -106,17 +136,11 @@ export const auditService = {
       }
     }
 
-    // Increment API usage
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { apiUsed: { increment: 1 } },
-    });
-
     return log;
   },
 
   async submitBatch(organizationId: string, entries: SubmitAuditBody[]) {
-    await enforceQuota(organizationId, entries.length);
+    await reserveQuota(organizationId, entries.length);
 
     const results: Array<{ id: string; action: string; complianceFlags: string[]; enforcementAction: string; createdAt: Date | string }> = [];
     let errors = 0;
@@ -161,12 +185,6 @@ export const auditService = {
     // Post-transaction: alerts + webhooks + emails (fire-and-forget, do NOT block)
     createBatchAlerts(organizationId, results).catch((err) => {
       logger.warn({ organizationId, error: err }, 'Batch alert creation failed');
-    });
-
-    // Increment usage
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { apiUsed: { increment: results.length } },
     });
 
     return { data: results, processed: results.length, errors };
@@ -555,14 +573,37 @@ async function checkRateLimit(
   return count > maxRequests;
 }
 
-function checkRegex(text: string, pattern: string): boolean {
-  if (!text || !pattern || pattern.length > 500) return false;
+const MAX_REGEX_PATTERN_LENGTH = 500;
+const REGEX_CACHE_LIMIT = 500;
+const regexCache = new Map<string, RE2 | null>();
+
+function compileRegex(pattern: string): RE2 | null {
+  const cached = regexCache.get(pattern);
+  if (cached !== undefined) return cached;
+
+  let compiled: RE2 | null;
   try {
-    const regex = new RegExp(pattern);
-    return regex.test(text);
+    // RE2 matches in linear time with no backtracking, so a malicious or
+    // accidental catastrophic pattern cannot stall the event loop (ReDoS).
+    compiled = new RE2(pattern);
   } catch {
-    return false;
+    // Unsupported syntax (backreferences, lookarounds, etc.) — safe-fail.
+    compiled = null;
   }
+
+  if (regexCache.size >= REGEX_CACHE_LIMIT) {
+    const oldest = regexCache.keys().next().value;
+    if (oldest !== undefined) regexCache.delete(oldest);
+  }
+  regexCache.set(pattern, compiled);
+  return compiled;
+}
+
+function checkRegex(text: string, pattern: string): boolean {
+  if (!text || !pattern || pattern.length > MAX_REGEX_PATTERN_LENGTH) return false;
+  const regex = compileRegex(pattern);
+  if (!regex) return false;
+  return regex.test(text);
 }
 
 async function createBatchAlerts(

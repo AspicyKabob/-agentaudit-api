@@ -1,36 +1,29 @@
 import { stripe, ensureStripeConfigured } from '../../utils/stripe';
-import Stripe from 'stripe';
 import { prisma } from '../../db/prisma';
 import { config } from '../../config';
 import { logger } from '../../utils/logger';
+import { getQuotaForPlan, getPlanForPriceId, isAllowedPriceId, getAllowedPriceIds, PlanTier } from './plans';
 
-const PLAN_QUOTAS: Record<string, number> = {
-  free: 5000,
-  pro: 50000,
-  business: 250000,
-  enterprise: 999999999,
-};
-
-function getQuotaForPlan(plan: string): number {
-  return PLAN_QUOTAS[plan] || PLAN_QUOTAS.free;
-}
-
-const VALID_PRICE_IDS = [
-  config.get('stripePricePro'),
-  config.get('stripePriceBusiness'),
-  config.get('stripePriceEnterprise'),
-  config.get('stripePriceFree'),
-].filter(Boolean);
-
-function isValidPriceId(priceId: string): boolean {
-  return typeof priceId === 'string' && priceId.startsWith('price_') && priceId.length > 10;
+/**
+ * Derive the plan tier from a Stripe subscription by mapping its active price
+ * ID through the shared priceId -> plan mapping. Returns null when no allowed
+ * price is present so callers can fall back to the existing plan.
+ */
+function planFromSubscription(subscription: any): PlanTier | null {
+  const priceId =
+    subscription?.items?.data?.[0]?.price?.id ??
+    subscription?.items?.data?.[0]?.plan?.id ??
+    subscription?.plan?.id ??
+    null;
+  return getPlanForPriceId(priceId);
 }
 
 export const subscriptionService = {
   async createCheckoutSession(organizationId: string, priceId: string, customerEmail: string) {
     ensureStripeConfigured();
-    if (!isValidPriceId(priceId)) {
-      throw new Error('Invalid price ID');
+    if (!isAllowedPriceId(priceId)) {
+      logger.warn({ organizationId, priceId, allowed: getAllowedPriceIds() }, 'Rejected checkout for unknown price ID');
+      throw new Error('Invalid or unknown price ID');
     }
 
     try {
@@ -114,17 +107,25 @@ export const subscriptionService = {
         break;
       }
 
+      case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as any;
         const org = await prisma.organization.findFirst({
           where: { stripeSubscriptionId: subscription.id },
         });
-        
+
         if (org) {
-          const newPlan = subscription.metadata?.plan || subscription.plan?.nickname || org.plan;
           const status = subscription.status;
-          
+
           if (status === 'active' || status === 'trialing') {
+            const mappedPlan = planFromSubscription(subscription);
+            if (!mappedPlan) {
+              logger.warn(
+                { organizationId: org.id, subscriptionId: subscription.id },
+                'Subscription price did not map to a known plan; leaving plan unchanged'
+              );
+            }
+            const newPlan = mappedPlan ?? org.plan;
             await prisma.organization.update({
               where: { id: org.id },
               data: {
