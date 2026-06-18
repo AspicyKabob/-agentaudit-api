@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="agentaudit-client",
     version="1.0.4",
-    description="Audit \u0026 Compliance SDK for AI Agents",
+    description="Audit & Compliance SDK for AI Agents",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="AgentAudit Team",
@@ -15,7 +15,8 @@ setup(
     ],
     extras_require={
         "langchain": ["langchain-core>=0.2.0"],
-        "dev": ["pytest>=7.0", "pytest-asyncio>=0.23.0", "black", "mypy", "agentaudit-client[langchain]"],
+        "openai": ["openai>=1.0.0"],
+        "dev": ["pytest>=7.0", "pytest-asyncio>=0.23.0", "black", "mypy", "agentaudit-client[langchain]", "agentaudit-client[openai]"],
     },
     python_requires=">=3.8",
     classifiers=[
@@ -29,5 +30,5 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
     ],
-    keywords="ai agents audit compliance langchain monitoring",
+    keywords="ai agents audit compliance langchain openai autogpt monitoring",
 )

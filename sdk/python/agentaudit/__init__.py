@@ -892,7 +892,7 @@ class AgentAuditAsync:
 # ---------------------------------------------------------------------------
 
 def __getattr__(name: str) -> Any:
-    """Lazy import so langchain-core is not loaded unless the user asks for it."""
+    """Lazy import so optional dependencies are not loaded unless requested."""
     if name == "AgentAuditCallbackHandler":
         from agentaudit.langchain import AgentAuditCallbackHandler
         return AgentAuditCallbackHandler
@@ -902,6 +902,21 @@ def __getattr__(name: str) -> Any:
     if name == "ComplianceViolation":
         from agentaudit.langchain import ComplianceViolation
         return ComplianceViolation
+    if name == "AgentAuditOpenAI":
+        from agentaudit.openai import AgentAuditOpenAI
+        return AgentAuditOpenAI
+    if name == "ComplianceViolationOpenAI":
+        from agentaudit.openai import ComplianceViolation
+        return ComplianceViolation
+    if name == "AgentAuditAutoGPT":
+        from agentaudit.autogpt import AgentAuditAutoGPT
+        return AgentAuditAutoGPT
+    if name == "AgentAuditAutoGPTTrace":
+        from agentaudit.autogpt import AgentAuditAutoGPTTrace
+        return AgentAuditAutoGPTTrace
+    if name == "ComplianceViolationAutoGPT":
+        from agentaudit.autogpt import ComplianceViolationAutoGPT
+        return ComplianceViolationAutoGPT
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

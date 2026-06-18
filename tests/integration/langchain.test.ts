@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { createApp } from '../../src/app';
+import { AgentAuditCallbackHandler } from 'agentaudit-client/langchain';
 
 const app = createApp();
 
@@ -206,5 +207,80 @@ describe('LangChain Integration', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.metadata.framework).toBe('langchain');
+  });
+
+  it('should exercise the TypeScript SDK AgentAuditCallbackHandler end-to-end', async () => {
+    mockedPrisma.apiKey.findUnique.mockResolvedValue({
+      id: 'key-langchain',
+      organizationId: 'org-1',
+      revokedAt: null,
+      organization: {
+        id: 'org-1',
+        name: 'Test Org',
+        email: 'test@example.com',
+        plan: 'free',
+        apiQuota: 1000,
+        apiUsed: 0,
+        notifyWebhook: false,
+        notifyEmail: false,
+      },
+    });
+    mockedPrisma.complianceRule.findMany.mockResolvedValueOnce([]);
+    mockedPrisma.auditLog.create.mockResolvedValueOnce({
+      id: 'log-langchain-sdk-1',
+      organizationId: 'org-1',
+      action: 'llm_start',
+      prompt: 'What is the weather?',
+      response: null,
+      metadata: { model: 'gpt-4o', event: 'llm_start' },
+      complianceFlags: [],
+      createdAt: new Date().toISOString(),
+    });
+    mockedPrisma.auditLog.create.mockResolvedValueOnce({
+      id: 'log-langchain-sdk-2',
+      organizationId: 'org-1',
+      action: 'llm_end',
+      prompt: null,
+      response: 'It is sunny.',
+      metadata: { tokenUsage: { promptTokens: 10, completionTokens: 5, totalTokens: 15 }, event: 'llm_end' },
+      complianceFlags: [],
+      createdAt: new Date().toISOString(),
+    });
+    mockedPrisma.organization.update.mockResolvedValueOnce({ id: 'org-1' });
+    mockedPrisma.alert.create.mockResolvedValueOnce({ id: 'alert-1', severity: 'critical' });
+
+    const handler = new AgentAuditCallbackHandler({
+      apiKey,
+      baseUrl: 'http://localhost:8080/api/v1',
+      agentId: 'agent-langchain',
+    }, { guard: false });
+
+    handler.client = {
+      log: async (payload: any) => {
+        const res = await request(app)
+          .post('/api/v1/audit-logs')
+          .set('X-API-Key', apiKey)
+          .send(payload);
+        return res.body;
+      },
+      guardrail: async () => ({ allowed: true, action: 'allow', violations: [], severity: 'warning' }),
+    } as any;
+
+    const langchainHandler = handler.asHandler();
+    await langchainHandler.handleLLMStart(
+      { kwargs: { model: 'gpt-4o' } },
+      ['What is the weather?'],
+      'run-1'
+    );
+    await langchainHandler.handleLLMEnd(
+      {
+        generations: [[{ text: 'It is sunny.' }]],
+        llmOutput: { tokenUsage: { input_tokens: 10, output_tokens: 5, total_tokens: 15 } },
+      },
+      'run-1'
+    );
+
+    expect(handler.trace_id).toBeDefined();
+    expect(handler.trace_id).toMatch(/^[0-9a-f-]{36}$/);
   });
 });

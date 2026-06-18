@@ -72,6 +72,63 @@ await llm.ainvoke("What is the weather?")
 print(handler.trace_id)
 ```
 
+## OpenAI Integration
+
+```bash
+pip install agentaudit-client[openai]
+```
+
+```python
+from agentaudit import AgentAuditOpenAI
+
+client = AgentAuditOpenAI(
+    openai_api_key="sk-...",
+    api_key="aa_your_key_here",
+    agent_id="uuid-of-your-agent",
+    guard=True,  # default
+)
+
+response = client.chat_completions_create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "What is the weather?"}]
+)
+# Automatically logged + guarded!
+print(client.trace_id)
+```
+
+## AutoGPT Integration
+
+```python
+from agentaudit import AgentAuditAutoGPT
+
+logger = AgentAuditAutoGPT(
+    api_key="aa_your_key_here",
+    agent_name="MyAutoGPT",
+    guard=True,
+)
+
+with logger.trace() as trace:
+    result = agent.run("Research topic X")
+    trace.log_action("run", prompt="Research topic X", response=result)
+
+print(trace.trace_id)
+```
+
+### Decorator
+
+```python
+from agentaudit import AgentAuditAutoGPT, ComplianceViolationAutoGPT
+
+@AgentAuditAutoGPT.guard(api_key="aa_your_key_here", agent_name="MyAutoGPT")
+def run_agent(task: str) -> str:
+    return agent.run(task)
+
+try:
+    result = run_agent("Research topic X")
+except ComplianceViolationAutoGPT as e:
+    print(f"Blocked: {e.violations}")
+```
+
 ## Features
 
 - **Simple logging**: One-line audit log submission

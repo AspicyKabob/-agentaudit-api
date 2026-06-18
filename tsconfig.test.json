@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "noEmit": true,
+    "paths": {
+      "agentaudit-client": ["./sdk/typescript/dist/index.d.ts"],
+      "agentaudit-client/langchain": ["./sdk/typescript/dist/langchain.d.ts"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
