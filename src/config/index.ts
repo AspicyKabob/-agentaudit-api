@@ -1,5 +1,18 @@
 import convict from 'convict';
 
+const DEFAULT_DATABASE_URL = 'postgresql://user:password@localhost:5432/agentaudit?schema=public';
+const ENV_EXAMPLE_DATABASE_URL = 'postgresql://postgres:postgres@localhost:5432/agentaudit?schema=public';
+const DEFAULT_JWT_SECRET = 'change-me-in-production-jwt-secret-min-32-chars-long';
+const ENV_EXAMPLE_JWT_SECRET = 'CHANGE_THIS_TO_64_CHARACTER_HEX_STRING';
+const DEFAULT_API_KEY_SALT = 'change-me-in-production-api-key-salt';
+const ENV_EXAMPLE_API_KEY_SALT = 'CHANGE_THIS_TO_32_CHARACTER_HEX_STRING';
+const DEFAULT_STRIPE_SECRET_KEY = 'sk_test_placeholder';
+const DEFAULT_STRIPE_WEBHOOK_SECRET = 'whsec_placeholder';
+const DEFAULT_STRIPE_PRICE_FREE = 'price_free';
+const DEFAULT_STRIPE_PRICE_PRO = 'price_pro';
+const DEFAULT_STRIPE_PRICE_BUSINESS = 'price_business';
+const DEFAULT_STRIPE_PRICE_ENTERPRISE = 'price_enterprise';
+
 export const config = convict({
   env: {
     doc: 'The application environment.',
@@ -16,13 +29,13 @@ export const config = convict({
   databaseUrl: {
     doc: 'PostgreSQL connection string.',
     format: String,
-    default: 'postgresql://user:password@localhost:5432/agentaudit?schema=public',
+    default: DEFAULT_DATABASE_URL,
     env: 'DATABASE_URL',
   },
   jwtSecret: {
     doc: 'Secret for JWT signing.',
     format: String,
-    default: 'change-me-in-production-jwt-secret-min-32-chars-long',
+    default: DEFAULT_JWT_SECRET,
     env: 'JWT_SECRET',
     sensitive: true,
   },
@@ -47,7 +60,7 @@ export const config = convict({
   stripeSecretKey: {
     doc: 'Stripe secret key.',
     format: String,
-    default: 'sk_test_placeholder',
+    default: DEFAULT_STRIPE_SECRET_KEY,
     env: 'STRIPE_SECRET_KEY',
     sensitive: true,
   },
@@ -60,38 +73,38 @@ export const config = convict({
   stripeWebhookSecret: {
     doc: 'Stripe webhook secret.',
     format: String,
-    default: 'whsec_placeholder',
+    default: DEFAULT_STRIPE_WEBHOOK_SECRET,
     env: 'STRIPE_WEBHOOK_SECRET',
     sensitive: true,
   },
   stripePriceFree: {
     doc: 'Stripe Price ID for Free plan.',
     format: String,
-    default: 'price_free',
+    default: DEFAULT_STRIPE_PRICE_FREE,
     env: 'STRIPE_PRICE_FREE',
   },
   stripePricePro: {
     doc: 'Stripe Price ID for Pro plan.',
     format: String,
-    default: 'price_pro',
+    default: DEFAULT_STRIPE_PRICE_PRO,
     env: 'STRIPE_PRICE_PRO',
   },
   stripePriceBusiness: {
     doc: 'Stripe Price ID for Business plan.',
     format: String,
-    default: 'price_business',
+    default: DEFAULT_STRIPE_PRICE_BUSINESS,
     env: 'STRIPE_PRICE_BUSINESS',
   },
   stripePriceEnterprise: {
     doc: 'Stripe Price ID for Enterprise plan.',
     format: String,
-    default: 'price_enterprise',
+    default: DEFAULT_STRIPE_PRICE_ENTERPRISE,
     env: 'STRIPE_PRICE_ENTERPRISE',
   },
   apiKeySalt: {
     doc: 'Salt for API key hashing.',
     format: String,
-    default: 'change-me-in-production-api-key-salt',
+    default: DEFAULT_API_KEY_SALT,
     env: 'API_KEY_SALT',
     sensitive: true,
   },
@@ -130,39 +143,45 @@ export const config = convict({
 
 config.validate({ allowed: 'strict' });
 
-function isPlaceholder(value: string, placeholders: string[]): boolean {
-  return placeholders.includes(value) || value.toLowerCase().includes('placeholder');
+export function isPlaceholder(value: string, placeholders: string[]): boolean {
+  const normalized = value.toLowerCase();
+  return value.trim() === ''
+    || placeholders.includes(value)
+    || normalized.includes('placeholder')
+    || normalized.includes('change_this')
+    || normalized.includes('change-me');
 }
 
-function assertProductionConfig(): void {
+export function validateProductionConfig(): void {
   if (config.get('env') !== 'production') return;
 
   const unsafeValues: string[] = [];
 
   const databaseUrl = config.get('databaseUrl');
-  if (databaseUrl === 'postgresql://user:password@localhost:5432/agentaudit?schema=public') {
+  if (isPlaceholder(databaseUrl, [DEFAULT_DATABASE_URL, ENV_EXAMPLE_DATABASE_URL])) {
     unsafeValues.push('DATABASE_URL');
   }
 
   const jwtSecret = config.get('jwtSecret');
-  if (isPlaceholder(jwtSecret, ['change-me-in-production-jwt-secret-min-32-chars-long'])) {
+  if (isPlaceholder(jwtSecret, [DEFAULT_JWT_SECRET, ENV_EXAMPLE_JWT_SECRET])) {
     unsafeValues.push('JWT_SECRET');
   }
 
   const apiKeySalt = config.get('apiKeySalt');
-  if (isPlaceholder(apiKeySalt, ['change-me-in-production-api-key-salt'])) {
+  if (isPlaceholder(apiKeySalt, [DEFAULT_API_KEY_SALT, ENV_EXAMPLE_API_KEY_SALT])) {
     unsafeValues.push('API_KEY_SALT');
   }
 
   const stripeSecretKey = config.get('stripeSecretKey');
-  const billingEnabled = stripeSecretKey !== '' && !isPlaceholder(stripeSecretKey, ['sk_test_placeholder']);
+  const billingEnabled = !isPlaceholder(stripeSecretKey, [DEFAULT_STRIPE_SECRET_KEY]);
 
   if (billingEnabled) {
     const stripeFields: Array<[string, string, string[]]> = [
-      ['STRIPE_WEBHOOK_SECRET', config.get('stripeWebhookSecret'), ['whsec_placeholder']],
-      ['STRIPE_PRICE_PRO', config.get('stripePricePro'), ['price_pro']],
-      ['STRIPE_PRICE_BUSINESS', config.get('stripePriceBusiness'), ['price_business']],
-      ['STRIPE_PRICE_ENTERPRISE', config.get('stripePriceEnterprise'), ['price_enterprise']],
+      ['STRIPE_WEBHOOK_SECRET', config.get('stripeWebhookSecret'), [DEFAULT_STRIPE_WEBHOOK_SECRET]],
+      ['STRIPE_PRICE_FREE', config.get('stripePriceFree'), [DEFAULT_STRIPE_PRICE_FREE]],
+      ['STRIPE_PRICE_PRO', config.get('stripePricePro'), [DEFAULT_STRIPE_PRICE_PRO]],
+      ['STRIPE_PRICE_BUSINESS', config.get('stripePriceBusiness'), [DEFAULT_STRIPE_PRICE_BUSINESS]],
+      ['STRIPE_PRICE_ENTERPRISE', config.get('stripePriceEnterprise'), [DEFAULT_STRIPE_PRICE_ENTERPRISE]],
     ];
 
     for (const [name, value, placeholders] of stripeFields) {
@@ -176,7 +195,5 @@ function assertProductionConfig(): void {
     throw new Error(`Unsafe production configuration: ${unsafeValues.join(', ')} must be set to non-placeholder values`);
   }
 }
-
-assertProductionConfig();
 
 export type Config = typeof config;

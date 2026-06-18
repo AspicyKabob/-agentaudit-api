@@ -1,12 +1,14 @@
 import 'dotenv/config';
 import { createApp } from './app';
-import { config } from './config';
+import { config, validateProductionConfig } from './config';
 import { logger } from './utils/logger';
 import { prisma } from './db/prisma';
 import { initRateLimiters } from './middleware/rateLimit.middleware';
 import { closeRedis } from './utils/redis';
 
 async function bootstrap() {
+  validateProductionConfig();
+
   await initRateLimiters();
 
   const app = createApp();
