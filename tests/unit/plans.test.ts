@@ -1,3 +1,5 @@
+export {};
+
 const ORIGINAL_ENV = process.env;
 
 function loadPlansModule(): typeof import('../../src/domains/billing/plans') {

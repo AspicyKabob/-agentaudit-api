@@ -1,3 +1,5 @@
+export {};
+
 jest.mock('../../src/db/prisma', () => ({
   __esModule: true,
   prisma: {
