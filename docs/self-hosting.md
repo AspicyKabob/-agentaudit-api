@@ -246,14 +246,14 @@ Response:
 
 Self-hosted instances support the same drop-in integrations as the managed service:
 
-| Framework | Pattern | File |
-|-----------|---------|------|
-| **CrewAI** | Observer callback | `integrations/crewai/agentaudit_observer.py` |
-| **LangChain** | Callback handler | `integrations/langchain/agentaudit_callback.py` |
-| **AutoGPT** | Decorator + context manager | `integrations/autogpt/__init__.py` |
-| **OpenAI** | Wrapped client | `integrations/openai/agentaudit_openai.py` |
+| Framework | Pattern | Import |
+|-----------|---------|--------|
+| **CrewAI** | Observer callback | `from agentaudit import AgentAuditObserver` |
+| **LangChain** | Callback handler | `from agentaudit import AgentAuditCallbackHandler` |
+| **AutoGPT** | Decorator + context manager | `from agentaudit import AgentAuditAutoGPT` |
+| **OpenAI** | Wrapped client | `from agentaudit import AgentAuditOpenAI` |
 
-All integrations share the same `BaseIntegration` class with circuit breakers, retry with exponential backoff, batch buffering, telemetry hooks, and `fail_open` / `fail_closed` configuration. Set the `AGENTAUDIT_BASE_URL` environment variable (or pass `base_url` to the SDK) to point to your self-hosted instance:
+All integrations ship in the `agentaudit-client` Python SDK and wrap the same retrying `AgentAudit` client. Pass `base_url` to the SDK (or set the `AGENTAUDIT_BASE_URL` environment variable) to point to your self-hosted instance:
 
 ```python
 from agentaudit import AgentAudit
@@ -282,15 +282,17 @@ const audit = new AgentAudit({
 Billing is **optional** for self-hosting. To enable:
 
 1. Create a [Stripe](https://stripe.com) account.
-2. Create products and prices for Pro, Business, and Enterprise tiers.
-3. Copy the price IDs into `.env`:
+2. Create products and prices for the Free ($0 recurring), Pro, and Business tiers. Enterprise is contact-sales — create a price for it only if you want self-serve enterprise checkout.
+3. Copy the price IDs into `.env` (the self-serve IDs below are required once `STRIPE_SECRET_KEY` is set; `STRIPE_PRICE_ENTERPRISE` is optional):
    ```
    STRIPE_SECRET_KEY=sk_live_...
    STRIPE_PUBLISHABLE_KEY=pk_live_...
    STRIPE_WEBHOOK_SECRET=whsec_...
+   STRIPE_PRICE_FREE=price_...
    STRIPE_PRICE_PRO=price_...
    STRIPE_PRICE_BUSINESS=price_...
-   STRIPE_PRICE_ENTERPRISE=price_...
+   # Optional (contact-sales tier):
+   # STRIPE_PRICE_ENTERPRISE=price_...
    ```
 4. Create a Stripe webhook endpoint pointing to `https://your-domain/api/v1/billing/webhook`.
 5. Restart the API.

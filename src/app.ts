@@ -12,6 +12,7 @@ import reportRoutes from './domains/reports/report.routes';
 import alertRoutes from './domains/alerts/alert.routes';
 import billingRoutes from './domains/billing/billing.routes';
 import { errorHandler } from './middleware/error.middleware';
+import { requestId } from './middleware/requestId.middleware';
 import { logger } from './utils/logger';
 import { swaggerSpec, swaggerUiHandler, swaggerUiSetup } from './utils/swagger';
 import { authLimiter, generalLimiter } from './middleware/rateLimit.middleware';
@@ -21,6 +22,7 @@ export function createApp() {
   const app = express();
 
   app.set('trust proxy', 1);
+  app.use(requestId);
   app.use(helmet());
 
   const corsOrigin = config.get('env') === 'production'
@@ -95,8 +97,8 @@ export function createApp() {
   app.use('/api/v1/billing', billingRoutes);
 
   // Catch-all — 404 JSON response for unmatched API routes
-  app.use('/api/v1/*', (_req, res) => {
-    res.status(404).json({ error: 'Not found' });
+  app.use('/api/v1/*', (req, res) => {
+    res.status(404).json({ error: 'Not found', code: 'not_found', ...(req.id && { requestId: req.id }) });
   });
 
   // MCP schema
@@ -127,9 +129,9 @@ export function createApp() {
   app.use(express.static(websitePath, { index: ['index.html'] }));
 
   // General catch-all — 404 JSON response for unmatched routes
-  app.use((_req, res) => {
+  app.use((req, res) => {
     if (!res.headersSent) {
-      res.status(404).json({ error: 'Not found' });
+      res.status(404).json({ error: 'Not found', code: 'not_found', ...(req.id && { requestId: req.id }) });
     }
   });
 

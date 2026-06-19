@@ -5,9 +5,11 @@ import { logger } from './utils/logger';
 import { prisma } from './db/prisma';
 import { initRateLimiters } from './middleware/rateLimit.middleware';
 import { closeRedis } from './utils/redis';
+import { initObservability } from './utils/observability';
 
 async function bootstrap() {
   validateProductionConfig();
+  initObservability();
 
   await initRateLimiters();
 

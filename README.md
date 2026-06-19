@@ -16,6 +16,11 @@
 
 ---
 
+> ### Project status: public beta
+> AgentAudit is under active development and is a great fit for evaluation, demos, and non-critical workloads. It is **not yet independently security-certified** (no SOC 2 / HIPAA attestation) — the path to enterprise readiness is tracked in [ROADMAP.md](ROADMAP.md). If you plan to run it against regulated production data, self-host and review [the launch checklist](BEFORELAUNCH.md) first.
+
+---
+
 ## Why AgentAudit?
 
 Most AI compliance tools **log violations after they happen**. AgentAudit **blocks them in real-time** — before your agent's output ever reaches a user.
@@ -158,6 +163,47 @@ npx prisma generate
 npm run dev
 # API available at http://localhost:8080
 ```
+
+### 5. Your first guarded request
+
+With the server running, this copy/paste flow signs up, mints an API key, adds a rule that **blocks** SSNs, then submits a response that leaks one. A fresh organization has no rules yet (so everything is allowed) — the rule you create is what turns the leak into `enforcementAction: "block"`. Requires `jq`.
+
+```bash
+BASE=http://localhost:8080
+
+# Register an organization (first user becomes the org owner)
+curl -s -X POST "$BASE/api/v1/auth/register" -H 'Content-Type: application/json' \
+  -d '{"name":"Acme","email":"you@acme.com","password":"SecurePass123"}' > /dev/null
+
+# Log in and capture the dashboard JWT
+TOKEN=$(curl -s -X POST "$BASE/api/v1/auth/login" -H 'Content-Type: application/json' \
+  -d '{"email":"you@acme.com","password":"SecurePass123"}' | jq -r .accessToken)
+
+# Mint an agent-facing API key (shown only once)
+API_KEY=$(curl -s -X POST "$BASE/api/v1/auth/api-keys" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"name":"Quickstart Key"}' | jq -r .key)
+
+# Add a rule that blocks Social Security Numbers
+curl -s -X POST "$BASE/api/v1/compliance-rules" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Block SSNs","ruleType":"pii_detect","condition":{"patterns":["ssn"]},"severity":"critical","actionOverride":"block"}' > /dev/null
+
+# Submit a response that leaks PII — watch it get blocked
+curl -s -X POST "$BASE/api/v1/audit-logs" -H "X-API-Key: $API_KEY" \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"prompt_submitted","prompt":"What is my account info?","response":"Your SSN is 123-45-6789"}' \
+  | jq '{enforcementAction, complianceFlags}'
+# => { "enforcementAction": "block", "complianceFlags": ["CRITICAL_pii_detect_Block SSNs"] }
+```
+
+Prefer one line? Install a pre-built rule pack instead of crafting rules by hand (packs *flag* by default; set `actionOverride` on a rule to block):
+
+```bash
+curl -s -X POST "$BASE/api/v1/compliance-rules/packs" -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' -d '{"packId":"hippo"}'   # HIPAA: SSN, phone, email
+```
+
+Your SDK turns `enforcementAction: "block"` into "do not deliver this output." See [SDKs](#-sdks) for the one-line client equivalent.
 
 ### Deploy to Railway (One-Click)
 
@@ -381,9 +427,13 @@ except ComplianceViolationAutoGPT as e:
 
 ## CrewAI Integration
 
+```bash
+pip install agentaudit-client crewai
+```
+
 ```python
 from crewai import Crew, Agent, Task
-from agentaudit_crewai import AgentAuditObserver
+from agentaudit import AgentAuditObserver
 
 observer = AgentAuditObserver(
     api_key="aa_your_key_here",
@@ -645,8 +695,15 @@ See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering:
 | `LOG_LEVEL` | Logging level | `info` |
 | `RESEND_API_KEY` | Resend API key for transactional email | — |
 | `RESEND_FROM_EMAIL` | Default from address for emails | `AgentAudit <noreply@agentaudit.io>` |
-| `STRIPE_SECRET_KEY` | Stripe secret (for billing) | — |
+| `FRONTEND_URL` | Used for Stripe redirects, email links, and production CORS | `http://localhost:8080` |
+| `STRIPE_SECRET_KEY` | Stripe secret (enables billing when set) | — |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
+| `STRIPE_PRICE_FREE` / `_PRO` / `_BUSINESS` | Self-serve Stripe Price IDs (required when billing is enabled) | — |
+| `STRIPE_PRICE_ENTERPRISE` | Enterprise Price ID — **optional** (Enterprise is a contact-sales tier; leave unset to disable self-serve enterprise checkout) | — |
+| `REDIS_URL` / `REDIS_ENABLED` | Redis for distributed rate limiting (falls back to Postgres) | — / `false` |
+| `SENTRY_DSN` | Error tracking (no-op when empty) | — |
+
+> When `STRIPE_SECRET_KEY` is set, billing is enabled and the **self-serve** price IDs (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`) plus `STRIPE_WEBHOOK_SECRET` must be real values, or the server refuses to boot. `STRIPE_PRICE_ENTERPRISE` is optional — Enterprise is contact-sales, so an unset/placeholder value is simply excluded from the checkout allowlist.
 
 ---
 
@@ -695,15 +752,18 @@ git push origin feature/my-feature
 ## Security
 
 ### Core Protections
-- **API Keys**: Hashed with bcrypt (12 rounds) + per-key salts. Never stored in plaintext.
+- **Passwords**: Hashed with bcrypt (12 rounds).
+- **API Keys**: Stored as HMAC-SHA256 digests keyed by a server-side salt (`API_KEY_SALT`); the raw key is shown once and never persisted in plaintext.
 - **JWT Tokens**: Configurable expiration (default: 15m access, 7d refresh).
 - **Rate Limiting**:
   - Auth endpoints: 5 requests/15 minutes (IP-based).
   - Audit endpoints: 2000 requests/15 minutes (API-key-based).
   - **Webhooks**: Exempt from rate limiting to prevent payment event loss.
 - **Input Validation**: Zod schemas for all API endpoints.
-- **Regex Patterns**: Limited to 500 chars (ReDoS protection).
-- **JSON Payloads**: Limited to 100KB to prevent memory exhaustion.
+- **Regex Rules**: Evaluated with the RE2 linear-time engine (no catastrophic backtracking), with a 500-char pattern cap — ReDoS-immune.
+- **Webhook SSRF Protection**: Customer webhook URLs must be HTTPS and are blocked from targeting localhost, private/reserved IPs, and cloud metadata endpoints; delivery re-resolves DNS and pins the socket to the vetted IP (anti-rebinding).
+- **JSON Payloads**: Limited to 10MB to prevent memory exhaustion.
+- **Error Responses**: 5xx errors return a generic message with a correlation `requestId` (echoed as the `X-Request-Id` header) — internal details never leak to clients.
 
 ### Custom Validators
 - **Sandbox**: Runs in a V8 isolate (`isolated-vm`) with:
@@ -713,19 +773,18 @@ git push origin feature/my-feature
 - **Safe-Fail**: Any error (syntax, runtime, timeout) returns `false`.
 
 ### CORS
-- **Development**: Allows only `localhost`/`127.0.0.1` origins.
-- **Production**: Validates `origin` against an allowlist (includes `frontendUrl`).
-- **Credentials**: Enabled only for trusted origins.
+- **Development**: Reflects any request origin (permissive, for local tooling).
+- **Production**: Restricted to `FRONTEND_URL`; cross-origin requests are rejected when it is unset.
+- **Credentials**: Enabled (`Access-Control-Allow-Credentials: true`).
 
 ### Audit Logs
-- **Batch Size**: Configurable via `MAX_BATCH_SIZE` (default: 500 entries).
-- **Quotas**: Enforced per-organization (5,000–250,000 entries/month).
+- **Batch Size**: Up to 100 entries per `POST /api/v1/audit-logs/batch` request.
+- **Quotas**: Enforced per-organization, reset each calendar month: Free 5,000 · Pro 50,000 · Business 250,000 · Enterprise unlimited.
 
 ### Self-Hosting Upgrade Notes
 - **Breaking**: Custom validators now require `isolated-vm` (install via `npm install isolated-vm`).
 - **Configuration**:
-  - `MAX_BATCH_SIZE`: Set via environment variable (e.g., `MAX_BATCH_SIZE=1000`).
-  - `API_KEY_SALT`: No longer used (bcrypt generates salts automatically).
+  - `API_KEY_SALT`: Required — used to key the HMAC that hashes API keys. Rotating it invalidates all existing API keys.
 - **Rate Limiting**: Audit endpoints now use API-key-based limits (not IP-based).
 
 Report security issues privately to: security@agentaudit.dev

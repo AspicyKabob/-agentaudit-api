@@ -21,7 +21,7 @@ Base URL: `http://localhost:8080`
 curl http://localhost:8080/health
 ```
 
-Expected: `{"status":"ok","service":"agentaudit-api","version":"1.0.0"}`
+Expected: `200` with `{ status: "ok", service: "agentaudit-api", version: "1.1.0-trace", commit, dependencies: { database, redis } }`. Returns `503` / `"degraded"` if the database is unreachable.
 
 ---
 
@@ -192,20 +192,31 @@ curl "http://localhost:8080/api/v1/audit-logs/export?format=csv" \
 
 ## 7. Compliance Rules
 
-### Create PII Rule
+### Create PII Rule (blocks SSNs)
 ```bash
 curl -X POST http://localhost:8080/api/v1/compliance-rules \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Detect Emails",
-    "ruleType": "pii",
-    "condition": { "type": "email" },
-    "severity": "warning"
+    "name": "Block SSNs",
+    "ruleType": "pii_detect",
+    "condition": { "patterns": ["ssn"] },
+    "severity": "critical",
+    "actionOverride": "block"
   }'
 ```
 
-Expected: `201`. Save `id` as `$RULE_ID`.
+Expected: `201`. Save `id` as `$RULE_ID`. Valid `ruleType` values: `pii_detect`, `keyword_match`, `rate_limit`, `regex_match`, `sentiment_analysis`, `custom_validator`.
+
+### Verify the rule blocks PII
+```bash
+curl -X POST http://localhost:8080/api/v1/audit-logs \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"action":"prompt_submitted","prompt":"account?","response":"Your SSN is 123-45-6789"}'
+```
+
+Expected: `201` with `"enforcementAction": "block"` and `"complianceFlags": ["CRITICAL_pii_detect_Block SSNs"]`.
 
 ### List Rules
 ```bash
