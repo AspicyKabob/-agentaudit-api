@@ -1,6 +1,7 @@
 import { prisma } from '../../db/prisma';
 import { logger } from '../../utils/logger';
 import { safePostJson, validateWebhookUrl } from '../../utils/ssrf';
+import { captureException } from '../../utils/observability';
 
 interface ListFilters {
   isResolved?: boolean;
@@ -81,9 +82,18 @@ export const alertService = {
       };
 
       const { statusCode } = await safePostJson(org.webhookUrl, payload, 5000);
+      if (statusCode >= 400) {
+        logger.warn({ alertId: alert.id, statusCode }, 'Webhook delivery returned error status');
+        captureException(new Error(`Webhook responded with ${statusCode}`), {
+          alertId: alert.id,
+          organizationId: alert.organizationId,
+        });
+        return;
+      }
       logger.info({ alertId: alert.id, statusCode }, 'Webhook delivered');
     } catch (err) {
       logger.warn({ alertId: alert.id, error: (err as Error).message }, 'Webhook delivery failed');
+      captureException(err, { alertId: alert.id, organizationId: alert.organizationId });
     }
   },
 };

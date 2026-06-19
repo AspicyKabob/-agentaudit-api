@@ -139,6 +139,13 @@ export const config = convict({
     default: false,
     env: 'REDIS_ENABLED',
   },
+  sentryDsn: {
+    doc: 'Sentry DSN for error tracking. Leave empty to disable.',
+    format: String,
+    default: '',
+    env: 'SENTRY_DSN',
+    sensitive: true,
+  },
 });
 
 config.validate({ allowed: 'strict' });
