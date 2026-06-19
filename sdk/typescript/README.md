@@ -94,17 +94,7 @@ console.log(chain.root);       // crew_start
 console.log(chain.descendants); // [task_start, task_end, agent_action, ...]
 ```
 
-### CrewAI Integration
-
-The [CrewAI observer](../../integrations/crewai/) automatically manages trace IDs and parent span IDs:
-
-```typescript
-import { AgentAuditObserver } from 'agentaudit-client/crewai';
-
-const observer = new AgentAuditObserver({ apiKey: 'aa_key', crewName: 'My Crew' });
-// trace_id is generated automatically in on_crew_start
-// every event shares the same traceId with proper parentSpanId linking
-```
+> **CrewAI** is a Python framework — its AgentAudit observer ships in the [Python SDK](https://pypi.org/project/agentaudit-client/) (`from agentaudit import AgentAuditObserver`), not this TypeScript package.
 
 ## License
 

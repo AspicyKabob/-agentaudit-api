@@ -42,9 +42,12 @@ In Railway Dashboard → Settings → Variables, add:
 | `STRIPE_SECRET_KEY` | `sk_live_...` | [Stripe Dashboard](https://dashboard.stripe.com/apikeys) |
 | `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | Stripe Dashboard |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe CLI or Dashboard |
+| `STRIPE_PRICE_FREE` | `price_...` | Create a $0 recurring price in Stripe Products |
 | `STRIPE_PRICE_PRO` | `price_...` | Create in Stripe Products |
 | `STRIPE_PRICE_BUSINESS` | `price_...` | Create in Stripe Products |
 | `STRIPE_PRICE_ENTERPRISE` | `price_...` | Create in Stripe Products |
+
+> If `STRIPE_SECRET_KEY` is set, billing is enabled and **all four** `STRIPE_PRICE_*` IDs plus `STRIPE_WEBHOOK_SECRET` must be real `price_…`/`whsec_…` values. Leaving any as a placeholder makes the server exit on boot and `/health` will never pass.
 
 ## Step 5: Deploy
 

@@ -935,6 +935,12 @@ def __getattr__(name: str) -> Any:
     if name == "ComplianceViolationAutoGPT":
         from agentaudit.autogpt import ComplianceViolationAutoGPT
         return ComplianceViolationAutoGPT
+    if name == "AgentAuditObserver":
+        from agentaudit.crewai import AgentAuditObserver
+        return AgentAuditObserver
+    if name == "ComplianceViolationCrewAI":
+        from agentaudit.crewai import ComplianceViolationCrewAI
+        return ComplianceViolationCrewAI
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

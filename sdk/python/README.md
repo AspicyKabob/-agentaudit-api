@@ -173,10 +173,10 @@ audit.log(
 
 ### CrewAI Integration
 
-The [CrewAI observer](../../integrations/crewai/) automatically manages trace IDs and parent span IDs:
+The CrewAI observer (`agentaudit.crewai`) automatically manages trace IDs and parent span IDs:
 
 ```python
-from agentaudit_crewai import AgentAuditObserver
+from agentaudit import AgentAuditObserver
 
 observer = AgentAuditObserver(api_key="aa_key", crew_name="My Crew")
 # trace_id is generated automatically in on_crew_start

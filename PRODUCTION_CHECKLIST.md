@@ -31,14 +31,17 @@ git push -u origin main
 | `STRIPE_SECRET_KEY` | `sk_live_...` | 🔲 Get from Stripe |
 | `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | 🔲 Get from Stripe |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | 🔲 After Stripe setup |
+| `STRIPE_PRICE_FREE` | `price_...` | 🔲 Create in Stripe ($0 price) |
 | `STRIPE_PRICE_PRO` | `price_...` | 🔲 Create in Stripe |
 | `STRIPE_PRICE_BUSINESS` | `price_...` | 🔲 Create in Stripe |
 | `STRIPE_PRICE_ENTERPRISE` | `price_...` | 🔲 Create in Stripe |
 
+> Enabling billing (`STRIPE_SECRET_KEY` set) requires **all four** `STRIPE_PRICE_*` IDs plus `STRIPE_WEBHOOK_SECRET`. Missing or placeholder values make the server refuse to boot, so `/health` will fail.
+
 ### 5. Stripe Setup (~5 min)
 1. Create account at https://dashboard.stripe.com/register
-2. Create products + recurring prices for Pro ($99), Business ($499), Enterprise (custom)
-3. Copy Price IDs to env vars
+2. Create products + recurring prices for Free ($0), Pro ($99), Business ($499), Enterprise (custom)
+3. Copy all four Price IDs to env vars (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`, `_ENTERPRISE`)
 4. Create webhook endpoint: `https://YOUR_URL/api/v1/billing/webhook`
 5. Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
 
