@@ -34,14 +34,14 @@ git push -u origin main
 | `STRIPE_PRICE_FREE` | `price_...` | 🔲 Create in Stripe ($0 price) |
 | `STRIPE_PRICE_PRO` | `price_...` | 🔲 Create in Stripe |
 | `STRIPE_PRICE_BUSINESS` | `price_...` | 🔲 Create in Stripe |
-| `STRIPE_PRICE_ENTERPRISE` | `price_...` | 🔲 Create in Stripe |
+| `STRIPE_PRICE_ENTERPRISE` | `price_...` | ⬜ Optional (contact-sales tier) |
 
-> Enabling billing (`STRIPE_SECRET_KEY` set) requires **all four** `STRIPE_PRICE_*` IDs plus `STRIPE_WEBHOOK_SECRET`. Missing or placeholder values make the server refuse to boot, so `/health` will fail.
+> Enabling billing (`STRIPE_SECRET_KEY` set) requires the **self-serve** price IDs (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`) plus `STRIPE_WEBHOOK_SECRET`. Missing or placeholder values for those make the server refuse to boot, so `/health` will fail. `STRIPE_PRICE_ENTERPRISE` is **optional** — Enterprise is contact-sales, so leaving it unset (or as a placeholder) just disables self-serve enterprise checkout.
 
 ### 5. Stripe Setup (~5 min)
 1. Create account at https://dashboard.stripe.com/register
-2. Create products + recurring prices for Free ($0), Pro ($99), Business ($499), Enterprise (custom)
-3. Copy all four Price IDs to env vars (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`, `_ENTERPRISE`)
+2. Create products + recurring prices for Free ($0), Pro ($99), Business ($499). Enterprise is contact-sales — create its price only if/when you offer self-serve enterprise checkout.
+3. Copy the self-serve Price IDs to env vars (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`); set `STRIPE_PRICE_ENTERPRISE` only if you created one.
 4. Create webhook endpoint: `https://YOUR_URL/api/v1/billing/webhook`
 5. Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
 

@@ -698,11 +698,12 @@ See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering:
 | `FRONTEND_URL` | Used for Stripe redirects, email links, and production CORS | `http://localhost:8080` |
 | `STRIPE_SECRET_KEY` | Stripe secret (enables billing when set) | — |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |
-| `STRIPE_PRICE_FREE` / `_PRO` / `_BUSINESS` / `_ENTERPRISE` | Stripe Price IDs per tier (all required when billing is enabled) | — |
+| `STRIPE_PRICE_FREE` / `_PRO` / `_BUSINESS` | Self-serve Stripe Price IDs (required when billing is enabled) | — |
+| `STRIPE_PRICE_ENTERPRISE` | Enterprise Price ID — **optional** (Enterprise is a contact-sales tier; leave unset to disable self-serve enterprise checkout) | — |
 | `REDIS_URL` / `REDIS_ENABLED` | Redis for distributed rate limiting (falls back to Postgres) | — / `false` |
 | `SENTRY_DSN` | Error tracking (no-op when empty) | — |
 
-> When `STRIPE_SECRET_KEY` is set, billing is considered enabled and **all four** `STRIPE_PRICE_*` IDs plus `STRIPE_WEBHOOK_SECRET` must be real values, or the server refuses to boot.
+> When `STRIPE_SECRET_KEY` is set, billing is enabled and the **self-serve** price IDs (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`) plus `STRIPE_WEBHOOK_SECRET` must be real values, or the server refuses to boot. `STRIPE_PRICE_ENTERPRISE` is optional — Enterprise is contact-sales, so an unset/placeholder value is simply excluded from the checkout allowlist.
 
 ---
 

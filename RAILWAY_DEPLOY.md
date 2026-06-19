@@ -45,9 +45,9 @@ In Railway Dashboard → Settings → Variables, add:
 | `STRIPE_PRICE_FREE` | `price_...` | Create a $0 recurring price in Stripe Products |
 | `STRIPE_PRICE_PRO` | `price_...` | Create in Stripe Products |
 | `STRIPE_PRICE_BUSINESS` | `price_...` | Create in Stripe Products |
-| `STRIPE_PRICE_ENTERPRISE` | `price_...` | Create in Stripe Products |
+| `STRIPE_PRICE_ENTERPRISE` | `price_...` | Optional — contact-sales tier |
 
-> If `STRIPE_SECRET_KEY` is set, billing is enabled and **all four** `STRIPE_PRICE_*` IDs plus `STRIPE_WEBHOOK_SECRET` must be real `price_…`/`whsec_…` values. Leaving any as a placeholder makes the server exit on boot and `/health` will never pass.
+> If `STRIPE_SECRET_KEY` is set, billing is enabled and the **self-serve** price IDs (`STRIPE_PRICE_FREE`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_BUSINESS`) plus `STRIPE_WEBHOOK_SECRET` must be real `price_…`/`whsec_…` values. Leaving any of *those* as a placeholder makes the server exit on boot and `/health` will never pass. `STRIPE_PRICE_ENTERPRISE` is optional — Enterprise is contact-sales, so an unset/placeholder value is fine and just disables self-serve enterprise checkout.
 
 ## Step 5: Deploy
 

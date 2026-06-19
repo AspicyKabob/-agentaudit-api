@@ -1,4 +1,4 @@
-import { config } from '../../config';
+import { config, isPlaceholder, STRIPE_PRICE_PLACEHOLDERS } from '../../config';
 
 export type PlanTier = 'free' | 'pro' | 'business' | 'enterprise';
 
@@ -31,13 +31,15 @@ const PRICE_CONFIG_BY_PLAN: Record<PlanTier, PriceConfigKey> = {
 /**
  * Single source of truth mapping each configured Stripe price ID to its plan
  * tier. Built from the runtime config so checkout (allowlist) and the webhook
- * (plan assignment) stay in sync. Empty/unset price IDs are excluded.
+ * (plan assignment) stay in sync. Empty/unset and still-placeholder price IDs
+ * are excluded — notably the optional contact-sales enterprise tier, whose
+ * price ID may legitimately be left unset.
  */
 export function getPricePlanMap(): Map<string, PlanTier> {
   const map = new Map<string, PlanTier>();
   for (const tier of PLAN_TIERS) {
     const priceId = config.get(PRICE_CONFIG_BY_PLAN[tier]);
-    if (typeof priceId === 'string' && priceId.trim() !== '') {
+    if (typeof priceId === 'string' && priceId.trim() !== '' && !isPlaceholder(priceId, STRIPE_PRICE_PLACEHOLDERS)) {
       map.set(priceId, tier);
     }
   }

@@ -44,7 +44,7 @@ describe('validateProductionConfig', () => {
     expect(() => validateProductionConfig()).not.toThrow();
   });
 
-  it('rejects placeholder Stripe fields when billing is enabled', () => {
+  it('rejects placeholder self-serve Stripe fields when billing is enabled', () => {
     process.env.NODE_ENV = 'production';
     process.env.DATABASE_URL = 'postgresql://prod:pass@db:5432/agentaudit?schema=public';
     process.env.JWT_SECRET = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -59,8 +59,25 @@ describe('validateProductionConfig', () => {
     const { validateProductionConfig } = loadConfigModule();
 
     expect(() => validateProductionConfig()).toThrow(
-      /STRIPE_WEBHOOK_SECRET.*STRIPE_PRICE_FREE.*STRIPE_PRICE_PRO.*STRIPE_PRICE_BUSINESS.*STRIPE_PRICE_ENTERPRISE/
+      /STRIPE_WEBHOOK_SECRET.*STRIPE_PRICE_FREE.*STRIPE_PRICE_PRO.*STRIPE_PRICE_BUSINESS/
     );
+  });
+
+  it('does not require the enterprise price (contact-sales tier) when billing is enabled', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://prod:pass@db:5432/agentaudit?schema=public';
+    process.env.JWT_SECRET = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    process.env.API_KEY_SALT = '0123456789abcdef0123456789abcdef';
+    process.env.STRIPE_SECRET_KEY = 'sk_live_1234567890';
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_real_value';
+    process.env.STRIPE_PRICE_FREE = 'price_real_free';
+    process.env.STRIPE_PRICE_PRO = 'price_real_pro';
+    process.env.STRIPE_PRICE_BUSINESS = 'price_real_business';
+    delete process.env.STRIPE_PRICE_ENTERPRISE;
+
+    const { validateProductionConfig } = loadConfigModule();
+
+    expect(() => validateProductionConfig()).not.toThrow();
   });
 
   it('rejects placeholders copied from the environment example', () => {

@@ -13,6 +13,18 @@ const DEFAULT_STRIPE_PRICE_PRO = 'price_pro';
 const DEFAULT_STRIPE_PRICE_BUSINESS = 'price_business';
 const DEFAULT_STRIPE_PRICE_ENTERPRISE = 'price_enterprise';
 
+/**
+ * Placeholder defaults for the Stripe price IDs. A price ID still set to one of
+ * these is not a real Stripe price and must be excluded from the price->plan
+ * allowlist so it can never be checked out or matched against a webhook.
+ */
+export const STRIPE_PRICE_PLACEHOLDERS = [
+  DEFAULT_STRIPE_PRICE_FREE,
+  DEFAULT_STRIPE_PRICE_PRO,
+  DEFAULT_STRIPE_PRICE_BUSINESS,
+  DEFAULT_STRIPE_PRICE_ENTERPRISE,
+];
+
 export const config = convict({
   env: {
     doc: 'The application environment.',
@@ -183,12 +195,14 @@ export function validateProductionConfig(): void {
   const billingEnabled = !isPlaceholder(stripeSecretKey, [DEFAULT_STRIPE_SECRET_KEY]);
 
   if (billingEnabled) {
+    // Enterprise is a contact-sales tier, not self-serve checkout, so its price
+    // ID is optional — when unset it is simply excluded from the checkout
+    // allowlist (see getPricePlanMap). The self-serve tiers must all be real.
     const stripeFields: Array<[string, string, string[]]> = [
       ['STRIPE_WEBHOOK_SECRET', config.get('stripeWebhookSecret'), [DEFAULT_STRIPE_WEBHOOK_SECRET]],
       ['STRIPE_PRICE_FREE', config.get('stripePriceFree'), [DEFAULT_STRIPE_PRICE_FREE]],
       ['STRIPE_PRICE_PRO', config.get('stripePricePro'), [DEFAULT_STRIPE_PRICE_PRO]],
       ['STRIPE_PRICE_BUSINESS', config.get('stripePriceBusiness'), [DEFAULT_STRIPE_PRICE_BUSINESS]],
-      ['STRIPE_PRICE_ENTERPRISE', config.get('stripePriceEnterprise'), [DEFAULT_STRIPE_PRICE_ENTERPRISE]],
     ];
 
     for (const [name, value, placeholders] of stripeFields) {
