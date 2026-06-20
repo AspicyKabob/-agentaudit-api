@@ -2,8 +2,11 @@
 # Stays within production rate limits (100 req / 15 min) for valid measurement
 # 5 minutes, ~180 single + ~90 batch = ~270 total requests (well under 100/15min)
 
-$API_KEY = "aa_c766abba38c26507502b3718e9681c8fc847f1197354fb3e1419c18d5f83088e"
-$BASE_URL = "https://agentaudit-api-production.up.railway.app/api/v1"
+$API_KEY = $env:AGENTAUDIT_API_KEY
+if (-not $API_KEY) {
+    throw "Set AGENTAUDIT_API_KEY before running this stress test. Do not commit real API keys."
+}
+$BASE_URL = if ($env:AGENTAUDIT_BASE_URL) { $env:AGENTAUDIT_BASE_URL } else { "http://localhost:3000/api/v1" }
 $SINGLE_COUNT = 180
 $BATCH_COUNT = 90
 $BATCH_SIZE = 50
