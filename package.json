@@ -14,7 +14,11 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "lint": "eslint src --ext .ts",
-    "lint:fix": "eslint src --ext .ts --fix"
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test:prepare": "node scripts/prepare-test-sdk.js",
+    "pretest": "npm run test:prepare",
+    "verify": "npm run lint && npm run build && npm test -- --runInBand",
+    "verify:ci": "npm run lint && npm run build && npm test -- --runInBand --no-coverage --forceExit"
   },
   "keywords": [
     "api",
