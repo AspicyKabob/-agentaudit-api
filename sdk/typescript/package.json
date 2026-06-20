@@ -38,7 +38,7 @@
     "axios": "^1.6.0"
   },
   "devDependencies": {
-    "@langchain/core": "~0.2.0",
+    "@langchain/core": "^1.2.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
     "jest": "^29.7.0",
@@ -46,7 +46,7 @@
     "typescript": "^5.3.0"
   },
   "peerDependencies": {
-    "@langchain/core": "~0.2.0"
+    "@langchain/core": "^1.2.0"
   },
   "peerDependenciesMeta": {
     "@langchain/core": {
