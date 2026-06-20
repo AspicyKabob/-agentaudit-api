@@ -24,14 +24,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y python3 make g++ linux-headers-generic
       - run: npm ci
       - run: npx prisma generate
-      - run: npm run build
-      - name: Build TypeScript SDK (required by integration tests)
-        working-directory: sdk/typescript
-        run: |
-          npm ci
-          npm run build
-      - name: Run tests
-        run: npm test -- --runInBand --no-coverage --forceExit
+      - name: Verify API (lint, build, SDK build, tests)
+        run: npm run verify:ci
 
   test-python-sdk:
     name: Test Python SDK
