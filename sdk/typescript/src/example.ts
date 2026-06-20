@@ -1,7 +1,12 @@
 import { AgentAudit } from './index';
 
+const apiKey = process.env.AGENTAUDIT_API_KEY;
+if (!apiKey) {
+  throw new Error('Set AGENTAUDIT_API_KEY before running this example.');
+}
+
 const audit = new AgentAudit({
-  apiKey: 'aa_62123721bb54e38475c748f69efe35d58431a1b0c93ceb9b59df552937e2c606',
+  apiKey,
 });
 
 async function main() {

@@ -1,6 +1,12 @@
+import os
+
 from agentaudit import AgentAudit
 
-audit = AgentAudit(api_key="aa_62123721bb54e38475c748f69efe35d58431a1b0c93ceb9b59df552937e2c606")
+api_key = os.environ.get("AGENTAUDIT_API_KEY")
+if not api_key:
+    raise RuntimeError("Set AGENTAUDIT_API_KEY before running this example.")
+
+audit = AgentAudit(api_key=api_key)
 
 result = audit.guardrail(
     action="prompt_submitted",

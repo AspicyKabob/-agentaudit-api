@@ -5,7 +5,7 @@ Usage::
 
     python scripts/stress_test.py \
         --api-key aa_live_... \
-        --base-url https://agentaudit-api-production.up.railway.app/api/v1 \
+        --base-url https://your-deployed-api.example.com/api/v1 \
         --duration 60 \
         --workers 8 \
         --batch-size 50
@@ -193,7 +193,7 @@ def _print_report(metrics: Dict[str, float]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Stress-test AgentAudit endpoints")
     parser.add_argument("--api-key", required=True, help="AgentAudit API key")
-    parser.add_argument("--base-url", default="https://agentaudit-api-production.up.railway.app/api/v1")
+    parser.add_argument("--base-url", default="http://localhost:3000/api/v1")
     parser.add_argument("--duration", type=int, default=30, help="Test duration in seconds")
     parser.add_argument("--workers", type=int, default=8, help="Total concurrent workers (split half/half)")
     parser.add_argument("--batch-size", type=int, default=50, help="Entries per batch (max 100)")
