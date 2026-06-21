@@ -5,7 +5,7 @@
 ### 1. Push to GitHub (2 min)
 ```bash
 cd ~/OneDrive/Desktop/NEWAPI
-git remote add origin https://github.com/YOUR_USERNAME/agentaudit-api.git
+git remote add origin https://github.com/AspicyKabob/-agentaudit-api.git
 git branch -M main
 git push -u origin main
 ```
@@ -40,7 +40,7 @@ git push -u origin main
 
 ### 5. Stripe Setup (~5 min)
 1. Create account at https://dashboard.stripe.com/register
-2. Create products + recurring prices for Free ($0), Pro ($99), Business ($499). Enterprise is contact-sales — create its price only if/when you offer self-serve enterprise checkout.
+2. Create products + recurring prices for Free ($0), Pro ($29), Business ($79). Enterprise is contact-sales — create its price only if/when you offer self-serve enterprise checkout.
 3. Copy the self-serve Price IDs to env vars (`STRIPE_PRICE_FREE`, `_PRO`, `_BUSINESS`); set `STRIPE_PRICE_ENTERPRISE` only if you created one.
 4. Create webhook endpoint: `https://YOUR_URL/api/v1/billing/webhook`
 5. Copy webhook secret to `STRIPE_WEBHOOK_SECRET`

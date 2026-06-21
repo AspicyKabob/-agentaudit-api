@@ -35,7 +35,7 @@ The fastest way to self-host is with Docker Compose.
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/YOUR_USERNAME/agentaudit-api.git
+git clone https://github.com/AspicyKabob/-agentaudit-api.git
 cd agentaudit-api
 
 # 2. Create environment file
@@ -453,8 +453,8 @@ npx prisma migrate reset
 
 ## Community & Support
 
-- **GitHub Issues**: https://github.com/YOUR_USERNAME/agentaudit-api/issues
-- **Documentation**: https://docs.agentaudit.io
+- **GitHub Issues**: https://github.com/AspicyKabob/-agentaudit-api/issues
+- **Documentation**: https://agentaudit-api-production.up.railway.app/docs
 - **License**: MIT
 
 ---

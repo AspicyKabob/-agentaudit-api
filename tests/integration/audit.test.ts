@@ -217,6 +217,24 @@ describe('Audit API', () => {
 
       expect(res.status).toBe(401);
     });
+
+    it('should reject a revoked API key immediately', async () => {
+      mockedPrisma.apiKey.findUnique.mockResolvedValueOnce({
+        id: 'key-1',
+        organizationId: 'org-1',
+        revokedAt: new Date(),
+        organization: { id: 'org-1' },
+      });
+
+      const res = await request(app)
+        .post('/api/v1/audit-logs')
+        .set('X-API-Key', 'aa_revoked_key')
+        .send({ action: 'prompt_submitted' });
+
+      expect(res.status).toBe(401);
+      expect(res.body.error).toBe('Invalid or revoked API key');
+      expect(mockedPrisma.auditLog.create).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /api/v1/audit-logs', () => {

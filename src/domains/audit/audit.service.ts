@@ -77,8 +77,30 @@ async function reserveQuota(organizationId: string, requestedCount: number) {
   }
 }
 
+async function assertAgentsBelongToOrganization(
+  organizationId: string,
+  entries: SubmitAuditBody[]
+): Promise<void> {
+  const agentIds = Array.from(
+    new Set(entries.map((entry) => entry.agentId).filter((id): id is string => Boolean(id)))
+  );
+
+  if (agentIds.length === 0) return;
+
+  const agents = await prisma.agent.findMany({
+    where: { organizationId, id: { in: agentIds } },
+    select: { id: true },
+  });
+  const ownedAgentIds = new Set(agents.map((agent) => agent.id));
+
+  if (agentIds.some((id) => !ownedAgentIds.has(id))) {
+    throw new Error('Agent not found');
+  }
+}
+
 export const auditService = {
   async submit(organizationId: string, data: SubmitAuditBody) {
+    await assertAgentsBelongToOrganization(organizationId, [data]);
     await reserveQuota(organizationId, 1);
 
     const evaluation = await evaluateComplianceRules(organizationId, data);
@@ -140,6 +162,7 @@ export const auditService = {
   },
 
   async submitBatch(organizationId: string, entries: SubmitAuditBody[]) {
+    await assertAgentsBelongToOrganization(organizationId, entries);
     await reserveQuota(organizationId, entries.length);
 
     const results: Array<{ id: string; action: string; complianceFlags: string[]; enforcementAction: string; createdAt: Date | string }> = [];
@@ -453,7 +476,11 @@ async function buildRuleScope(
       select: { type: true },
     }),
     prisma.agentPolicy.findMany({
-      where: { agentId: data.agentId },
+      where: {
+        agentId: data.agentId,
+        agent: { organizationId },
+        policy: { organizationId },
+      },
       select: { policyId: true, policy: { select: { conditions: true } } },
     }),
   ]);

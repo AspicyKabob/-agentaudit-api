@@ -168,6 +168,10 @@ describe('Policies API', () => {
     mockedPrisma.auditLog.create.mockReset();
     mockedPrisma.alert.create.mockReset();
     mockedPrisma.agentPolicy.findMany.mockReset();
+    mockedPrisma.agent.findMany.mockReset();
+    mockedPrisma.agent.findMany.mockResolvedValue([
+      { id: '00000000-0000-0000-0000-000000000003' },
+    ]);
     mockedPrisma.agent.findFirst.mockReset();
     mockedPrisma.policyVersion.findFirst.mockReset();
     mockedPrisma.policyVersion.findMany.mockReset();
