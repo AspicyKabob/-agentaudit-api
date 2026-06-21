@@ -91,10 +91,9 @@ See `.env.example` for the complete list including optional Stripe billing varia
 
 ## Database Migrations
 
-```bash
-# After deploy, run migrations
-npx prisma migrate deploy
-```
+Railway runs `npx prisma migrate deploy` in the pre-deploy phase through `railway.json`. Other providers must run the same command before switching traffic to the new application version.
+
+See [Production Operations](docs/operations.md) for backup, restore, rollback, and incident procedures.
 
 ## Scaling Checklist
 

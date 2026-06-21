@@ -314,7 +314,7 @@ pm2 start dist/worker.js --name agentaudit-worker
 
 ### Redis
 
-Redis is only required for background workers. The main API server does not need Redis.
+Redis is required for background workers but optional for the main API. Without Redis, API rate limiting uses the shared Prisma/PostgreSQL store; enable Redis to reduce database write load at higher traffic levels.
 
 ---
 

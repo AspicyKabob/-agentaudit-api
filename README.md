@@ -679,6 +679,8 @@ See [docs/self-hosting.md](docs/self-hosting.md) for full guides covering:
 - SSL/TLS configuration
 - Environment variables reference
 
+Production operators should also follow [docs/operations.md](docs/operations.md) for Railway backups, restore drills, migrations, rollback, Redis fallback, and incident response.
+
 ---
 
 ## Environment Variables

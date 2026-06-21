@@ -11,12 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tenant-isolation regression coverage for organization-owned resources and audit agents
 - Revoked API-key and production CORS security regression tests
 - Public beta launch-readiness checklist, security reporting policy, and structured bug-report template
+- MIT license file matching the repository's published license metadata
 
 ### Fixed
 - Prevent audit submissions from attaching an agent owned by another organization
 - Scope agent-policy evaluation to the authenticated organization
+- Isolate authentication, general, and audit rate-limit counters so normal traffic cannot consume the login/register attempt budget
 - Replace dead or placeholder documentation, deployment, repository, and community links
 - Align published Pro and Business pricing at $29 and $79
+
+### Changed
+- Run Railway database migrations in the pre-deploy phase and remove a stale one-off migration repair from application startup
+- Document production backup, restore, rollback, Redis fallback, and incident-response procedures
+- Enforce the Railway migration/startup split with a deployment configuration test
 
 ## [1.1.0-trace] - 2026-05-28
 
