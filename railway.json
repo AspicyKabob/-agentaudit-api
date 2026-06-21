@@ -5,6 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
+    "preDeployCommand": "node_modules/.bin/prisma migrate deploy",
     "startCommand": "./entrypoint.sh",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
@@ -12,4 +13,3 @@
     "restartPolicyMaxRetries": 10
   }
 }
-

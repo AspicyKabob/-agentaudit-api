@@ -4,7 +4,7 @@ This is the living source of truth for launching AgentAudit as a public develope
 
 **Target:** Public developer beta
 
-**Last reviewed:** 2026-06-20
+**Last reviewed:** 2026-06-21
 
 **Current recommendation:** The application code is beta-ready. Complete the open launch gates below before actively driving public traffic or enabling paid billing.
 
@@ -19,8 +19,8 @@ This is the living source of truth for launching AgentAudit as a public develope
 
 ## Current Snapshot
 
-- [x] Public API is deployed from current `main` commit `17d4145` (verified 2026-06-20).
-- [x] `/health` reports `status: ok` and database `up` (verified 2026-06-20).
+- [x] Public API is deployed from current `main` commit `bf77911` (verified 2026-06-21).
+- [x] `/health` reports `status: ok` and database `up` (verified 2026-06-21).
 - [x] `/mcp/v1/schema` responds successfully (verified 2026-06-20).
 - [x] API, Python SDK, and TypeScript SDK CI jobs pass on `main`.
 - [x] Production dependency trees report zero known vulnerabilities with `npm audit --omit=dev`.
@@ -39,9 +39,10 @@ These items should be complete before announcing the public beta.
 - [x] Confirm Railway uses unique production values for `JWT_SECRET` and `API_KEY_SALT` (owner-confirmed 2026-06-20).
 - [ ] Confirm `FRONTEND_URL` exactly matches the public application origin.
 - [x] Confirm all Prisma migrations are applied in production, including enforcement and usage-period migrations (exercised by the live registration, quota, enforcement, and audit-log paths on 2026-06-20).
-- [ ] Confirm PostgreSQL backups are enabled and document the restore procedure.
+- [x] Document the PostgreSQL backup and restore procedure.
+- [ ] Confirm daily, weekly, and monthly PostgreSQL backups are enabled in Railway.
 - [ ] Perform one restore drill using non-production data.
-- [ ] Decide whether Redis is required for beta traffic; document the accepted Prisma rate-limit fallback if it remains disabled.
+- [x] Keep Redis optional for beta and document the accepted Prisma rate-limit fallback plus enablement triggers.
 
 ### Security and Tenant Isolation
 
@@ -56,7 +57,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
 - [x] Run a secret scan across Git history and rotate anything questionable (779 reachable blobs scanned 2026-06-20; only explicit synthetic config-test values matched).
-- [ ] Enable branch protection for `main` with required CI checks and pull-request review.
+- [ ] Enable branch protection for `main` with required CI checks and pull-request review (GitHub reported the branch unprotected on 2026-06-21).
 
 ### Guardrails, Billing, and Quotas
 
@@ -106,7 +107,8 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] LangChain and CrewAI integrations have automated tests.
 - [x] A Postman collection is included.
 - [ ] Verify the README quickstart against the live deployment from a clean machine.
-- [ ] Verify both published SDK packages from clean environments rather than workspace source.
+- [x] Install both published SDK packages from clean environments and verify their primary imports (PyPI `1.0.4`, npm `1.0.2`; checked 2026-06-21).
+- [ ] Publish new Python and TypeScript SDK versions containing authoritative `enforcementAction` parsing, then re-verify the installed artifacts.
 - [x] Update `ROADMAP.md`: LangChain and Postman are implemented, not planned.
 - [x] Replace remaining repository `YOUR_USERNAME` placeholders with the public GitHub URL.
 - [x] Align deployment, self-hosting, roadmap, and website pricing language at Pro `$29` / Business `$79`.
@@ -121,8 +123,9 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [ ] Configure the production `SENTRY_DSN` and confirm a test exception arrives with release and request context.
 - [ ] Configure an external uptime monitor for `/health` and an alert destination.
 - [ ] Add alerting for repeated 5xx responses, database failures, and webhook delivery failures.
-- [ ] Document the deploy rollback procedure and last-known-good commit.
-- [ ] Define an incident owner and a simple public incident communication process.
+- [x] Document the deploy rollback procedure and database compatibility boundary.
+- [x] Record current last-known-good production commit `bf77911` (authenticated smoke test passed 2026-06-21; re-confirm during the launch-day runbook).
+- [x] Define an interim incident owner and a simple public incident communication process.
 - [ ] Review the 19 remaining moderate Jest/Istanbul development-only advisories when upstream publishes a non-regressive fix.
 
 ### Repository and Release Hygiene
@@ -167,7 +170,7 @@ These are important, but they do not block a carefully labeled developer beta.
 | Field | Value |
 |---|---|
 | Release tag | Not set |
-| Deployed commit | `17d4145` (verified 2026-06-20) |
+| Deployed commit | `bf77911` (verified 2026-06-21) |
 | Launch date/time | Not set |
 | Launch operator | Not set |
 | Billing mode | Not decided |
@@ -191,3 +194,8 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-20 | Redacted Git-history scan covered 779 reachable blobs; the only secret-pattern matches were explicit synthetic JWT/salt fixtures in `tests/unit/config.test.ts`. |
 | 2026-06-20 | Public-link audit replaced a dead Railway template and unresolved docs domain with working guides, removed an invalid Discord invite, and fixed the final GitHub clone placeholder. |
 | 2026-06-20 | Added an Unreleased changelog entry for launch hardening, tenant isolation, security regressions, and public documentation cleanup. |
+| 2026-06-21 | Added the production operations runbook for Railway backups, a non-production restore drill, forward-only rollback, Redis-disabled beta mode, and incident response. Migrations now run in Railway's pre-deploy phase. |
+| 2026-06-21 | Clean installs of PyPI `agentaudit-client` 1.0.4 and npm `agentaudit-client` 1.0.2 imported successfully, but registry artifacts predate the authoritative `enforcementAction` fix; fresh SDK releases remain required. |
+| 2026-06-21 | Railway `/health` served merged commit `bf77911` with database `up` and Redis `disabled`; all three GitHub checks passed on that commit. GitHub reported `main` is not protected. |
+| 2026-06-21 | Authenticated production smoke test passed on `bf77911` after the fixed rate-limit window rolled over. The preceding 429s exposed shared limiter counters; this branch isolates auth, general, and audit namespaces with regression coverage. |
+| 2026-06-21 | Production-operations verification passed lint, build, and 21 API suites / 160 tests; local Markdown links and Railway deployment configuration also validated. |

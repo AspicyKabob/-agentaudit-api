@@ -1,12 +1,12 @@
 # AgentAudit API — Railway Deploy Guide
 
-This project is configured for one-click Railway deployment.
+This project is configured for deployment from its GitHub repository using `railway.json` and the included Dockerfile.
 
 ## Prerequisites
 
 1. GitHub account with this repo pushed
 2. [Railway](https://railway.app) account (free tier available)
-3. Stripe account (for billing)
+3. Stripe account only if paid billing is enabled
 
 ## Step 1: Push to GitHub
 
@@ -33,7 +33,7 @@ git push -u origin main
 
 ## Step 4: Set Environment Variables
 
-In Railway Dashboard → Settings → Variables, add:
+In Railway Dashboard → Settings → Variables, add the required application variables first. Add the Stripe variables only if paid billing is enabled:
 
 | Variable | Value | How to generate |
 |----------|-------|---------------|
@@ -57,19 +57,9 @@ Railway auto-deploys on every git push. First deploy:
 2. Wait for build (~2-3 min)
 3. Railway assigns a public URL: `https://agentaudit-api.up.railway.app`
 
-## Step 6: Run Migrations
+## Step 6: Verify Migrations
 
-After first deploy, open Railway's **"Deployments"** tab, click on the running deployment, then **"Shell"**:
-
-```bash
-npx prisma migrate deploy
-```
-
-Or add it to `railway.json` startCommand if you want auto-migrate on boot (not recommended for production, but acceptable for MVP):
-
-```json
-"startCommand": "npx prisma migrate deploy && npm run start"
-```
+`railway.json` runs `prisma migrate deploy` as a Railway pre-deploy command. A migration failure prevents the new deployment from going live. Confirm the pre-deploy command succeeded in the deployment logs; do not run migrations manually after every deploy.
 
 ## Step 7: Verify
 
@@ -89,6 +79,10 @@ curl https://YOUR_RAILWAY_URL/mcp/v1/schema
 - Railway has built-in logs and metrics
 - Add [UptimeRobot](https://uptimerobot.com) free tier for external health checks
 - Add `SENTRY_DSN` env var for error tracking (optional)
+
+## Backups, Restore, and Rollback
+
+Enable daily, weekly, and monthly backups from the PostgreSQL service's **Backups** tab. Follow [the production operations runbook](docs/operations.md) for the non-production restore drill, Redis-disabled beta decision, migration verification, rollback, and incident response.
 
 ## Troubleshooting
 
