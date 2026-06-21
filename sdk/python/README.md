@@ -185,7 +185,7 @@ observer = AgentAuditObserver(api_key="aa_key", crew_name="My Crew")
 
 ## Documentation
 
-Full API documentation: https://docs.agentaudit.io
+Full API documentation: https://agentaudit-api-production.up.railway.app/docs
 
 ## License
 

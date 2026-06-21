@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Tenant-isolation regression coverage for organization-owned resources and audit agents
+- Revoked API-key and production CORS security regression tests
+- Public beta launch-readiness checklist, security reporting policy, and structured bug-report template
+
+### Fixed
+- Prevent audit submissions from attaching an agent owned by another organization
+- Scope agent-policy evaluation to the authenticated organization
+- Replace dead or placeholder documentation, deployment, repository, and community links
+- Align published Pro and Business pricing at $29 and $79
+
 ## [1.1.0-trace] - 2026-05-28
 
 ### Added

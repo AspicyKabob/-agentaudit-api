@@ -6,7 +6,7 @@
 
 [<img src="https://img.shields.io/badge/version-1.1.0--trace-blue?style=flat-square">](https://agentaudit-api-production.up.railway.app/health)
 [<img src="https://img.shields.io/badge/license-MIT-green?style=flat-square">](LICENSE)
-[<img src="https://img.shields.io/badge/deploy-Railway-purple?style=flat-square">](https://railway.app/template/agentaudit)
+[<img src="https://img.shields.io/badge/deploy-Railway-purple?style=flat-square">](RAILWAY_DEPLOY.md)
 [<img src="https://img.shields.io/badge/status-online-brightgreen?style=flat-square">](https://agentaudit-api-production.up.railway.app/health)
 
 [<img src="https://img.shields.io/badge/Python_SDK-pip%20install%20agentaudit--client-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://pypi.org/project/agentaudit-client/)
@@ -17,7 +17,7 @@
 ---
 
 > ### Project status: public beta
-> AgentAudit is under active development and is a great fit for evaluation, demos, and non-critical workloads. It is **not yet independently security-certified** (no SOC 2 / HIPAA attestation) — the path to enterprise readiness is tracked in [ROADMAP.md](ROADMAP.md). If you plan to run it against regulated production data, self-host and review [the launch checklist](BEFORELAUNCH.md) first.
+> AgentAudit is under active development and is a great fit for evaluation, demos, and non-critical workloads. It is **not yet independently security-certified** (no SOC 2 / HIPAA attestation) — the path to enterprise readiness is tracked in [ROADMAP.md](ROADMAP.md). If you plan to run it against regulated production data, self-host and review [the launch checklist](ALMOSTREADY.md) first.
 
 ---
 
@@ -205,9 +205,9 @@ curl -s -X POST "$BASE/api/v1/compliance-rules/packs" -H "Authorization: Bearer 
 
 Your SDK turns `enforcementAction: "block"` into "do not deliver this output." See [SDKs](#-sdks) for the one-line client equivalent.
 
-### Deploy to Railway (One-Click)
+### Deploy to Railway
 
-[<img src="https://railway.app/button.svg" alt="Deploy on Railway" width="150">](https://railway.app/template/agentaudit)
+[Follow the Railway deployment guide](RAILWAY_DEPLOY.md).
 
 ---
 
@@ -730,7 +730,7 @@ Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) 
 
 ```bash
 # Fork and clone
-git clone https://github.com/your-username/-agentaudit-api.git
+git clone https://github.com/AspicyKabob/-agentaudit-api.git
 cd -agentaudit-api
 
 # Install dependencies
@@ -799,7 +799,7 @@ MIT © [AgentAudit](https://github.com/AspicyKabob/-agentaudit-api)
 
 <div align="center">
 
-**[Website](https://agentaudit-api-production.up.railway.app/) · [Docs](https://agentaudit-api-production.up.railway.app/) · [Twitter](https://twitter.com/agentaudit) · [Discord](https://discord.gg/agentaudit)**
+**[Website](https://agentaudit-api-production.up.railway.app/) · [Docs](https://agentaudit-api-production.up.railway.app/docs) · [Twitter](https://twitter.com/agentaudit)**
 
 Built for the AI agent community
 

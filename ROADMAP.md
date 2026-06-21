@@ -57,9 +57,9 @@ What's Done:
 | Python SDK | ✅ `pip install agentaudit-client` | Drop-in integration for the #1 AI language |
 | TypeScript SDK | ✅ `npm install agentaudit-client` | Native support for Node.js AI applications |
 | CrewAI Observer | ✅ With trace tracking + guardrails | Automatic task-level auditing for CrewAI agents |
-| LangChain Callback Handler | 🔄 Planned | `AgentAuditCallbackHandler(api_key="...")` — zero config logging |
-| Postman Collection | 🔄 Planned | One-click import for API evaluators |
-| Quickstart Guides | 🔄 Planned | Step-by-step tutorials for each major framework |
+| LangChain Callback Handler | ✅ Python + TypeScript | Drop-in callbacks with trace tracking and guardrails |
+| Postman Collection | ✅ Included | One-click import for API evaluators |
+| Quickstart Guides | ✅ README + SDK guides | Core API, Python, TypeScript, LangChain, and CrewAI paths |
 
 **Success Metric:** Developer can go from "discovering AgentAudit" to "first audit log submitted" in under 5 minutes.
 
