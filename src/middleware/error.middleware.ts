@@ -65,6 +65,17 @@ function getStatusCode(err: Error): number {
     return 400;
   }
 
+  // Body-parser / malformed JSON
+  if (err.name === 'BadRequestError' || err.message?.toLowerCase().includes('json')) {
+    return 400;
+  }
+
+  // Generic HTTP status attached by middleware (e.g., body-parser)
+  const statusCode = (err as any).statusCode || (err as any).status;
+  if (statusCode >= 400 && statusCode < 500) {
+    return statusCode;
+  }
+
   return 500;
 }
 
