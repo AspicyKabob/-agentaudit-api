@@ -11,6 +11,7 @@ import policyRoutes from './domains/policies/policy.routes';
 import reportRoutes from './domains/reports/report.routes';
 import alertRoutes from './domains/alerts/alert.routes';
 import billingRoutes from './domains/billing/billing.routes';
+import emailWebhookRoutes from './domains/email/webhook.routes';
 import { errorHandler } from './middleware/error.middleware';
 import { requestId } from './middleware/requestId.middleware';
 import { logger } from './utils/logger';
@@ -30,13 +31,15 @@ export function createApp() {
     : true;
   app.use(cors({ origin: corsOrigin, credentials: true }));
 
-  // Body parsing — webhook needs raw body for Stripe signature verification
+  // Body parsing — webhooks need raw body for signature verification
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (req.originalUrl === '/api/v1/billing/webhook') return next();
+    if (req.originalUrl === '/api/v1/webhooks/resend') return next();
     express.json({ limit: '10mb' })(req, res, next);
   });
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (req.originalUrl === '/api/v1/billing/webhook') return next();
+    if (req.originalUrl === '/api/v1/webhooks/resend') return next();
     express.urlencoded({ extended: true })(req, res, next);
   });
 
@@ -95,6 +98,7 @@ export function createApp() {
   app.use('/api/v1/reports', reportRoutes);
   app.use('/api/v1/alerts', alertRoutes);
   app.use('/api/v1/billing', billingRoutes);
+  app.use('/api/v1/webhooks', emailWebhookRoutes);
 
   // Catch-all — 404 JSON response for unmatched API routes
   app.use('/api/v1/*', (req, res) => {

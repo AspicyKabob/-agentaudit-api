@@ -9,19 +9,48 @@
   // Guard — redirect to home if not logged in
   if (!getToken()) { window.location.href = '/'; }
 
-  async function api(method, path, body) {
+  async function api(method, path, body, signal) {
     const opts = {
       method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + getToken(),
       },
+      signal,
     };
     if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
     const res = await fetch(API + path, opts);
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'HTTP ' + res.status);
+    if (!res.ok) {
+      const err = new Error(data.error || data.message || 'HTTP ' + res.status);
+      err.status = res.status;
+      throw err;
+    }
     return data;
+  }
+
+  function showError(title, message, options) {
+    options = options || {};
+    const wrap = document.querySelector('.dashboard-wrap');
+    const errorEl = document.getElementById('dashboard-error');
+    document.getElementById('error-title').textContent = title || 'Dashboard unavailable';
+    document.getElementById('error-message').textContent = message || 'Something went wrong. Please try again.';
+    const retryBtn = document.getElementById('btn-retry');
+    retryBtn.style.display = options.retryable === false ? 'none' : '';
+    errorEl.style.display = 'block';
+    wrap.classList.add('fatal-error');
+    if (options.hideLogout) {
+      document.getElementById('btn-error-logout').style.display = 'none';
+    } else {
+      document.getElementById('btn-error-logout').style.display = '';
+    }
+  }
+
+  function clearError() {
+    const wrap = document.querySelector('.dashboard-wrap');
+    const errorEl = document.getElementById('dashboard-error');
+    errorEl.style.display = 'none';
+    wrap.classList.remove('fatal-error');
   }
 
   function toast(msg, type) {
@@ -35,15 +64,28 @@
 
   window.addEventListener('error', function(e) {
     console.error('[Dashboard] Unhandled error:', e.error);
-    document.getElementById('org-name').textContent = 'Error — check console (F12)';
+    showError('Unexpected error', 'Something broke in the dashboard. Please reload the page or contact support.', { retryable: true });
   });
   window.addEventListener('unhandledrejection', function(e) {
     console.error('[Dashboard] Unhandled promise rejection:', e.reason);
+    if (e.reason && e.reason.status >= 500) {
+      showError('Server error', e.reason.message || 'The API returned an error. Please try again.', { retryable: true });
+    }
   });
 
   document.getElementById('btn-logout').addEventListener('click', function() {
     clearToken();
     window.location.href = '/';
+  });
+
+  document.getElementById('btn-error-logout').addEventListener('click', function() {
+    clearToken();
+    window.location.href = '/';
+  });
+
+  document.getElementById('btn-retry').addEventListener('click', function() {
+    clearError();
+    loadDashboard();
   });
 
   document.getElementById('btn-save-webhook').addEventListener('click', async function() {
@@ -94,10 +136,12 @@
       btn.textContent = originalText;
       if (e.name === 'AbortError') {
         toast('Request timed out. Please check your connection.', 'error');
+      } else if (e.status === 503) {
+        toast('Billing is not configured for this deployment.', 'error');
       } else if (e.message && e.message.includes('fetch')) {
         toast('Connection lost. Please check your internet and try again.', 'error');
       } else {
-        window.location.href = '/#pricing';
+        toast(e.message || 'Unable to load billing portal. Please try again.', 'error');
       }
     }
   });
@@ -178,6 +222,7 @@
   async function loadDashboard() {
     console.log('[Dashboard] Starting load...');
     try {
+      clearError();
       var me = await api('GET', '/api/v1/auth/me');
       console.log('[Dashboard] Profile loaded:', me.email, me.plan);
       document.getElementById('org-name').textContent = me.email;
@@ -193,13 +238,22 @@
       document.getElementById('select-severity').value = me.notifyMinSeverity || 'warning';
     } catch(err) {
       console.error('[Dashboard] Profile load failed:', err.message || err);
+      var status = err.status || 0;
       var msg = err.message || '';
-      if (msg.includes('429') || msg.includes('Too many')) {
-        document.getElementById('org-name').textContent = 'Rate limited — wait 15 min';
+      if (status === 429 || msg.includes('429') || msg.includes('Too many')) {
+        showError('Rate limited', 'Too many dashboard requests. Please wait 15 minutes and try again.', { retryable: false });
         return;
       }
-      clearToken();
-      window.location.href = '/';
+      if (status === 401 || status === 403 || msg.includes('Invalid credentials') || msg.includes('Unauthorized')) {
+        clearToken();
+        window.location.href = '/?session=expired';
+        return;
+      }
+      if (status === 0 || msg.includes('fetch') || msg.includes('Failed to fetch')) {
+        showError('Connection lost', 'We could not reach AgentAudit. Please check your internet and try again.', { retryable: true });
+        return;
+      }
+      showError('Dashboard unavailable', 'We could not load your account. Please try again in a moment.', { retryable: true });
       return;
     }
 

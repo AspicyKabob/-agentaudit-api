@@ -208,3 +208,23 @@ model RateLimit {
   @@index([key])
   @@index([window])
 }
+
+model EmailDelivery {
+  id                 String   @id @default(uuid())
+  organizationId     String?
+  type               String
+  eventId            String?
+  dedupeKey          String?  @unique
+  to                 String
+  subject            String
+  provider           String   @default("resend")
+  providerMessageId  String?
+  status             String   @default("pending")
+  error              String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([organizationId, type])
+  @@index([providerMessageId])
+  @@index([status, createdAt])
+}

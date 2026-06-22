@@ -35,8 +35,20 @@ export const authController = {
 
   updateProfile: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
-    const { webhookUrl } = req.body;
-    const updated = await authService.updateProfile(organizationId, { webhookUrl });
+    const { webhookUrl, notifyWebhook, notifyEmail, notifyMinSeverity } = req.body;
+
+    const validSeverities = ['low', 'medium', 'high', 'warning', 'critical'];
+    if (notifyMinSeverity !== undefined && !validSeverities.includes(notifyMinSeverity)) {
+      res.status(400).json({ error: 'notifyMinSeverity must be low, medium, high, warning, or critical' });
+      return;
+    }
+
+    const updated = await authService.updateProfile(organizationId, {
+      webhookUrl,
+      notifyWebhook,
+      notifyEmail,
+      notifyMinSeverity,
+    });
     logger.info({ organizationId }, 'Profile updated');
     res.status(200).json(updated);
   }),

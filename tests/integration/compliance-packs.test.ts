@@ -73,6 +73,13 @@ jest.mock('../../src/db/prisma', () => ({
       create: jest.fn(),
       update: jest.fn(),
     },
+    emailDelivery: {
+      create: jest.fn().mockResolvedValue({ id: 'mock-email-delivery-id' }),
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+      findMany: jest.fn(),
+    },
   },
 }));
 

@@ -37,6 +37,9 @@
   "dependencies": {
     "axios": "^1.6.0"
   },
+  "overrides": {
+    "js-yaml": "^4.2.0"
+  },
   "devDependencies": {
     "@langchain/core": "^1.2.0",
     "@types/jest": "^29.5.0",

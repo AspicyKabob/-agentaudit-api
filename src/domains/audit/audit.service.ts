@@ -139,21 +139,21 @@ export const auditService = {
         },
       });
 
-      const shouldNotify = severity === 'critical' || org?.notifyMinSeverity === 'warning';
+      const shouldNotify = org ? meetsSeverityThreshold(severity, org.notifyMinSeverity ?? 'warning') : false;
 
-      if (org?.notifyWebhook !== false && shouldNotify) {
+      if (org?.notifyWebhook && shouldNotify) {
         alertService.deliverWebhook(alert).catch((err) => {
           logger.warn({ organizationId, alertId: alert.id, error: err }, 'Webhook delivery failed');
         });
       }
 
-      if (org?.notifyEmail !== false && shouldNotify && org?.email) {
+      if (org?.notifyEmail && shouldNotify && org?.email) {
         emailService.sendAlert(org.email, {
           severity,
           message: `Compliance flag triggered: ${flag}`,
           action: data.action,
-        }).catch((err) => {
-          logger.warn({ organizationId, alertId: alert.id, error: err }, 'Alert email delivery failed');
+        }, organizationId).catch((err) => {
+          logger.warn({ organizationId, alertId: alert.id, error: err?.message || String(err) }, 'Alert email delivery failed');
         });
       }
     }
@@ -571,7 +571,7 @@ async function evaluateComplianceRules(
     });
   }
 
-  const flags = violations.map((v) => `${v.severity.toUpperCase()}_${v.ruleType}_${v.name}`);
+  const flags = violations.map((v) => `${(v.severity ?? 'warning').toUpperCase()}_${v.ruleType}_${v.name}`);
   const finalAction = violations.reduce(
     (acc, v) => strongerAction(acc, v.action),
     'allow' as EnforcementAction
@@ -633,6 +633,19 @@ function checkRegex(text: string, pattern: string): boolean {
   return regex.test(text);
 }
 
+function severityRank(severity?: string | null): number {
+  const normalized = (severity ?? 'warning').toLowerCase();
+  if (normalized === 'low') return 1;
+  if (normalized === 'medium') return 2;
+  if (normalized === 'high' || normalized === 'warning') return 3;
+  if (normalized === 'critical') return 4;
+  return 0;
+}
+
+function meetsSeverityThreshold(severity?: string | null, minimumSeverity?: string | null): boolean {
+  return severityRank(severity) >= severityRank(minimumSeverity ?? 'warning');
+}
+
 async function createBatchAlerts(
   organizationId: string,
   results: Array<{ id: string; action: string; complianceFlags: string[]; enforcementAction: string; createdAt: Date | string }>
@@ -645,7 +658,7 @@ async function createBatchAlerts(
 
   for (const result of results) {
     for (const flag of result.complianceFlags) {
-      const severity = flag.startsWith('CRITICAL') ? 'critical' : 'warning';
+      const severity = flag.split('_')[0].toLowerCase();
       const alert = await prisma.alert.create({
         data: {
           organizationId,
@@ -656,19 +669,19 @@ async function createBatchAlerts(
         },
       });
 
-      const shouldNotify = severity === 'critical' || org.notifyMinSeverity === 'warning';
-      if (org.notifyWebhook !== false && shouldNotify) {
+      const shouldNotify = meetsSeverityThreshold(severity, org.notifyMinSeverity ?? 'warning');
+      if (org.notifyWebhook && shouldNotify) {
         alertService.deliverWebhook(alert).catch((err) => {
           logger.warn({ organizationId, alertId: alert.id, error: err }, 'Webhook delivery failed');
         });
       }
-      if (org.notifyEmail !== false && shouldNotify && org.email) {
+      if (org.notifyEmail && shouldNotify && org.email) {
         emailService.sendAlert(org.email, {
           severity,
           message: `Compliance flag triggered: ${flag}`,
           action: result.action,
-        }).catch((err) => {
-          logger.warn({ organizationId, alertId: alert.id, error: err }, 'Alert email delivery failed');
+        }, organizationId).catch((err) => {
+          logger.warn({ organizationId, alertId: alert.id, error: err?.message || String(err) }, 'Alert email delivery failed');
         });
       }
     }
