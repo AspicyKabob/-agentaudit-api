@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import cors from 'cors';
 import helmet from 'helmet';
+import bodyParser from 'body-parser';
 import authRoutes from './domains/auth/auth.routes';
 import agentRoutes from './domains/agents/agent.routes';
 import auditRoutes from './domains/audit/audit.routes';
@@ -35,12 +36,12 @@ export function createApp() {
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (req.originalUrl === '/api/v1/billing/webhook') return next();
     if (req.originalUrl === '/api/v1/webhooks/resend') return next();
-    express.json({ limit: '10mb' })(req, res, next);
+    bodyParser.json({ limit: '10mb' })(req, res, next);
   });
   app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (req.originalUrl === '/api/v1/billing/webhook') return next();
     if (req.originalUrl === '/api/v1/webhooks/resend') return next();
-    express.urlencoded({ extended: true })(req, res, next);
+    bodyParser.urlencoded({ extended: true })(req, res, next);
   });
 
   // Rate limiting — strict only on login/register, not on /auth/me or api-keys
