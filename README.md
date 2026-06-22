@@ -696,7 +696,7 @@ Production operators should also follow [docs/operations.md](docs/operations.md)
 | `API_KEY_SALT` | Salt for API key hashing | — |
 | `LOG_LEVEL` | Logging level | `info` |
 | `RESEND_API_KEY` | Resend API key for transactional email | — |
-| `RESEND_FROM_EMAIL` | Default from address for emails | `AgentAudit <noreply@agentaudit.io>` |
+| `RESEND_FROM_EMAIL` | Default from address for emails | `AgentAudit <noreply@agentaudit.online>` |
 | `FRONTEND_URL` | Used for Stripe redirects, email links, and production CORS | `http://localhost:8080` |
 | `STRIPE_SECRET_KEY` | Stripe secret (enables billing when set) | — |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret | — |

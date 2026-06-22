@@ -69,7 +69,7 @@ See `.env.example` for the complete list including optional Stripe billing varia
 
 ## Domain Setup
 
-1. Buy domain: `agentaudit.io` (or your choice)
+1. Buy domain: `agentaudit.online` (or your choice)
 2. Add A record pointing to your server IP
 3. Set `CNAME` for `www` subdomain
 4. Configure SSL (Let's Encrypt free)

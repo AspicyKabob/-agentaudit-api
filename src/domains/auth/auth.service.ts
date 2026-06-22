@@ -28,8 +28,8 @@ export const authService = {
       },
     });
 
-    emailService.sendWelcome(organization.email, organization.name).catch((err) => {
-      logger.warn({ organizationId: organization.id, error: err }, 'Welcome email delivery failed');
+    emailService.sendWelcome(organization.email, organization.name, organization.id).catch((err) => {
+      logger.warn({ organizationId: organization.id, error: err?.message || String(err) }, 'Welcome email delivery failed');
     });
 
     return organization;

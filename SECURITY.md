@@ -8,7 +8,7 @@ AgentAudit is currently in public beta. Security fixes are applied to the latest
 
 Do not open a public GitHub issue for a suspected vulnerability or include secrets, API keys, customer data, or exploit details in public discussions.
 
-Report security concerns privately by emailing [support@agentaudit.io](mailto:support@agentaudit.io) with the subject `Security report`. Include:
+Report security concerns privately by emailing [support@agentaudit.online](mailto:support@agentaudit.online) with the subject `Security report`. Include:
 
 - the affected endpoint, component, or SDK;
 - the impact and prerequisites;

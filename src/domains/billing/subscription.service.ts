@@ -3,6 +3,7 @@ import { prisma } from '../../db/prisma';
 import { config } from '../../config';
 import { logger } from '../../utils/logger';
 import { getQuotaForPlan, getPlanForPriceId, isAllowedPriceId, getAllowedPriceIds, PlanTier } from './plans';
+import { emailService } from '../../services/email.service';
 
 /**
  * Derive the plan tier from a Stripe subscription by mapping its active price
@@ -116,6 +117,7 @@ export const subscriptionService = {
 
         if (org) {
           const status = subscription.status;
+          const previousPlan = org.plan;
 
           if (status === 'active' || status === 'trialing') {
             const mappedPlan = planFromSubscription(subscription);
@@ -134,6 +136,24 @@ export const subscriptionService = {
               },
             });
             logger.info({ organizationId: org.id, newPlan, status }, 'Subscription updated');
+
+            if (org.email && newPlan !== previousPlan) {
+              if (previousPlan === 'free' && newPlan !== 'free') {
+                emailService.sendSubscriptionActivated(org.email, org.id, newPlan, {
+                  eventId: event.id,
+                  dedupeKey: `billing:activated:${event.id}`,
+                }).catch((err) => {
+                  logger.warn({ organizationId: org.id, error: err }, 'Activation email failed');
+                });
+              } else {
+                emailService.sendPlanChanged(org.email, org.id, newPlan, {
+                  eventId: event.id,
+                  dedupeKey: `billing:plan-change:${event.id}`,
+                }).catch((err) => {
+                  logger.warn({ organizationId: org.id, error: err }, 'Plan change email failed');
+                });
+              }
+            }
           }
         }
         break;
@@ -149,6 +169,14 @@ export const subscriptionService = {
           });
           if (org) {
             logger.info({ organizationId: org.id }, 'Payment succeeded');
+            if (org.email && invoice.billing_reason === 'subscription_cycle') {
+              emailService.sendRenewalSucceeded(org.email, org.id, org.plan, {
+                eventId: event.id,
+                dedupeKey: `billing:renewal:${event.id}`,
+              }).catch((err) => {
+                logger.warn({ organizationId: org.id, error: err }, 'Renewal email failed');
+              });
+            }
           }
         }
         break;
@@ -172,6 +200,14 @@ export const subscriptionService = {
                 details: { invoiceId: invoice.id, attemptCount: invoice.attempt_count },
               },
             });
+            if (org.email) {
+              emailService.sendPaymentFailed(org.email, org.id, invoice.attempt_count || 1, {
+                eventId: event.id,
+                dedupeKey: `billing:payment-failed:${event.id}`,
+              }).catch((err) => {
+                logger.warn({ organizationId: org.id, error: err }, 'Payment failed email failed');
+              });
+            }
           }
         }
         break;
@@ -189,6 +225,17 @@ export const subscriptionService = {
             data: { plan: 'free', stripeSubscriptionId: null },
           });
           logger.info({ organizationId: org.id }, 'Subscription canceled, downgraded to free');
+          if (org.email) {
+            const effectiveDate = subscription.canceled_at
+              ? new Date(subscription.canceled_at * 1000)
+              : (subscription.cancel_at ? new Date(subscription.cancel_at * 1000) : undefined);
+            emailService.sendCancellationNotice(org.email, org.id, effectiveDate, {
+              eventId: event.id,
+              dedupeKey: `billing:cancelled:${event.id}`,
+            }).catch((err) => {
+              logger.warn({ organizationId: org.id, error: err }, 'Cancellation email failed');
+            });
+          }
         }
         break;
       }

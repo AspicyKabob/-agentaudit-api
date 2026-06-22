@@ -7,7 +7,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="AgentAudit Team",
-    author_email="support@agentaudit.io",
+    author_email="support@agentaudit.online",
     url="https://github.com/agentaudit/agentaudit-python",
     packages=find_packages(),
     install_requires=[

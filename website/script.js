@@ -197,7 +197,7 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
       return;
     }
     if (plan === 'enterprise') {
-      window.open('mailto:sales@agentaudit.io?subject=Enterprise Inquiry', '_blank');
+      window.open('mailto:sales@agentaudit.online?subject=Enterprise Inquiry', '_blank');
       return;
     }
 

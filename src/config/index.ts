@@ -136,8 +136,21 @@ export const config = convict({
   resendFromEmail: {
     doc: 'Default from address for Resend emails.',
     format: String,
-    default: 'AgentAudit <noreply@agentaudit.io>',
+    default: 'AgentAudit <noreply@agentaudit.online>',
     env: 'RESEND_FROM_EMAIL',
+  },
+  supportEmail: {
+    doc: 'Reply-to / support address for transactional emails.',
+    format: String,
+    default: '',
+    env: 'SUPPORT_EMAIL',
+  },
+  resendWebhookSecret: {
+    doc: 'Secret for verifying Resend webhook signatures.',
+    format: String,
+    default: '',
+    env: 'RESEND_WEBHOOK_SECRET',
+    sensitive: true,
   },
   redisUrl: {
     doc: 'Redis connection string.',

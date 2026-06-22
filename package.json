@@ -55,6 +55,9 @@
     "swagger-ui-express": "^5.0.1",
     "zod": "^3.22.4"
   },
+  "overrides": {
+    "js-yaml": "^4.2.0"
+  },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.5",
     "@langchain/core": "^1.2.0",
