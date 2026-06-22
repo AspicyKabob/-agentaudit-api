@@ -226,6 +226,53 @@ describe('AgentAudit API Full Integration', () => {
       expect(res.body.email).toBe('test@example.com');
     });
 
+    it('PATCH /api/v1/auth/me → 200 updates notification preferences', async () => {
+      const token = getAuthToken();
+      mockedPrisma.organization.findUnique.mockResolvedValue({
+        id: 'org-1',
+        name: 'Test Corp',
+        email: 'test@example.com',
+        plan: 'free',
+        apiQuota: 1000,
+        apiUsed: 0,
+      });
+      mockedPrisma.organization.update.mockResolvedValue({
+        id: 'org-1',
+        name: 'Test Corp',
+        email: 'test@example.com',
+        plan: 'free',
+        webhookUrl: 'https://example.com/webhook',
+        notifyWebhook: true,
+        notifyEmail: true,
+        notifyMinSeverity: 'warning',
+      });
+
+      const res = await request(app)
+        .patch('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          webhookUrl: 'https://example.com/webhook',
+          notifyWebhook: true,
+          notifyEmail: true,
+          notifyMinSeverity: 'warning',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.notifyWebhook).toBe(true);
+      expect(res.body.notifyEmail).toBe(true);
+      expect(res.body.notifyMinSeverity).toBe('warning');
+      expect(mockedPrisma.organization.update).toHaveBeenCalledWith({
+        where: { id: 'org-1' },
+        data: {
+          webhookUrl: 'https://example.com/webhook',
+          notifyWebhook: true,
+          notifyEmail: true,
+          notifyMinSeverity: 'warning',
+        },
+        select: expect.any(Object),
+      });
+    });
+
     it('POST /api/v1/auth/api-keys → 201', async () => {
       const token = getAuthToken();
       mockedPrisma.apiKey.create.mockResolvedValue({

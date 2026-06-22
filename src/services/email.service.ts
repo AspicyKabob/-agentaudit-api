@@ -26,6 +26,25 @@ function getDashboardUrl(): string {
   return config.get('frontendUrl').replace(/\/$/, '') + '/dashboard.html';
 }
 
+function getSupportEmail(): string {
+  const support = config.get('supportEmail');
+  if (support && support.trim().length > 0) return support;
+  return 'AgentAudit Support <support@agentaudit.online>';
+}
+
+function getSupportEmailAddress(): string {
+  const support = config.get('supportEmail');
+  if (support && support.trim().length > 0) {
+    const match = support.match(/<([^>]+)>/);
+    return match ? match[1] : support.trim();
+  }
+  return 'support@agentaudit.online';
+}
+
+function getJunkHint(): string {
+  return 'Didn\'t receive an alert? Check your junk/spam folder and add noreply@agentaudit.online to your contacts.';
+}
+
 export interface EmailPayload {
   to: string | string[];
   subject: string;
@@ -80,6 +99,7 @@ export const emailService = {
         html: payload.html,
         text: payload.text,
         replyTo,
+        headers: replyTo ? { 'Reply-To': replyTo } : undefined,
       });
 
       if (error) {
@@ -128,10 +148,12 @@ export const emailService = {
             <p style="margin:0 0 12px"><strong>Message:</strong> ${alert.message}</p>
             ${violationsList ? `<p style="margin:0 0 8px"><strong>Violations:</strong></p>${violationsList}` : ''}
             <p style="margin:24px 0 0;font-size:13px;color:#78716c">View in dashboard: <a href="${getDashboardUrl()}">AgentAudit Dashboard</a></p>
+            <p style="margin:12px 0 0;font-size:12px;color:#78716c">Need help? Contact <a href="mailto:${getSupportEmailAddress()}">${getSupportEmailAddress()}</a>.</p>
+            <p style="margin:12px 0 0;font-size:11px;color:#a8a29e">${getJunkHint()}</p>
           </div>
         </div>
       `,
-      text: `AgentAudit Alert\nSeverity: ${alert.severity}\nAction: ${alert.action}\nMessage: ${alert.message}\n${alert.violations ? 'Violations: ' + alert.violations.join(', ') : ''}\nDashboard: ${getDashboardUrl()}`,
+      text: `AgentAudit Alert\nSeverity: ${alert.severity}\nAction: ${alert.action}\nMessage: ${alert.message}\n${alert.violations ? 'Violations: ' + alert.violations.join(', ') : ''}\nDashboard: ${getDashboardUrl()}\n\nNeed help? Contact ${getSupportEmailAddress()}.\n${getJunkHint()}`,
     });
   },
 
@@ -155,11 +177,12 @@ export const emailService = {
               <li><strong>Install the SDK:</strong> <code>pip install agentaudit-client</code> or <code>npm install agentaudit-client</code></li>
               <li><strong>Guard your first agent output</strong> with one line of code</li>
             </ol>
-            <p style="margin:24px 0 0">Need help? Reply to this email or visit our <a href="${config.get('frontendUrl').replace(/\/$/, '')}/features.html">features page</a>.</p>
+            <p style="margin:24px 0 0">Need help? Contact <a href="mailto:${getSupportEmailAddress()}">${getSupportEmailAddress()}</a> or visit our <a href="${config.get('frontendUrl').replace(/\/$/, '')}/features.html">features page</a>.</p>
+            <p style="margin:12px 0 0;font-size:12px;color:#78716c">${getJunkHint()}</p>
           </div>
         </div>
       `,
-      text: `Welcome to AgentAudit, ${name}!\n\nYour account is active. Get started:\n1. Get your API key: ${getDashboardUrl()}\n2. Install the SDK: pip install agentaudit-client   or   npm install agentaudit-client\n3. Guard your first agent output with one line of code\n\nNeed help? Visit ${config.get('frontendUrl').replace(/\/$/, '')}/features.html`,
+      text: `Welcome to AgentAudit, ${name}!\n\nYour account is active. Get started:\n1. Get your API key: ${getDashboardUrl()}\n2. Install the SDK: pip install agentaudit-client   or   npm install agentaudit-client\n3. Guard your first agent output with one line of code\n\nNeed help? Contact ${getSupportEmailAddress()}.\n\n${getJunkHint()}`,
     });
   },
 
@@ -253,6 +276,8 @@ export const emailService = {
           <h2 style="margin:0 0 16px;font-size:18px">${title}</h2>
           <p>${body}</p>
           <p style="margin:24px 0 0"><a href="${dashboardUrl}" style="display:inline-block;padding:10px 16px;background:#0c0c0c;color:#fafaf9;text-decoration:none;border-radius:6px;font-weight:600">Manage Billing</a></p>
+          <p style="margin:16px 0 0;font-size:12px;color:#78716c">Need help? Contact <a href="mailto:${getSupportEmailAddress()}">${getSupportEmailAddress()}</a>.</p>
+          <p style="margin:12px 0 0;font-size:11px;color:#a8a29e">${getJunkHint()}</p>
         </div>
       </div>
     `;
