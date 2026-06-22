@@ -139,7 +139,7 @@ export const auditService = {
         },
       });
 
-      const shouldNotify = org && meetsSeverityThreshold(severity, org.notifyMinSeverity);
+      const shouldNotify = org ? meetsSeverityThreshold(severity, org.notifyMinSeverity ?? 'warning') : false;
 
       if (org?.notifyWebhook && shouldNotify) {
         alertService.deliverWebhook(alert).catch((err) => {
@@ -571,7 +571,7 @@ async function evaluateComplianceRules(
     });
   }
 
-  const flags = violations.map((v) => `${v.severity.toUpperCase()}_${v.ruleType}_${v.name}`);
+  const flags = violations.map((v) => `${(v.severity ?? 'warning').toUpperCase()}_${v.ruleType}_${v.name}`);
   const finalAction = violations.reduce(
     (acc, v) => strongerAction(acc, v.action),
     'allow' as EnforcementAction
@@ -633,8 +633,8 @@ function checkRegex(text: string, pattern: string): boolean {
   return regex.test(text);
 }
 
-function severityRank(severity: string): number {
-  const normalized = severity.toLowerCase();
+function severityRank(severity?: string | null): number {
+  const normalized = (severity ?? 'warning').toLowerCase();
   if (normalized === 'low') return 1;
   if (normalized === 'medium') return 2;
   if (normalized === 'high' || normalized === 'warning') return 3;
@@ -642,8 +642,8 @@ function severityRank(severity: string): number {
   return 0;
 }
 
-function meetsSeverityThreshold(severity: string, minimumSeverity: string): boolean {
-  return severityRank(severity) >= severityRank(minimumSeverity);
+function meetsSeverityThreshold(severity?: string | null, minimumSeverity?: string | null): boolean {
+  return severityRank(severity) >= severityRank(minimumSeverity ?? 'warning');
 }
 
 async function createBatchAlerts(
@@ -669,7 +669,7 @@ async function createBatchAlerts(
         },
       });
 
-      const shouldNotify = meetsSeverityThreshold(severity, org.notifyMinSeverity);
+      const shouldNotify = meetsSeverityThreshold(severity, org.notifyMinSeverity ?? 'warning');
       if (org.notifyWebhook && shouldNotify) {
         alertService.deliverWebhook(alert).catch((err) => {
           logger.warn({ organizationId, alertId: alert.id, error: err }, 'Webhook delivery failed');
