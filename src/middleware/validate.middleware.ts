@@ -12,8 +12,9 @@ export function validate(schema: ZodSchema) {
       });
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        const issues = error.issues.map((issue) => ({
+      if (error instanceof ZodError || (error as any)?.name === 'ZodError' || (error as any)?.constructor?.name === 'ZodError') {
+        const zodError = error as ZodError;
+        const issues = zodError.issues.map((issue) => ({
           path: issue.path.join('.'),
           message: issue.message,
         }));
