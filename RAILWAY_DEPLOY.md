@@ -74,6 +74,26 @@ curl https://YOUR_RAILWAY_URL/mcp/v1/schema
 2. Click **"Generate Domain"** or add your own
 3. Update `website/index.html` API_BASE_URL to your domain
 
+## Resend Email & Support Mailbox
+
+1. Add Resend variables in Railway → Settings → Variables:
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `RESEND_API_KEY` | `re_...` | Resend API dashboard |
+| `RESEND_FROM_EMAIL` | `AgentAudit <noreply@agentaudit.online>` | Must be a verified domain in Resend |
+| `RESEND_WEBHOOK_SECRET` | Resend webhook secret | Resend Webhooks → Add endpoint |
+| `SUPPORT_EMAIL` | `AgentAudit Support <support@agentaudit.online>` | A real mailbox that can receive replies |
+
+2. Verify the domain in Resend and add the DNS records it gives you (typically `SPF`, `DKIM`, and `DMARC`).
+3. Add a webhook endpoint in Resend at `https://YOUR_RAILWAY_URL/api/v1/webhooks/resend` and select these events: `email.sent`, `email.delivered`, `email.bounced`, `email.complained`, `email.suppressed`, `email.failed`, `email.delivery_delayed`.
+4. Set up a real mailbox for `support@agentaudit.online` so replies work. If you use Cloudflare DNS, the easiest path is **Cloudflare Email Routing**:
+   - Cloudflare dashboard → Email → Email Routing
+   - Create a catch-all or specific route for `support@agentaudit.online` → forward to your personal email
+   - Activate the route and confirm via the verification email
+   - Alternatively, use a hosted mailbox provider (Google Workspace, Zoho, Fastmail, etc.).
+5. Tell users to add `noreply@agentaudit.online` to their contacts so alerts don't land in junk/spam.
+
 ## Monitoring
 
 - Railway has built-in logs and metrics
