@@ -15,7 +15,7 @@ describe('Railway deployment configuration', () => {
     );
     expect(railway.deploy.startCommand).toBe('./entrypoint.sh');
     expect(entrypoint).toContain('exec node dist/server.js');
-    expect(entrypoint).not.toContain('prisma migrate');
+    expect(entrypoint).toContain('node_modules/.bin/prisma migrate deploy');
     expect(entrypoint).not.toContain('migrate resolve');
   });
 });
