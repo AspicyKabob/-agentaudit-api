@@ -126,6 +126,7 @@
     .modal-x:hover { color: var(--text); }
     .key-reveal { background: var(--dash-bg); border: 1px solid var(--dash-border); padding: 12px 14px; font-family: var(--font-mono); font-size: 12px; color: var(--accent); word-break: break-all; margin-bottom: 12px; }
     .key-warn { font-size: 11px; color: #f59e0b; margin-bottom: 16px; padding: 8px 12px; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); }
+    .junk-warning { font-size: 11px; color: #f59e0b; margin-top: 12px; padding: 8px 12px; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); }
 
     /* Toast */
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: #111; border: 1px solid var(--dash-border); color: var(--text); padding: 10px 20px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 2000; pointer-events: none; font-family: var(--font-mono); }
@@ -267,6 +268,7 @@
         </div>
 
         <p style="font-size:11px;color:var(--text-muted);margin:0;">When a compliance violation is detected, AgentAudit will notify you based on these preferences. <a href="/docs" style="color:var(--text-secondary);text-decoration:underline;">View webhook schema</a>.</p>
+        <div class="junk-warning">Important: alert emails may land in your junk or spam folder. Check there and add <strong>noreply@agentaudit.online</strong> to your contacts so you don't miss anything.</div>
       </div>
     </div>
 
