@@ -104,6 +104,7 @@ These ideas are worth tracking but are lower priority or more speculative than t
 - **Built-in model evaluation / red-teaming:** Run automated adversarial test suites against a customer’s agent and report weakness.
 - **Fine-grained RBAC:** Organization-level roles, read-only auditors, and approval workflows.
 - **Integrations directory:** One-click plugins for LangGraph, AutoGPT, Flowise, n8n, and major LLM providers.
+- **Automated API key suspension on repeated violations:** A rule-level option (e.g. `action: "suspend_key_after_n_violations"`) that automatically revokes or suspends an API key once a configurable threshold of compliance violations is reached within a rolling time window. Intended for high-stakes production environments where human review latency is not acceptable. Key suspension state would be visible in the dashboard with a one-click reinstatement flow. Pairs naturally with the Human-in-the-Loop Review Queue (item 3 above) — suspension holds the agent while a human reviewer decides whether to reinstate or permanently revoke.
 
 ---
 
