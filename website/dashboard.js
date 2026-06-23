@@ -202,12 +202,18 @@
     } catch(err) { toast(err.message, 'error'); }
   };
 
-  window.installPack = async function(id) {
+  window.installPack = async function(id, btnEl) {
+    var btn = btnEl || document.querySelector('[onclick*="installPack(\'' + id + '\'"]');
+    var origText = btn ? btn.textContent : '';
+    if (btn) { btn.disabled = true; btn.textContent = 'Installing...'; }
     try {
       await api('POST', '/api/v1/compliance-rules/packs', { packId: id });
       toast('Pack installed', 'success');
       loadDashboard();
-    } catch(err) { toast(err.message, 'error'); }
+    } catch(err) {
+      toast(err.message || 'Failed to install pack', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = origText; }
+    }
   };
 
   window.revokeKey = async function(id) {
@@ -284,7 +290,8 @@
 
     try {
       var keys = await api('GET', '/api/v1/auth/api-keys');
-      document.getElementById('stat-keys').textContent = keys.length;
+      var statKeys = document.getElementById('stat-keys');
+      if (statKeys) statKeys.textContent = keys.length;
       var keysList = document.getElementById('keys-list');
       if (keys.length) {
         keysList.innerHTML = keys.map(function(k) {
@@ -344,7 +351,7 @@
           var status = isInstalled ? '<span class="pack-status">Installed</span>' : '<span class="pack-status pending">Not installed</span>';
           var action = isInstalled
             ? '<button class="btn-dash btn-dash-danger" onclick="removePack(\'' + p.id + '\')">Remove</button>'
-            : '<button class="btn-dash btn-dash-primary" onclick="installPack(\'' + p.id + '\')">Install</button>';
+            : '<button class="btn-dash btn-dash-primary" onclick="installPack(\'' + p.id + '\', this)">Install</button>';
           return '<div class="pack-row">' +
             '<div><div class="pack-name">' + p.name + '</div>' +
             '<div class="pack-meta">' + (p.description || '') + '</div></div>' +
