@@ -4,7 +4,7 @@ This is the living source of truth for launching AgentAudit as a public develope
 
 **Target:** Public developer beta
 
-**Last reviewed:** 2026-06-21
+**Last reviewed:** 2026-06-23
 
 **Current recommendation:** The application code is beta-ready. Complete the open launch gates below before actively driving public traffic or enabling paid billing.
 
@@ -19,7 +19,7 @@ This is the living source of truth for launching AgentAudit as a public develope
 
 ## Current Snapshot
 
-- [x] Public API is deployed from current `main` commit `4261b7c` (verified 2026-06-21).
+- [x] Public API is deployed from current `main` commit `dc22142` (verified 2026-06-23).
 - [x] `/health` reports `status: ok` and database `up` (verified 2026-06-21).
 - [x] `/mcp/v1/schema` responds successfully (verified 2026-06-20).
 - [x] API, Python SDK, and TypeScript SDK CI jobs pass on `main`.
@@ -66,7 +66,7 @@ These items should be complete before announcing the public beta.
 - [x] Stripe checkout accepts only configured price IDs.
 - [x] Stripe price-to-plan mapping is deterministic and shared by checkout and webhook handling.
 - [x] Quota checks are atomic and usage periods reset deterministically.
-- [ ] Choose the beta billing mode: free beta with Stripe disabled, or paid beta with Stripe enabled.
+- [x] Choose the beta billing mode: paid beta with Stripe enabled (owner-decided 2026-06-23).
 - [x] Standardize published pricing at Pro `$29` / Business `$79` (owner-confirmed 2026-06-20).
 - [ ] If billing is enabled, verify live Stripe products and price IDs match the published pricing.
 - [ ] **Final launch pass:** If billing is enabled, complete a fresh Stripe sandbox checkout, webhook, plan-change, cancellation, and failed-payment test.
@@ -88,10 +88,10 @@ These items should be complete before announcing the public beta.
 ### Legal, Trust, and Customer Expectations
 
 - [x] README labels the project as a public beta and does not claim SOC 2 or HIPAA certification.
-- [ ] Publish a Privacy Policy linked from every public page.
-- [ ] Publish Terms of Service linked from every public page.
-- [ ] Publish an Acceptable Use Policy covering abusive and unlawful agent activity.
-- [ ] Document what customer data is stored, where it is stored, and the current retention/deletion behavior.
+- [x] Publish a Privacy Policy linked from every public page (added `privacy.html` 2026-06-23).
+- [x] Publish Terms of Service linked from every public page (added `terms.html` 2026-06-23).
+- [x] Publish an Acceptable Use Policy covering abusive and unlawful agent activity (added `acceptable-use.html` 2026-06-23).
+- [x] Document what customer data is stored, where it is stored, and the current retention/deletion behavior (added `data-retention.html` 2026-06-23).
 - [ ] Provide a customer data-deletion/request process.
 - [ ] Review the website's “enterprise security” language against actual controls and certifications.
 - [ ] Verify `support@agentaudit.online` and `sales@agentaudit.online` receive mail and have an owner.
@@ -100,7 +100,7 @@ These items should be complete before announcing the public beta.
 
 - [x] Verify the sending domain in Resend and publish valid SPF, DKIM, and DMARC records (domain `agentaudit.online` verified in Resend after adding Hostinger DNS records).
 - [x] Configure production `RESEND_API_KEY` and `RESEND_FROM_EMAIL` with a verified sender domain; keep credentials only in Railway (verified locally with `RESEND_FROM_EMAIL=AgentAudit <noreply@agentaudit.online>`; must be set in Railway before next deploy).
-- [~] Set and verify a monitored reply-to/support address instead of relying on an unmonitored sender (reply-to is now `support@agentaudit.online` via `SUPPORT_EMAIL`; verify mailbox works).
+- [x] Set and verify a monitored reply-to/support address (`support@agentaudit.online` mailbox active and verified 2026-06-23).
 - [ ] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook.
 - [x] Add and test billing emails for subscription activation, plan change, cancellation, successful renewal, failed payment, and recovery after a failed payment (implemented 2026-06-21; dedupe keys prevent retries from duplicating messages).
 - [x] Ensure Stripe webhook retries cannot create duplicate billing emails and every message reflects the committed database state (dedupe keys on `EmailDelivery` + webhook reads committed DB state).
@@ -222,11 +222,11 @@ These are important, but they do not block a carefully labeled developer beta.
 
 | Field | Value |
 |---|---|
-| Release tag | Not set |
-| Deployed commit | `4261b7c` (verified 2026-06-21) |
+| Release tag | `beta` |
+| Deployed commit | `dc22142` (verified 2026-06-23) |
 | Launch date/time | Not set |
 | Launch operator | Not set |
-| Billing mode | Not decided |
+| Billing mode | Paid beta — Stripe enabled |
 | Rollback commit | Not set |
 
 ## Evidence Log
@@ -257,3 +257,5 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-21 | PR #19 merged as `4261b7c`; all three CI jobs passed, Railway served the commit with database `up`, and the authenticated smoke test passed with the rate-limit isolation fix deployed. |
 | 2026-06-21 | Resolved both `js-yaml` alerts with `js-yaml@4.2.0` overrides; dashboard error states and loading UI hardened; added billing email templates, `EmailDelivery` tracking, Stripe-webhook deduplication, and a signed Resend delivery-status webhook. Production and local smoke tests passed. Resend domain `agentaudit.online` created and DNS records generated; awaiting DNS publication. |
 | 2026-06-21 | Resend domain `agentaudit.online` verified in Hostinger DNS; local smoke test with `RESEND_API_KEY` confirmed welcome and audit-alert emails are accepted by Resend and tracked as `sent` in the `EmailDelivery` table. |
+| 2026-06-23 | Production body-parser fix merged; login, dashboard notification toggles, and Resend alert delivery verified against the live deployment. Support mailbox `support@agentaudit.online` confirmed working. |
+| 2026-06-23 | Added legal pages (`privacy.html`, `terms.html`, `acceptable-use.html`, `data-retention.html`) and linked them from the footer of every public page. Updated billing mode to paid beta and release tag to `beta`. |
