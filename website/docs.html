@@ -4,44 +4,361 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>API Documentation — AgentAudit</title>
-  <meta name="description" content="Interactive API documentation for AgentAudit. Explore endpoints, request/response schemas, and authentication.">
+  <meta name="description" content="AgentAudit API reference. Quickstart, authentication, audit logging, compliance rules, distributed tracing, and SDK examples.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://agentaudit-api-production.up.railway.app/docs.html">
   <meta property="og:title" content="API Documentation — AgentAudit">
-  <meta property="og:description" content="Interactive API documentation for AgentAudit.">
+  <meta property="og:description" content="AgentAudit API reference. Quickstart, authentication, audit logging, compliance rules, distributed tracing, and SDK examples.">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="API Documentation — AgentAudit">
+  <meta name="twitter:description" content="AgentAudit API reference. Quickstart, authentication, audit logging, compliance rules, distributed tracing.">
 
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='16' fill='%230c0c0c'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-family='Georgia,serif' font-size='60' font-weight='bold' font-style='italic' fill='%23dc2626'%3EA%3C/text%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Instrument+Serif:wght@400;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <style>
+    /* ── Layout ───────────────────────────────────────────────────── */
     .docs-page { padding-top: 80px; min-height: 100vh; }
-    .docs-hero { padding: 80px 0 60px; position: relative; z-index: 2; }
-    .docs-hero h1 { font-family: var(--font-serif); font-size: clamp(36px, 5vw, 56px); font-weight: 400; line-height: 1.1; margin-bottom: 20px; }
-    .docs-hero p { font-size: 18px; color: var(--text-secondary); max-width: 640px; line-height: 1.6; }
-    .docs-grid { display: grid; grid-template-columns: 260px 1fr; gap: 40px; position: relative; z-index: 2; padding-bottom: 100px; }
-    .docs-sidebar { border-right: 1px solid var(--border); padding-right: 24px; }
-    .docs-sidebar h4 { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 12px; margin-top: 24px; }
-    .docs-sidebar a { display: block; font-size: 14px; color: var(--text-secondary); text-decoration: none; padding: 6px 0; transition: color 0.2s; }
-    .docs-sidebar a:hover, .docs-sidebar a.active { color: var(--text); }
-    .docs-content h2 { font-family: var(--font-serif); font-size: clamp(24px, 3vw, 32px); font-weight: 400; margin-bottom: 16px; margin-top: 48px; }
-    .docs-content h2:first-child { margin-top: 0; }
-    .docs-content p { font-size: 16px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px; }
-    .docs-content pre { background: var(--bg-elevated); border: 1px solid var(--border); padding: 20px; overflow-x: auto; font-family: var(--font-mono); font-size: 13px; line-height: 1.8; color: var(--text-secondary); margin: 20px 0; }
-    .docs-content code { font-family: var(--font-mono); font-size: 13px; color: var(--accent); }
-    .docs-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-    .docs-content th, .docs-content td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
-    .docs-content th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 500; }
-    .docs-content td { color: var(--text-secondary); }
-    .endpoint { display: flex; align-items: center; gap: 10px; margin: 12px 0; padding: 10px 12px; background: var(--bg-elevated); border: 1px solid var(--border); font-family: var(--font-mono); font-size: 13px; }
-    .method { font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .method.get { color: var(--success); }
-    .method.post { color: #6366f1; }
-    .method.patch { color: var(--warning); }
-    .swagger-frame { width: 100%; height: 800px; border: 1px solid var(--border); background: #fff; margin-top: 24px; }
+
+    .docs-hero {
+      padding: 80px 0 56px;
+      position: relative;
+      z-index: 2;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+    .docs-hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .docs-hero p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 560px;
+      line-height: 1.7;
+      font-family: var(--font-mono);
+    }
+    .docs-hero-meta {
+      display: flex;
+      gap: 24px;
+      margin-top: 28px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .docs-hero-meta a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1px;
+      transition: color 0.15s;
+    }
+    .docs-hero-meta a:hover { color: var(--text); }
+
+    .docs-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 0;
+      position: relative;
+      z-index: 2;
+      min-height: calc(100vh - 300px);
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────────────── */
+    .docs-sidebar {
+      border-right: 1px solid var(--border);
+      padding: 36px 24px 80px 0;
+      position: sticky;
+      top: 80px;
+      height: calc(100vh - 80px);
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .docs-sidebar::-webkit-scrollbar { display: none; }
+
+    .docs-sidebar-group { margin-bottom: 28px; }
+    .docs-sidebar-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: block;
+    }
+    .docs-sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 5px 0;
+      transition: color 0.15s;
+      border-left: 2px solid transparent;
+      padding-left: 10px;
+      margin-left: -12px;
+    }
+    .docs-sidebar a:hover { color: var(--text-secondary); }
+    .docs-sidebar a.active { color: var(--text); border-left-color: var(--accent); }
+
+    /* ── Content ──────────────────────────────────────────────────── */
+    .docs-content {
+      padding: 48px 0 100px 56px;
+      max-width: 780px;
+    }
+
+    .docs-section {
+      padding-bottom: 56px;
+      margin-bottom: 56px;
+      border-bottom: 1px solid var(--border);
+    }
+    .docs-section:last-child { border-bottom: none; }
+
+    .docs-section-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: block;
+    }
+    .docs-section h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 400;
+      margin-bottom: 16px;
+      line-height: 1.15;
+    }
+    .docs-section h3 {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 32px 0 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .docs-section p {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+    .docs-section ul {
+      list-style: none;
+      margin-bottom: 16px;
+    }
+    .docs-section ul li {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      padding-left: 16px;
+      position: relative;
+    }
+    .docs-section ul li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-muted);
+    }
+
+    /* ── Inline code ──────────────────────────────────────────────── */
+    .docs-section code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(220, 38, 38, 0.08);
+      padding: 1px 6px;
+      border: 1px solid rgba(220, 38, 38, 0.15);
+    }
+
+    /* ── Code blocks ──────────────────────────────────────────────── */
+    .code-block {
+      position: relative;
+      margin: 20px 0;
+    }
+    .code-block pre {
+      background: #0a0a0a;
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      scrollbar-width: thin;
+    }
+    .code-block pre::-webkit-scrollbar { height: 4px; }
+    .code-block pre::-webkit-scrollbar-track { background: transparent; }
+    .code-block pre::-webkit-scrollbar-thumb { background: var(--border-strong); }
+
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--text-muted); }
+    .copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+    /* ── Tabs ─────────────────────────────────────────────────────── */
+    .code-tabs { margin: 20px 0; }
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+    .tab-btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 8px 18px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--text-secondary); }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .tab-panel .code-block { margin-top: 0; }
+    .tab-panel .code-block pre {
+      border-top: none;
+    }
+
+    /* ── Endpoint rows ────────────────────────────────────────────── */
+    .endpoint-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      margin-bottom: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      transition: border-color 0.15s;
+    }
+    .endpoint-row:hover { border-color: var(--border-strong); }
+    .endpoint-row .path { color: var(--text); }
+    .endpoint-row .desc { color: var(--text-muted); font-size: 11px; margin-left: auto; }
+
+    .method-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border: 1px solid;
+      flex-shrink: 0;
+    }
+    .method-badge.get { color: var(--success); border-color: rgba(22, 163, 74, 0.4); background: rgba(22, 163, 74, 0.06); }
+    .method-badge.post { color: #818cf8; border-color: rgba(129, 140, 248, 0.4); background: rgba(129, 140, 248, 0.06); }
+    .method-badge.patch { color: var(--warning); border-color: rgba(202, 138, 4, 0.4); background: rgba(202, 138, 4, 0.06); }
+    .method-badge.delete { color: var(--error); border-color: rgba(220, 38, 38, 0.4); background: rgba(220, 38, 38, 0.06); }
+
+    /* ── Param table ──────────────────────────────────────────────── */
+    .param-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 12px;
+    }
+    .param-table th {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 500;
+    }
+    .param-table td {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .param-table td:first-child { color: var(--text); }
+    .param-table .req {
+      font-size: 10px;
+      color: var(--accent);
+      border: 1px solid rgba(220,38,38,0.3);
+      padding: 1px 5px;
+    }
+    .param-table .opt {
+      font-size: 10px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+    }
+
+    /* ── Callout ──────────────────────────────────────────────────── */
+    .callout {
+      padding: 14px 18px;
+      border-left: 3px solid var(--border-strong);
+      background: rgba(255,255,255,0.02);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin: 20px 0;
+    }
+    .callout.warn { border-left-color: var(--warning); background: rgba(202, 138, 4, 0.05); }
+    .callout.info { border-left-color: #818cf8; background: rgba(129, 140, 248, 0.05); }
+    .callout strong { color: var(--text); }
+
+    /* ── Action row ───────────────────────────────────────────────── */
+    .docs-cta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
     @media (max-width: 900px) {
-      .docs-grid { grid-template-columns: 1fr; }
-      .docs-sidebar { border-right: none; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px; }
+      .docs-layout { grid-template-columns: 1fr; }
+      .docs-sidebar {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 24px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0 32px;
+      }
+      .docs-sidebar-group { margin-bottom: 16px; min-width: 140px; }
+      .docs-content { padding: 32px 0 80px; }
     }
   </style>
 </head>
@@ -74,74 +391,436 @@
   </nav>
 
   <main class="docs-page">
+    <!-- Hero -->
     <div class="container docs-hero">
       <span class="section-badge">API Reference</span>
-      <h1>AgentAudit <span class="gradient-text">API Docs</span></h1>
-      <p>Interactive OpenAPI documentation. Explore endpoints, authentication, request/response schemas, and try requests directly in the browser.</p>
+      <h1>AgentAudit <span class="gradient-text">Docs</span></h1>
+      <p>Everything you need to integrate audit logging, guardrails, and compliance monitoring into your agent stack.</p>
+      <div class="docs-hero-meta">
+        <span>Base URL: <a href="https://agentaudit-api-production.up.railway.app" target="_blank">agentaudit-api-production.up.railway.app</a></span>
+        <span>Version: <strong>v1</strong></span>
+        <a href="/docs" target="_blank">Interactive Swagger UI ↗</a>
+      </div>
     </div>
 
-    <div class="container docs-grid">
-      <aside class="docs-sidebar">
-        <h4>Overview</h4>
-        <a href="#auth" class="active">Authentication</a>
-        <a href="#endpoints">Endpoints</a>
-        <a href="#batch">Batch Logging</a>
-        <a href="#tracing">Distributed Tracing</a>
-        <h4>SDKs</h4>
-        <a href="https://pypi.org/project/agentaudit-client/" target="_blank">Python SDK ↗</a>
-        <a href="https://www.npmjs.com/package/agentaudit-client" target="_blank">TypeScript SDK ↗</a>
-        <h4>More</h4>
-        <a href="integrations.html">Integrations</a>
-        <a href="security.html">Security</a>
-        <a href="self-hosting.html">Self-Hosting</a>
-      </aside>
+    <!-- Two-column layout -->
+    <div class="container" style="padding-top:0;padding-bottom:0;">
+      <div class="docs-layout">
 
-      <div class="docs-content">
-        <h2 id="auth">Authentication</h2>
-        <p>AgentAudit uses two authentication methods:</p>
-        <table>
-          <tr><th>Method</th><th>Header</th><th>Use Case</th></tr>
-          <tr><td>API Key</td><td><code>X-API-Key: aa_...</code></td><td>Agent-to-service logging</td></tr>
-          <tr><td>JWT</td><td><code>Authorization: Bearer jwt_token</code></td><td>Dashboard access</td></tr>
-        </table>
+        <!-- Sidebar -->
+        <aside class="docs-sidebar">
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Getting started</span>
+            <a href="#quickstart" class="active">Quickstart</a>
+            <a href="#auth">Authentication</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Core API</span>
+            <a href="#audit-logs">Audit Logs</a>
+            <a href="#batch">Batch Logging</a>
+            <a href="#tracing">Distributed Tracing</a>
+            <a href="#compliance">Compliance Rules</a>
+            <a href="#alerts">Alerts</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Reference</span>
+            <a href="#endpoints">All Endpoints</a>
+            <a href="#errors">Errors</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">SDKs</span>
+            <a href="https://pypi.org/project/agentaudit-client/" target="_blank">Python ↗</a>
+            <a href="https://www.npmjs.com/package/agentaudit-client" target="_blank">TypeScript ↗</a>
+          </div>
+          <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">More</span>
+            <a href="integrations.html">Integrations</a>
+            <a href="security.html">Security</a>
+            <a href="/docs" target="_blank">Swagger UI ↗</a>
+          </div>
+        </aside>
 
-        <h2 id="endpoints">Key Endpoints</h2>
-        <div class="endpoint"><span class="method post">POST</span> /api/v1/auth/register</div>
-        <div class="endpoint"><span class="method post">POST</span> /api/v1/auth/login</div>
-        <div class="endpoint"><span class="method post">POST</span> /api/v1/auth/api-keys</div>
-        <div class="endpoint"><span class="method post">POST</span> /api/v1/audit-logs</div>
-        <div class="endpoint"><span class="method post">POST</span> /api/v1/audit-logs/batch</div>
-        <div class="endpoint"><span class="method get">GET</span> /api/v1/audit-logs</div>
-        <div class="endpoint"><span class="method get">GET</span> /api/v1/audit-logs/trace/:traceId</div>
-        <div class="endpoint"><span class="method get">GET</span> /api/v1/audit-logs/:id/chain</div>
-        <div class="endpoint"><span class="method get">GET</span> /api/v1/compliance-rules</div>
-        <div class="endpoint"><span class="method post">POST</span> /api/v1/compliance-rules</div>
-        <div class="endpoint"><span class="method get">GET</span> /api/v1/alerts</div>
-        <div class="endpoint"><span class="method patch">PATCH</span> /api/v1/alerts/:id/resolve</div>
+        <!-- Content -->
+        <div class="docs-content">
 
-        <h2 id="batch">Batch Logging</h2>
-        <p>Submit up to 100 audit log entries in a single request:</p>
-        <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
-  -H "X-API-Key: aa_your_api_key_here" \
+          <!-- ── Quickstart ────────────────────────────────────────── -->
+          <div class="docs-section" id="quickstart">
+            <span class="docs-section-badge">01 — Getting started</span>
+            <h2>Quickstart</h2>
+            <p>Get your first audit log into AgentAudit in under two minutes.</p>
+
+            <h3>1. Create an account &amp; get an API key</h3>
+            <p>Sign up at <a href="/dashboard.html" style="color:var(--text-secondary);text-decoration:underline;">agentaudit.online</a>, then go to <strong>Dashboard → API Keys → Create Key</strong>. Your key starts with <code>aa_</code>.</p>
+
+            <h3>2. Send your first log</h3>
+            <div class="code-tabs" data-tab-group="quickstart">
+              <div class="tab-bar">
+                <button class="tab-btn active" data-tab="curl">cURL</button>
+                <button class="tab-btn" data-tab="python">Python</button>
+                <button class="tab-btn" data-tab="typescript">TypeScript</button>
+              </div>
+              <div class="tab-panel active" data-tab="curl">
+                <div class="code-block">
+                  <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+  -H "X-API-Key: aa_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "llm_call",
+    "prompt": "Summarise the latest sales report",
+    "response": "Q1 revenue was $2.4M...",
+    "metadata": { "model": "gpt-4o", "tokens": 340 }
+  }'</pre>
+                  <button class="copy-btn">Copy</button>
+                </div>
+              </div>
+              <div class="tab-panel" data-tab="python">
+                <div class="code-block">
+                  <pre>from agentaudit import AgentAuditClient
+
+client = AgentAuditClient(api_key="aa_your_key_here")
+
+client.log(
+    action="llm_call",
+    prompt="Summarise the latest sales report",
+    response="Q1 revenue was $2.4M...",
+    metadata={"model": "gpt-4o", "tokens": 340}
+)</pre>
+                  <button class="copy-btn">Copy</button>
+                </div>
+              </div>
+              <div class="tab-panel" data-tab="typescript">
+                <div class="code-block">
+                  <pre>import { AgentAuditClient } from 'agentaudit-client';
+
+const client = new AgentAuditClient({ apiKey: 'aa_your_key_here' });
+
+await client.log({
+  action: 'llm_call',
+  prompt: 'Summarise the latest sales report',
+  response: 'Q1 revenue was $2.4M...',
+  metadata: { model: 'gpt-4o', tokens: 340 },
+});</pre>
+                  <button class="copy-btn">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <h3>3. Check your dashboard</h3>
+            <p>Your log will appear in <strong>Dashboard → Recent Audit Logs</strong> within seconds. Any compliance violations will surface as alerts automatically.</p>
+
+            <div class="callout info">
+              <strong>Tip:</strong> Pass a <code>traceId</code> on every log in a single agent run to link them together. You can then replay the full chain in the <a href="/trace-visualizer.html" style="color:inherit;text-decoration:underline;">Trace Visualizer</a>.
+            </div>
+          </div>
+
+          <!-- ── Authentication ─────────────────────────────────────── -->
+          <div class="docs-section" id="auth">
+            <span class="docs-section-badge">02 — Authentication</span>
+            <h2>Authentication</h2>
+            <p>Two methods are supported depending on context.</p>
+
+            <table class="param-table">
+              <tr><th>Method</th><th>Header</th><th>Use case</th></tr>
+              <tr>
+                <td>API Key</td>
+                <td><code>X-API-Key: aa_...</code></td>
+                <td>Agent-to-service logging from SDKs or direct HTTP</td>
+              </tr>
+              <tr>
+                <td>JWT Bearer</td>
+                <td><code>Authorization: Bearer &lt;token&gt;</code></td>
+                <td>Dashboard access, profile &amp; billing management</td>
+              </tr>
+            </table>
+
+            <h3>Obtain a JWT</h3>
+            <div class="code-block">
+              <pre>POST /api/v1/auth/login
+
+{
+  "email": "you@example.com",
+  "password": "your_password"
+}
+
+// Response
+{
+  "accessToken": "eyJ...",
+  "user": { "id": "...", "email": "...", "plan": "free" }
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <h3>Create an API key</h3>
+            <div class="code-block">
+              <pre>POST /api/v1/auth/api-keys
+Authorization: Bearer &lt;jwt&gt;
+
+{ "name": "production-agent" }
+
+// Response
+{
+  "key": "aa_live_xxxxxxxxxxxxxxxx",  // shown once — save it
+  "id": "key_...",
+  "name": "production-agent"
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <div class="callout warn">
+              <strong>Important:</strong> API keys are shown only once at creation time. Store them securely in an environment variable — they cannot be retrieved afterwards.
+            </div>
+          </div>
+
+          <!-- ── Audit Logs ──────────────────────────────────────────── -->
+          <div class="docs-section" id="audit-logs">
+            <span class="docs-section-badge">03 — Core API</span>
+            <h2>Audit Logs</h2>
+            <p>The core primitive. Log any agent action — LLM calls, tool use, decisions, guardrail checks — with a flexible schema.</p>
+
+            <h3>Log a single event</h3>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/audit-logs</span>
+              <span class="desc">Auth: API Key</span>
+            </div>
+
+            <table class="param-table">
+              <tr><th>Field</th><th>Type</th><th></th><th>Description</th></tr>
+              <tr><td>action</td><td>string</td><td><span class="req">required</span></td><td>Event type, e.g. <code>llm_call</code>, <code>tool_use</code>, <code>guardrail_block</code></td></tr>
+              <tr><td>prompt</td><td>string</td><td><span class="opt">optional</span></td><td>Input sent to the model or tool</td></tr>
+              <tr><td>response</td><td>string</td><td><span class="opt">optional</span></td><td>Output from the model or tool</td></tr>
+              <tr><td>agentId</td><td>string</td><td><span class="opt">optional</span></td><td>Stable identifier for the agent</td></tr>
+              <tr><td>traceId</td><td>string</td><td><span class="opt">optional</span></td><td>Groups related events into a single trace</td></tr>
+              <tr><td>parentSpanId</td><td>string</td><td><span class="opt">optional</span></td><td>ID of a parent log entry (for nested spans)</td></tr>
+              <tr><td>metadata</td><td>object</td><td><span class="opt">optional</span></td><td>Any JSON — model name, token count, latency, etc.</td></tr>
+            </table>
+
+            <div class="code-block">
+              <pre>// Example — guardrail check with trace context
+{
+  "action": "guardrail_check",
+  "agentId": "writer-agent-1",
+  "traceId": "run-1749300000000",
+  "parentSpanId": "log_abc123",
+  "prompt": "Draft email containing SSN: 123-45-6789",
+  "response": "BLOCKED: PII detected",
+  "metadata": {
+    "rule": "pii_detection",
+    "model": "gpt-4o",
+    "latency_ms": 42
+  }
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <h3>Retrieve logs</h3>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/audit-logs</span>
+              <span class="desc">Auth: JWT or API Key</span>
+            </div>
+            <p>Supports query params: <code>limit</code>, <code>offset</code>, <code>agentId</code>, <code>action</code>, <code>traceId</code>.</p>
+          </div>
+
+          <!-- ── Batch ───────────────────────────────────────────────── -->
+          <div class="docs-section" id="batch">
+            <span class="docs-section-badge">04 — Batch logging</span>
+            <h2>Batch Logging</h2>
+            <p>Submit up to 100 log entries in a single request. Ideal for high-throughput agents or flushing a local buffer at the end of a run.</p>
+
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/audit-logs/batch</span>
+              <span class="desc">Auth: API Key</span>
+            </div>
+
+            <div class="code-block">
+              <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+  -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '[
-    {"action": "llm_start", "prompt": "Hello", "metadata": {"model": "gpt-4"}},
-    {"action": "llm_end", "response": "Hi there", "metadata": {"tokens": 12}}
+    {
+      "action": "llm_start",
+      "traceId": "run-1749300000000",
+      "prompt": "Analyse Q1 data",
+      "metadata": { "model": "gpt-4o" }
+    },
+    {
+      "action": "tool_use",
+      "traceId": "run-1749300000000",
+      "parentSpanId": "&lt;id of llm_start log&gt;",
+      "metadata": { "tool": "code_interpreter" }
+    },
+    {
+      "action": "llm_end",
+      "traceId": "run-1749300000000",
+      "response": "Q1 revenue grew 18% YoY",
+      "metadata": { "tokens": 820 }
+    }
   ]'</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
 
-        <h2 id="tracing">Distributed Tracing</h2>
-        <p>Pass <code>traceId</code> and <code>parentSpanId</code> to link related events:</p>
-        <pre>{
-  "action": "crewai_task_end",
-  "traceId": "trace-abc-123",
-  "parentSpanId": "log-parent-456",
-  "response": "Task completed successfully"
+            <div class="callout">
+              The batch endpoint returns an array of created log IDs in the same order as the input. Use these IDs as <code>parentSpanId</code> values in subsequent requests to build a nested trace.
+            </div>
+          </div>
+
+          <!-- ── Tracing ─────────────────────────────────────────────── -->
+          <div class="docs-section" id="tracing">
+            <span class="docs-section-badge">05 — Distributed tracing</span>
+            <h2>Distributed Tracing</h2>
+            <p>Link every log in an agent run with a shared <code>traceId</code>. Use <code>parentSpanId</code> to express parent–child relationships between spans. The <a href="/trace-visualizer.html" style="color:var(--text-secondary);text-decoration:underline;">Trace Visualizer</a> reconstructs the full tree from these fields.</p>
+
+            <h3>Fetch a trace</h3>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/audit-logs/trace/:traceId</span>
+              <span class="desc">Returns all logs with this traceId</span>
+            </div>
+
+            <h3>Get parent chain</h3>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/audit-logs/:id/chain</span>
+              <span class="desc">Walk parentSpanId chain upwards</span>
+            </div>
+
+            <div class="code-block">
+              <pre>// Suggested traceId pattern — stable, sortable
+const traceId = `run-${Date.now()}`;           // "run-1749300000000"
+const traceId = `run-${crypto.randomUUID()}`;  // "run-550e8400-e29b..."
+
+// Python
+import time
+trace_id = f"run-{int(time.time() * 1000)}"</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <p>Find your trace IDs in <strong>Dashboard → Recent Audit Logs</strong>, then paste them into the <a href="/trace-visualizer.html" style="color:var(--text-secondary);text-decoration:underline;">Trace Visualizer</a> to replay the full agent chain.</p>
+          </div>
+
+          <!-- ── Compliance ──────────────────────────────────────────── -->
+          <div class="docs-section" id="compliance">
+            <span class="docs-section-badge">06 — Compliance rules</span>
+            <h2>Compliance Rules</h2>
+            <p>Rules are evaluated automatically against every incoming log. Violations trigger alerts and optionally fire webhook or email notifications.</p>
+
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/compliance-rules</span>
+              <span class="desc">List all rules for your org</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/compliance-rules</span>
+              <span class="desc">Create a custom rule</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/compliance-rules/packs</span>
+              <span class="desc">Install a pre-built compliance pack</span>
+            </div>
+
+            <h3>Install a compliance pack</h3>
+            <p>Packs are curated rule sets for common frameworks. Available pack IDs:</p>
+            <ul>
+              <li><code>hippo</code> — Healthcare (HIPAA-aligned PII &amp; PHI detection)</li>
+              <li><code>finance</code> — Financial services (PCI-DSS, sensitive data)</li>
+              <li><code>gdpr</code> — GDPR / EU data protection</li>
+            </ul>
+            <div class="code-block">
+              <pre>POST /api/v1/compliance-rules/packs
+Authorization: Bearer &lt;jwt&gt;
+
+{ "packId": "gdpr" }</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+          </div>
+
+          <!-- ── Alerts ─────────────────────────────────────────────── -->
+          <div class="docs-section" id="alerts">
+            <span class="docs-section-badge">07 — Alerts</span>
+            <h2>Alerts</h2>
+            <p>Alerts are created automatically when a compliance rule fires. You can list, filter, and resolve them via API or from the dashboard.</p>
+
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/alerts</span>
+              <span class="desc">List alerts — supports ?resolved=false</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge patch">PATCH</span>
+              <span class="path">/api/v1/alerts/:id/resolve</span>
+              <span class="desc">Mark an alert as resolved</span>
+            </div>
+          </div>
+
+          <!-- ── All endpoints ───────────────────────────────────────── -->
+          <div class="docs-section" id="endpoints">
+            <span class="docs-section-badge">08 — Reference</span>
+            <h2>All Endpoints</h2>
+
+            <h3>Auth</h3>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/register</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/login</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/auth/me</span></div>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/auth/me</span><span class="desc">Update profile &amp; notification prefs</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/api-keys</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/auth/api-keys</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/auth/api-keys/:id</span></div>
+
+            <h3>Audit Logs</h3>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/audit-logs</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/audit-logs/batch</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/trace/:traceId</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/:id/chain</span></div>
+
+            <h3>Compliance</h3>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/compliance-rules</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/compliance-rules</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/compliance-rules/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/compliance-rules/packs</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/compliance-rules/packs/:packId</span></div>
+
+            <h3>Alerts</h3>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/alerts</span></div>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/alerts/:id/resolve</span></div>
+
+            <div class="docs-cta">
+              <a href="/docs" target="_blank" class="btn btn-primary">Open Swagger UI →</a>
+              <a href="integrations.html" class="btn btn-glass">Integration Guides</a>
+            </div>
+          </div>
+
+          <!-- ── Errors ─────────────────────────────────────────────── -->
+          <div class="docs-section" id="errors">
+            <span class="docs-section-badge">09 — Errors</span>
+            <h2>Errors</h2>
+            <p>All errors return JSON with a consistent shape:</p>
+            <div class="code-block">
+              <pre>{
+  "error": "Human-readable message",
+  "status": 400
 }</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
 
-        <h2>Interactive Swagger UI</h2>
-        <p>Explore the full OpenAPI schema and try requests live:</p>
-        <a href="/docs" class="btn btn-primary btn-lg" target="_blank">Open Swagger UI →</a>
-      </div>
+            <table class="param-table">
+              <tr><th>Code</th><th>Meaning</th></tr>
+              <tr><td>400</td><td>Validation error — check your request body</td></tr>
+              <tr><td>401</td><td>Missing or invalid API key / JWT</td></tr>
+              <tr><td>403</td><td>Valid credentials but not authorised for this resource</td></tr>
+              <tr><td>404</td><td>Resource not found</td></tr>
+              <tr><td>429</td><td>Rate limit exceeded — back off and retry</td></tr>
+              <tr><td>500</td><td>Server error — contact support if it persists</td></tr>
+            </table>
+          </div>
+
+        </div><!-- /docs-content -->
+      </div><!-- /docs-layout -->
     </div>
   </main>
 
@@ -201,5 +880,48 @@
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    // ── Tab switching ──────────────────────────────────────────────
+    document.querySelectorAll('.code-tabs').forEach(function(group) {
+      var btns = group.querySelectorAll('.tab-btn');
+      var panels = group.querySelectorAll('.tab-panel');
+      btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var target = btn.getAttribute('data-tab');
+          btns.forEach(function(b) { b.classList.toggle('active', b === btn); });
+          panels.forEach(function(p) { p.classList.toggle('active', p.getAttribute('data-tab') === target); });
+        });
+      });
+    });
+
+    // ── Copy buttons ───────────────────────────────────────────────
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var code = btn.closest('.code-block').querySelector('pre').textContent;
+        navigator.clipboard.writeText(code).then(function() {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+    });
+
+    // ── Active sidebar link on scroll ──────────────────────────────
+    var sections = document.querySelectorAll('.docs-section[id]');
+    var sidebarLinks = document.querySelectorAll('.docs-sidebar a[href^="#"]');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          sidebarLinks.forEach(function(a) {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(function(s) { observer.observe(s); });
+  </script>
 </body>
 </html>
