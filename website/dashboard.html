@@ -128,6 +128,43 @@
     .key-warn { font-size: 11px; color: #f59e0b; margin-bottom: 16px; padding: 8px 12px; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); }
     .junk-warning { font-size: 11px; color: #f59e0b; margin-top: 12px; padding: 8px 12px; background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.15); }
 
+    /* Custom severity dropdown */
+    .sev-dropdown { position: relative; }
+    .sev-trigger {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: transparent;
+      border: 1px solid var(--dash-border);
+      color: var(--text);
+      padding: 4px 10px;
+      font-size: 11px; font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s;
+    }
+    .sev-trigger:hover { border-color: var(--dash-border-hover); }
+    .sev-dropdown.open .sev-trigger { border-color: var(--dash-border-hover); }
+    .sev-menu {
+      display: none;
+      position: absolute; right: 0; top: calc(100% + 4px);
+      min-width: 140px;
+      background: #0f0f0f;
+      border: 1px solid var(--dash-border-hover);
+      z-index: 200;
+    }
+    .sev-dropdown.open .sev-menu { display: block; }
+    .sev-option {
+      padding: 8px 14px;
+      font-size: 11px; font-family: var(--font-mono);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.1s, color 0.1s;
+      letter-spacing: 0.04em;
+    }
+    .sev-option:hover { background: rgba(250,250,249,0.06); color: var(--text); }
+    .sev-option.selected { color: var(--text); }
+    .sev-option.selected::before { content: '✓ '; }
+
     /* Toast */
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px); background: #111; border: 1px solid var(--dash-border); color: var(--text); padding: 10px 20px; font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.2s, transform 0.2s; z-index: 2000; pointer-events: none; font-family: var(--font-mono); }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -255,13 +292,27 @@
           <div class="settings-cell">
             <div style="display:flex;align-items:center;justify-content:space-between;">
               <span style="font-size:12px;font-weight:500;color:var(--text);">Min Severity</span>
-              <select id="select-severity" style="background:transparent;border:1px solid var(--dash-border);padding:4px 8px;color:var(--text);font-size:12px;outline:none;font-family:var(--font-mono);">
+              <!-- hidden native select keeps JS .value interface intact -->
+              <select id="select-severity" style="display:none;">
                 <option value="low">All severities</option>
                 <option value="medium">Medium+</option>
                 <option value="high">High+</option>
                 <option value="warning">Warning+</option>
                 <option value="critical">Critical only</option>
               </select>
+              <div class="sev-dropdown" id="sev-dropdown">
+                <button class="sev-trigger" id="sev-trigger" type="button">
+                  <span id="sev-label">Warning+</span>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="sev-menu" id="sev-menu">
+                  <div class="sev-option" data-value="low">All severities</div>
+                  <div class="sev-option" data-value="medium">Medium+</div>
+                  <div class="sev-option" data-value="high">High+</div>
+                  <div class="sev-option selected" data-value="warning">Warning+</div>
+                  <div class="sev-option" data-value="critical">Critical only</div>
+                </div>
+              </div>
             </div>
             <div class="settings-hint">Filter noise level</div>
           </div>

@@ -380,4 +380,57 @@
   }
 
   loadDashboard();
+
+  // ─── Custom severity dropdown ─────────────────────────────────────
+  (function() {
+    var dropdown = document.getElementById('sev-dropdown');
+    var trigger  = document.getElementById('sev-trigger');
+    var menu     = document.getElementById('sev-menu');
+    var label    = document.getElementById('sev-label');
+    var select   = document.getElementById('select-severity');
+    if (!dropdown || !select) return;
+
+    // Toggle open/close
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+
+    // Close on outside click
+    document.addEventListener('click', function() {
+      dropdown.classList.remove('open');
+    });
+
+    // Option selection
+    menu.querySelectorAll('.sev-option').forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        var val = opt.getAttribute('data-value');
+        select.value = val;
+        label.textContent = opt.textContent.replace(/^✓\s*/, '');
+        menu.querySelectorAll('.sev-option').forEach(function(o) {
+          o.classList.toggle('selected', o === opt);
+        });
+        dropdown.classList.remove('open');
+      });
+    });
+
+    // Sync initial value when loadDashboard sets select.value
+    // Patch select's value setter to keep custom UI in sync
+    var _nativeSet = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
+    Object.defineProperty(select, 'value', {
+      get: function() { return HTMLSelectElement.prototype.value.call(this); },
+      set: function(v) {
+        _nativeSet.call(this, v);
+        var matched = menu.querySelector('.sev-option[data-value="' + v + '"]');
+        if (matched) {
+          label.textContent = matched.textContent.replace(/^✓\s*/, '');
+          menu.querySelectorAll('.sev-option').forEach(function(o) {
+            o.classList.toggle('selected', o === matched);
+          });
+        }
+      },
+      configurable: true,
+    });
+  }());
+
 })();
