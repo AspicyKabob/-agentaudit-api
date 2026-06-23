@@ -109,7 +109,11 @@ function bindAuthLinks() {
   document.querySelectorAll('#nav-signup, a[href="#signup"], #cta-signup').forEach(el => {
     el.addEventListener('click', e => {
       e.preventDefault();
-      openModal('signup');
+      if (isLoggedIn()) {
+        window.location.href = '/dashboard.html';
+      } else {
+        openModal('signup');
+      }
     });
   });
 }
@@ -642,6 +646,18 @@ function fallbackCopy(text, callback) {
 
 console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; color: #dc2626;');
 console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #78716c;');
+
+// ─── Scroll-to-top ────────────────────────────────────────────────
+(function() {
+  const btn = document.getElementById('scroll-top');
+  if (!btn) return;
+  window.addEventListener('scroll', function() {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}());
 
 // ─── Pack card buttons ────────────────────────────────────────────
 document.querySelectorAll('.pack-card .btn-primary').forEach(function(btn) {
