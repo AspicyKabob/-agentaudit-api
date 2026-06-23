@@ -89,7 +89,7 @@
     var url = document.getElementById('webhook-url').value.trim();
     var webhookOn = document.getElementById('toggle-webhook').checked;
     var emailOn = document.getElementById('toggle-email').checked;
-    var minSev = document.getElementById('select-severity').value;
+    var minSev = document.getElementById('sev-dropdown').getAttribute('data-value') || 'warning';
     btn.disabled = true;
     btn.textContent = 'Saving...';
     try {
@@ -289,9 +289,18 @@
       document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
       if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
       document.getElementById('webhook-url').value = me.webhookUrl || '';
-      document.getElementById('toggle-webhook').checked = me.notifyWebhook !== false;
-      document.getElementById('toggle-email').checked = me.notifyEmail !== false;
-      document.getElementById('select-severity').value = me.notifyMinSeverity || 'warning';
+      document.getElementById('toggle-webhook').checked = me.notifyWebhook === true;
+      document.getElementById('toggle-email').checked = me.notifyEmail === true;
+      var sevVal = me.notifyMinSeverity || 'warning';
+      var sevDropdown = document.getElementById('sev-dropdown');
+      sevDropdown.setAttribute('data-value', sevVal);
+      var sevOpt = document.querySelector('#sev-menu .sev-option[data-value="' + sevVal + '"]');
+      if (sevOpt) {
+        document.getElementById('sev-label').textContent = sevOpt.textContent;
+        document.querySelectorAll('#sev-menu .sev-option').forEach(function(o) {
+          o.classList.toggle('selected', o === sevOpt);
+        });
+      }
     } catch(err) {
       console.error('[Dashboard] Profile load failed:', err.message || err);
       var status = err.status || 0;
@@ -430,8 +439,7 @@
     var trigger  = document.getElementById('sev-trigger');
     var menu     = document.getElementById('sev-menu');
     var label    = document.getElementById('sev-label');
-    var select   = document.getElementById('select-severity');
-    if (!dropdown || !select) return;
+    if (!dropdown) return;
 
     // Toggle open/close
     trigger.addEventListener('click', function(e) {
@@ -444,35 +452,17 @@
       dropdown.classList.remove('open');
     });
 
-    // Option selection
+    // Option selection — write chosen value to data-value, update label
     menu.querySelectorAll('.sev-option').forEach(function(opt) {
       opt.addEventListener('click', function() {
         var val = opt.getAttribute('data-value');
-        select.value = val;
-        label.textContent = opt.textContent.replace(/^✓\s*/, '');
+        dropdown.setAttribute('data-value', val);
+        label.textContent = opt.textContent;
         menu.querySelectorAll('.sev-option').forEach(function(o) {
           o.classList.toggle('selected', o === opt);
         });
         dropdown.classList.remove('open');
       });
-    });
-
-    // Sync initial value when loadDashboard sets select.value
-    // Patch select's value setter to keep custom UI in sync
-    var _nativeSet = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set;
-    Object.defineProperty(select, 'value', {
-      get: function() { return HTMLSelectElement.prototype.value.call(this); },
-      set: function(v) {
-        _nativeSet.call(this, v);
-        var matched = menu.querySelector('.sev-option[data-value="' + v + '"]');
-        if (matched) {
-          label.textContent = matched.textContent.replace(/^✓\s*/, '');
-          menu.querySelectorAll('.sev-option').forEach(function(o) {
-            o.classList.toggle('selected', o === matched);
-          });
-        }
-      },
-      configurable: true,
     });
   }());
 
