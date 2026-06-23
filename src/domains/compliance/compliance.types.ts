@@ -1,7 +1,7 @@
 ﻿import { z } from 'zod';
 import { PIIPatternType } from '../audit/pii-detector';
 
-export const PACK_IDS = ['hippo', 'finance', 'gdpr'] as const;
+export const PACK_IDS = ['hipaa', 'finance', 'gdpr'] as const;
 export type PackId = (typeof PACK_IDS)[number];
 
 type PackRule = {
@@ -19,7 +19,7 @@ type PackDefinition = {
 };
 
 export const PACKS: Record<PackId, PackDefinition> = {
-  hippo: {
+  hipaa: {
     name: 'Healthcare (HIPAA)',
     description: 'Detects PHI, medical IDs, and SSNs to help satisfy HIPAA requirements.',
     category: 'healthcare',

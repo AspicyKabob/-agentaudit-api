@@ -157,7 +157,7 @@ describe('Compliance Packs API', () => {
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
-      expect(res.body.map((p: any) => p.id)).toEqual(['hippo', 'finance', 'gdpr']);
+      expect(res.body.map((p: any) => p.id)).toEqual(['hipaa', 'finance', 'gdpr']);
     });
   });
 
@@ -199,7 +199,7 @@ describe('Compliance Packs API', () => {
       const { accessToken } = await getAuthTokens();
 
       mockedPrisma.complianceRule.findMany.mockResolvedValueOnce([
-        { packId: 'hippo' },
+        { packId: 'hipaa' },
         { packId: 'gdpr' },
       ]);
 
@@ -209,7 +209,7 @@ describe('Compliance Packs API', () => {
 
       expect(res.status).toBe(200);
       const ids = res.body.map((p: any) => p.id).sort();
-      expect(ids).toEqual(['gdpr', 'hippo']);
+      expect(ids).toEqual(['gdpr', 'hipaa']);
     });
   });
 
@@ -220,7 +220,7 @@ describe('Compliance Packs API', () => {
       mockedPrisma.complianceRule.deleteMany.mockResolvedValueOnce({ count: 3 });
 
       const res = await request(app)
-        .delete('/api/v1/compliance-rules/packs/hippo')
+        .delete('/api/v1/compliance-rules/packs/hipaa')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
@@ -242,7 +242,7 @@ describe('Compliance Packs API', () => {
     it('flags PII when a pack is installed and an audit log is submitted', async () => {
       await getAuthTokens();
 
-      mockedPrisma.complianceRule.findMany.mockResolvedValueOnce(PACKS.hippo.rules.map((rule, idx) => ({
+      mockedPrisma.complianceRule.findMany.mockResolvedValueOnce(PACKS.hipaa.rules.map((rule, idx) => ({
         id: `rule-${idx}`,
         organizationId: 'org-1',
         name: rule.name,
@@ -250,7 +250,7 @@ describe('Compliance Packs API', () => {
         condition: rule.condition,
         severity: rule.severity,
         isActive: true,
-        packId: 'hippo',
+        packId: 'hipaa',
       })));
 
       mockedPrisma.auditLog.create.mockImplementationOnce((args: any) => ({

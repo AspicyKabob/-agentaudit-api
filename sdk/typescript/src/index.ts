@@ -321,7 +321,7 @@ export class AgentAudit {
   async clonePack(options: {
     name: string;
     description?: string;
-    packId: 'hippo' | 'finance' | 'gdpr';
+    packId: 'hipaa' | 'finance' | 'gdpr';
     mode?: 'block' | 'flag' | 'log';
     priority?: number;
     conditions?: PolicyConditions;

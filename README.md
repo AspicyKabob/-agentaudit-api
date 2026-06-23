@@ -200,7 +200,7 @@ Prefer one line? Install a pre-built rule pack instead of crafting rules by hand
 
 ```bash
 curl -s -X POST "$BASE/api/v1/compliance-rules/packs" -H "Authorization: Bearer $TOKEN" \
-  -H 'Content-Type: application/json' -d '{"packId":"hippo"}'   # HIPAA: SSN, phone, email
+  -H 'Content-Type: application/json' -d '{"packId":"hipaa"}'   # HIPAA: SSN, phone, email
 ```
 
 Your SDK turns `enforcementAction: "block"` into "do not deliver this output." See [SDKs](#-sdks) for the one-line client equivalent.

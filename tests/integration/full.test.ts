@@ -758,7 +758,7 @@ describe('AgentAudit API Full Integration', () => {
       const res = await request(app)
         .post('/api/v1/compliance-rules/packs')
         .set('Authorization', `Bearer ${token}`)
-        .send({ packId: 'hippo' });
+        .send({ packId: 'hipaa' });
 
       expect(res.status).toBe(201);
       expect(res.body).toHaveLength(3);
@@ -781,7 +781,7 @@ describe('AgentAudit API Full Integration', () => {
       mockedPrisma.complianceRule.deleteMany.mockResolvedValue({ count: 3 });
 
       const res = await request(app)
-        .delete('/api/v1/compliance-rules/packs/hippo')
+        .delete('/api/v1/compliance-rules/packs/hipaa')
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
@@ -803,7 +803,7 @@ describe('AgentAudit API Full Integration', () => {
     it('GET /api/v1/compliance-rules/packs/installed → 200', async () => {
       const token = getAuthToken();
       mockedPrisma.complianceRule.findMany.mockResolvedValue([
-        { packId: 'hippo' },
+        { packId: 'hipaa' },
         { packId: 'finance' },
       ]);
 
@@ -821,13 +821,13 @@ describe('AgentAudit API Full Integration', () => {
     it('POST /api/v1/compliance-rules/packs with duplicate → 409', async () => {
       const token = getAuthToken();
       mockedPrisma.complianceRule.findMany.mockResolvedValue([
-        { id: 'rule-existing', packId: 'hippo' },
+        { id: 'rule-existing', packId: 'hipaa' },
       ]);
 
       const res = await request(app)
         .post('/api/v1/compliance-rules/packs')
         .set('Authorization', `Bearer ${token}`)
-        .send({ packId: 'hippo' });
+        .send({ packId: 'hipaa' });
 
       expect(res.status).toBe(409);
     });
@@ -838,7 +838,7 @@ describe('AgentAudit API Full Integration', () => {
       const token = getAuthToken();
       mockedPrisma.complianceRule.findFirst.mockResolvedValue({
         id: '00000000-0000-0000-0000-000000000001',
-        packId: 'hippo',
+        packId: 'hipaa',
       });
 
       const res = await request(app)

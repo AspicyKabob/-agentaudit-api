@@ -251,7 +251,7 @@ describe('Policies API', () => {
         organizationId: 'org-1',
         name: 'HIPAA Clone',
         description: 'Cloned pack',
-        sourcePackId: 'hippo',
+        sourcePackId: 'hipaa',
         createdAt: new Date().toISOString(),
       });
       mockedPrisma.complianceRule.create.mockImplementation((args: any) =>
@@ -265,11 +265,11 @@ describe('Policies API', () => {
       const res = await request(app)
         .post('/api/v1/policies/clone-pack')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send({ name: 'HIPAA Clone', description: 'Cloned pack', packId: 'hippo' });
+        .send({ name: 'HIPAA Clone', description: 'Cloned pack', packId: 'hipaa' });
 
       expect(res.status).toBe(201);
       expect(res.body.rules).toHaveLength(3);
-      expect(res.body.sourcePackId).toBe('hippo');
+      expect(res.body.sourcePackId).toBe('hipaa');
     });
   });
 
