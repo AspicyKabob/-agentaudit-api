@@ -99,11 +99,11 @@
         notifyEmail: emailOn,
         notifyMinSeverity: minSev
       });
-      var confirm = document.getElementById('save-confirm');
-      if (confirm) {
-        confirm.style.opacity = '1';
-        clearTimeout(confirm._fadeTimer);
-        confirm._fadeTimer = setTimeout(function() { confirm.style.opacity = '0'; }, 2500);
+      var saveConfirm = document.getElementById('save-confirm');
+      if (saveConfirm) {
+        saveConfirm.style.opacity = '1';
+        clearTimeout(saveConfirm._fadeTimer);
+        saveConfirm._fadeTimer = setTimeout(function() { saveConfirm.style.opacity = '0'; }, 2500);
       }
     } catch(err) {
       toast(err.message || 'Failed to save', 'error');
