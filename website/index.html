@@ -311,7 +311,7 @@
           <span class="code-filename">agent.py</span>
         </div>
         <div class="code-content" id="code-content">
-          <pre><code class="tab-content active" data-tab="python" data-filename="agent.py"><span class="code-kw">import</span> agentaudit
+          <pre class="tab-content active" data-tab="python"><code data-filename="agent.py"><span class="code-kw">import</span> agentaudit
 
 <span class="code-comment"># Initialize with your API key</span>
 audit = agentaudit.AgentAudit(api_key=<span class="code-str">"aa_live_..."</span>)
@@ -326,9 +326,7 @@ result = audit.guardrail(
 if not result.allowed:
   raise ValueError(<span class="code-str">"Output blocked: "</span> + <span class="code-str">", "</span>.join(result.violations))
 
-<span class="code-comment"># Violations blocked. Clean output delivered to user.</span></code>
-
-<code class="tab-content" data-tab="typescript" data-filename="agent.ts"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
+<span class="code-comment"># Violations blocked. Clean output delivered to user.</span></code></pre><pre class="tab-content" data-tab="typescript"><code data-filename="agent.ts"><span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
 <span class="code-comment">// Initialize with your API key</span>
 const audit = new AgentAudit({
@@ -346,9 +344,7 @@ if (!result.allowed) {
   throw new Error(<span class="code-str">'Output blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
 }
 
-<span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code>
-
-<code class="tab-content" data-tab="curl" data-filename="guard.sh">curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+<span class="code-comment">// Violations blocked. Clean output delivered to user.</span></code></pre><pre class="tab-content" data-tab="curl"><code data-filename="guard.sh">curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_live_..."</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d '{

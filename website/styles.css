@@ -871,9 +871,6 @@ body::after {
 .code-content {
   padding: 24px 20px;
   overflow-x: auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
   min-height: 420px;
 }
 
@@ -882,6 +879,7 @@ body::after {
   font-size: 13px;
   line-height: 1.8;
   color: var(--text-secondary);
+  margin: 0;
 }
 
 .tab-content {

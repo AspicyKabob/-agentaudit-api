@@ -380,8 +380,10 @@ document.querySelectorAll('.code-tab').forEach(tab => {
     
     const filenameEl = contentContainer.querySelector('.code-filename');
     const activeContent = contentContainer.querySelector('.tab-content.active, .integration-code.active');
-    if (filenameEl && activeContent?.dataset.filename) {
-      filenameEl.textContent = activeContent.dataset.filename;
+    if (filenameEl && activeContent) {
+      const filename = activeContent.dataset.filename
+        || activeContent.querySelector('code')?.dataset.filename;
+      if (filename) filenameEl.textContent = filename;
     }
     
     contentContainer.querySelectorAll('.code-dots span').forEach(dot => {
