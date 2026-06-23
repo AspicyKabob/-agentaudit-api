@@ -62,10 +62,6 @@
     setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 400); }, 3000);
   }
 
-  window.addEventListener('error', function(e) {
-    console.error('[Dashboard] Unhandled error:', e.error);
-    showError('Unexpected error', 'Something broke in the dashboard. Please reload the page or contact support.', { retryable: true });
-  });
   window.addEventListener('unhandledrejection', function(e) {
     console.error('[Dashboard] Unhandled promise rejection:', e.reason);
     if (e.reason && e.reason.status >= 500) {
@@ -193,37 +189,86 @@
     });
   });
 
-  window.removePack = async function(id) {
-    if (!confirm('Remove this compliance pack? The rules it installed will be deleted.')) return;
-    try {
-      await api('DELETE', '/api/v1/compliance-rules/packs/' + id);
-      toast('Pack removed', 'info');
-      loadDashboard();
-    } catch(err) { toast(err.message, 'error'); }
-  };
+  // ─── Styled confirm modal ─────────────────────────────────────────
+  function confirmModal(title, message, confirmLabel, confirmClass, onConfirm) {
+    var existing = document.getElementById('dash-confirm-overlay');
+    if (existing) existing.remove();
 
-  window.installPack = async function(id, btnEl) {
-    var btn = btnEl || document.querySelector('[onclick*="installPack(\'' + id + '\'"]');
-    var origText = btn ? btn.textContent : '';
-    if (btn) { btn.disabled = true; btn.textContent = 'Installing...'; }
-    try {
-      await api('POST', '/api/v1/compliance-rules/packs', { packId: id });
-      toast('Pack installed', 'success');
-      loadDashboard();
-    } catch(err) {
-      toast(err.message || 'Failed to install pack', 'error');
-      if (btn) { btn.disabled = false; btn.textContent = origText; }
+    var overlay = document.createElement('div');
+    overlay.id = 'dash-confirm-overlay';
+    overlay.className = 'dash-modal-overlay open';
+    overlay.innerHTML =
+      '<div class="dash-modal" style="max-width:380px;">' +
+        '<h3>' + title + '</h3>' +
+        '<p>' + message + '</p>' +
+        '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
+          '<button class="btn-dash" id="dash-confirm-cancel">Cancel</button>' +
+          '<button class="btn-dash ' + (confirmClass || 'btn-dash-danger') + '" id="dash-confirm-ok">' + (confirmLabel || 'Confirm') + '</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    function close() { overlay.remove(); }
+    document.getElementById('dash-confirm-cancel').addEventListener('click', close);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
+    document.getElementById('dash-confirm-ok').addEventListener('click', function() {
+      close();
+      onConfirm();
+    });
+  }
+
+  // ─── Pack actions (event delegation on packs-list) ────────────────
+  document.getElementById('packs-list').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-action');
+    var packId = btn.getAttribute('data-pack-id');
+
+    if (action === 'install') {
+      btn.disabled = true;
+      btn.textContent = 'Installing...';
+      api('POST', '/api/v1/compliance-rules/packs', { packId: packId })
+        .then(function() {
+          toast('Pack installed', 'success');
+          loadDashboard();
+        })
+        .catch(function(err) {
+          toast(err.message || 'Failed to install pack', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Install';
+        });
     }
-  };
 
-  window.revokeKey = async function(id) {
-    if (!confirm('Revoke this key? Agents using it will stop working immediately.')) return;
-    try {
-      await api('DELETE', '/api/v1/auth/api-keys/' + id);
-      toast('Key revoked', 'info');
-      loadDashboard();
-    } catch(err) { toast(err.message, 'error'); }
-  };
+    if (action === 'remove') {
+      confirmModal(
+        'Remove pack?',
+        'All rules installed by this pack will be permanently deleted.',
+        'Remove', 'btn-dash-danger',
+        function() {
+          api('DELETE', '/api/v1/compliance-rules/packs/' + packId)
+            .then(function() { toast('Pack removed', 'info'); loadDashboard(); })
+            .catch(function(err) { toast(err.message || 'Failed to remove pack', 'error'); });
+        }
+      );
+    }
+  });
+
+  // ─── Key revoke (event delegation on keys-list) ───────────────────
+  document.getElementById('keys-list').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-revoke-id]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-revoke-id');
+    confirmModal(
+      'Revoke API key?',
+      'Any agent using this key will stop working immediately. This cannot be undone.',
+      'Revoke key', 'btn-dash-danger',
+      function() {
+        api('DELETE', '/api/v1/auth/api-keys/' + id)
+          .then(function() { toast('Key revoked', 'info'); loadDashboard(); })
+          .catch(function(err) { toast(err.message || 'Failed to revoke key', 'error'); });
+      }
+    );
+  });
 
   async function loadDashboard() {
     console.log('[Dashboard] Starting load...');
@@ -295,19 +340,12 @@
       var keysList = document.getElementById('keys-list');
       if (keys.length) {
         keysList.innerHTML = keys.map(function(k) {
-          return '<div class="key-row" data-key-id="' + k.id + '" data-key-name="' + k.name + '" data-key-created="' + k.createdAt + '" draggable="false">' +
+          return '<div class="key-row">' +
             '<div><div class="key-name">' + k.name + '</div>' +
             '<div class="key-meta">Created ' + new Date(k.createdAt).toLocaleDateString() + ' &nbsp;·&nbsp; aa_••••••••</div></div>' +
-            '<button class="btn-dash btn-dash-danger revoke-key-btn" data-revoke-id="' + k.id + '" type="button">Revoke</button>' +
+            '<button class="btn-dash btn-dash-danger" data-revoke-id="' + k.id + '" type="button">Revoke</button>' +
             '</div>';
         }).join('');
-        keysList.querySelectorAll('.revoke-key-btn').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            var id = btn.getAttribute('data-revoke-id');
-            if (id) revokeKey(id);
-          });
-        });
       } else {
         keysList.innerHTML = '<div class="empty-state">No API keys yet.<br><small>Create one above to start integrating your agents.</small></div>';
       }
@@ -350,8 +388,8 @@
           var isInstalled = installedIds.has(p.id);
           var status = isInstalled ? '<span class="pack-status">Installed</span>' : '<span class="pack-status pending">Not installed</span>';
           var action = isInstalled
-            ? '<button class="btn-dash btn-dash-danger" onclick="removePack(\'' + p.id + '\')">Remove</button>'
-            : '<button class="btn-dash btn-dash-primary" onclick="installPack(\'' + p.id + '\', this)">Install</button>';
+            ? '<button class="btn-dash btn-dash-danger" data-action="remove" data-pack-id="' + p.id + '">Remove</button>'
+            : '<button class="btn-dash btn-dash-primary" data-action="install" data-pack-id="' + p.id + '">Install</button>';
           return '<div class="pack-row">' +
             '<div><div class="pack-name">' + p.name + '</div>' +
             '<div class="pack-meta">' + (p.description || '') + '</div></div>' +
