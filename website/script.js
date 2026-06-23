@@ -645,10 +645,4 @@ console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #7
 
 
 
-setTimeout(function() {
-  document.querySelectorAll('.pack-card .btn-primary').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      alert('Rule packs coming soon! Set up your compliance rules manually in the dashboard for now.');
-    });
-  });
-}, 0);
+
