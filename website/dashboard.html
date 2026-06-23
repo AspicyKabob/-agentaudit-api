@@ -258,7 +258,10 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Notification Settings</span>
-        <button class="btn-dash btn-dash-primary" id="btn-save-webhook">Save</button>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span id="save-confirm" style="font-family:var(--font-mono);font-size:11px;color:#22c55e;opacity:0;transition:opacity 0.3s;pointer-events:none;">Settings saved</span>
+          <button class="btn-dash btn-dash-primary" id="btn-save-webhook">Save</button>
+        </div>
       </div>
       <div class="panel-body" style="padding: 16px 24px;">
         <div class="field" style="margin-bottom: 20px;">

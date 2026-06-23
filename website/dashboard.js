@@ -99,7 +99,12 @@
         notifyEmail: emailOn,
         notifyMinSeverity: minSev
       });
-      toast('Notification preferences saved', 'success');
+      var confirm = document.getElementById('save-confirm');
+      if (confirm) {
+        confirm.style.opacity = '1';
+        clearTimeout(confirm._fadeTimer);
+        confirm._fadeTimer = setTimeout(function() { confirm.style.opacity = '0'; }, 2500);
+      }
     } catch(err) {
       toast(err.message || 'Failed to save', 'error');
     }
