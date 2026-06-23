@@ -115,6 +115,73 @@ These ideas are worth tracking but are lower priority or more speculative than t
 
 ---
 
+## Pricing Tier "Coming Soon" Features
+
+These are the features currently labelled "Coming soon" on the pricing page. Each one is scoped below with what it means to build it, estimated engineering time, infrastructure cost, and the user signal needed to validate it.
+
+### 1. Agent limits (Free: 1 agent / Pro: 10 agents / Business: Unlimited)
+
+**What it is:**
+Right now any API key can log events from any number of named agents. This feature means counting distinct `agentId` values per organization per billing period and enforcing a hard cap — blocking or warning when the limit is reached.
+
+**What needs to be built:**
+- A counter (database or Redis) tracking unique `agentId`s per organization per billing cycle.
+- Middleware that checks the count on every audit submission and returns `429 Quota Exceeded` when the cap is hit.
+- A dashboard widget showing agents used vs. allowed.
+- Stripe plan metadata or entitlements storing the per-plan limit.
+
+**Build time:** 1–2 weeks  
+**Infrastructure cost:** $0 additional  
+**Users needed to validate:** 20–50 paying Pro users hitting the 10-agent cap
+
+---
+
+### 2. Log retention (Free: 7-day / Pro: 1-year / Business: 7-year)
+
+**What it is:**
+Automatic deletion of audit logs older than the plan's retention window. The 7-year Business tier is relevant for financial and healthcare compliance (SOX, HIPAA).
+
+**What needs to be built:**
+- A scheduled background job (cron) that runs nightly and deletes `AuditLog` rows older than the organization's retention window.
+- A `retentionDays` field on the organization or plan record.
+- A dashboard notice showing "your logs expire in X days."
+- For Business/Enterprise: an export-before-delete or cold-storage archival option (S3 or equivalent).
+
+**Build time:** 2–3 weeks (basic deletion) + 2 additional weeks for archival  
+**Infrastructure cost:** $50–200/mo in storage at scale  
+**Users needed to validate:** Any paying customer; regulated-industry customers (healthcare, finance) will drive this requirement loudest.
+
+---
+
+### 3. Advanced analytics (Business plan)
+
+**What it is:**
+A richer dashboard layer on top of the audit log — trend charts, violation rate over time, top offending agents, compliance score by rule, and heatmaps by time of day and day of week.
+
+**What needs to be built:**
+- Aggregation queries (or materialized views) on the `AuditLog` table grouping by agent, rule, action, and time bucket.
+- A charting library in the dashboard (Chart.js, Recharts, or similar).
+- An analytics API endpoint returning pre-aggregated data.
+- Optionally: a dedicated analytics database (ClickHouse, Timescale) if query performance degrades at scale.
+
+**Build time:** 2–4 weeks (frontend) + 4–6 additional weeks if a dedicated analytics store is required  
+**Infrastructure cost:** $50–300/mo for an analytics database  
+**Users needed to validate:** 5–10 Business-tier customers with 50k+ events/month to make the charts meaningful.
+
+---
+
+### Recommended build order
+
+| Priority | Feature | Build time | Infra cost/mo | Users to validate |
+|---|---|---|---|---|
+| 1 | Agent limits | 1–2 weeks | $0 | 20–50 Pro |
+| 2 | Log retention | 2–3 weeks + archival | $50–200 | Any paying |
+| 3 | Advanced analytics | 2–4 weeks + analytics DB | $50–300 | 5–10 Business |
+
+**Rationale:** Agent limits first — pure backend, high perceived value for Pro, zero infra cost. Retention second — required for regulated industries and unlocks enterprise conversations. Analytics last — biggest engineering lift; validate demand before committing.
+
+---
+
 ## Last Updated
 
 June 23, 2026
