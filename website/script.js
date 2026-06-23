@@ -22,6 +22,44 @@ function isLoggedIn() {
   return !!getToken();
 }
 
+function showEnterpriseModal() {
+  const existing = document.getElementById('enterprise-modal');
+  if (existing) existing.remove();
+
+  const SUPPORT = 'support@agentaudit.online';
+  const SUBJECT = encodeURIComponent('Enterprise Plan Inquiry');
+  const BODY    = encodeURIComponent('Hi AgentAudit team,\n\nI\'m interested in the Enterprise plan.\n\nOrganisation:\nUse case:\nExpected volume:\n\nThanks,');
+
+  const overlay = document.createElement('div');
+  overlay.id = 'enterprise-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);';
+  overlay.innerHTML = `
+    <div style="background:#111;border:1px solid rgba(250,250,249,0.15);padding:40px;max-width:440px;width:90%;position:relative;">
+      <button id="ent-modal-close" style="position:absolute;top:14px;right:18px;background:none;border:none;color:#78716c;font-size:22px;cursor:pointer;line-height:1;">&times;</button>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#dc2626;margin:0 0 14px;">Enterprise Plan</p>
+      <h3 style="font-family:'Instrument Serif',Georgia,serif;font-size:22px;font-weight:400;color:#fafaf9;margin:0 0 10px;">Get in touch</h3>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#a8a29e;line-height:1.7;margin:0 0 28px;">Email us at <strong style="color:#fafaf9;">${SUPPORT}</strong> and we'll get back to you within one business day.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <a href="https://mail.google.com/mail/?view=cm&to=${SUPPORT}&su=${SUBJECT}&body=${BODY}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid rgba(250,250,249,0.12);color:#fafaf9;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:12px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(250,250,249,0.35)'" onmouseout="this.style.borderColor='rgba(250,250,249,0.12)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.5"/><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.5"/></svg>
+          Open in Gmail
+        </a>
+        <a href="https://outlook.live.com/mail/0/deeplink/compose?to=${SUPPORT}&subject=${SUBJECT}&body=${BODY}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid rgba(250,250,249,0.12);color:#fafaf9;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:12px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(250,250,249,0.35)'" onmouseout="this.style.borderColor='rgba(250,250,249,0.12)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.5"/><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.5"/></svg>
+          Open in Outlook
+        </a>
+        <a href="mailto:${SUPPORT}?subject=${SUBJECT}&body=${BODY}" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid rgba(250,250,249,0.12);color:#fafaf9;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:12px;transition:border-color 0.2s;" onmouseover="this.style.borderColor='rgba(250,250,249,0.35)'" onmouseout="this.style.borderColor='rgba(250,250,249,0.12)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="currentColor" stroke-width="1.5"/><polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="1.5"/></svg>
+          Open in default mail app
+        </a>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  document.getElementById('ent-modal-close').addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
 function showToast(message, type = 'info') {
   const existing = document.querySelector('.toast');
   if (existing) existing.remove();
@@ -201,7 +239,7 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
       return;
     }
     if (plan === 'enterprise') {
-      window.open('mailto:sales@agentaudit.online?subject=Enterprise Inquiry', '_blank');
+      showEnterpriseModal();
       return;
     }
 
