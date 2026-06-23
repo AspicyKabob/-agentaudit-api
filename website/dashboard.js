@@ -338,7 +338,7 @@
             '<span class="log-time">' + new Date(l.createdAt).toLocaleString() + '</span>' +
             '<span class="log-action">' + l.action + '</span>' +
             '<span class="log-agent">' + (l.agentId ? l.agentId.slice(0,8) + '...' : '—') + '</span>' +
-            '<span class="log-status ' + (flagged ? 'status-flag' : 'status-clean') + '">' + (flagged ? '⚠ Flagged' : '✓ Clean') + '</span>' +
+            '<span class="log-status"><span class="' + (flagged ? 'status-flag' : 'status-clean') + '">' + (flagged ? 'Flagged' : 'Clean') + '</span></span>' +
             '</div>';
         }).join('');
       } else {
@@ -372,10 +372,10 @@
       document.getElementById('stat-alerts').textContent = unresolvedCount.toString();
       if (alerts && alerts.length) {
         alertsList.innerHTML = alerts.map(function(a) {
-          var sevClass = a.severity === 'critical' ? 'status-critical' : 'status-flag';
+          var sevClass = a.severity === 'critical' ? 'status-critical' : a.severity === 'warning' ? 'status-flag' : 'status-flag';
           var resolved = a.isResolved ? '<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-mono);">RESOLVED</span>' : '<button class="btn-dash btn-dash-primary resolve-btn" data-resolve-id="' + a.id + '">Resolve</button>';
           return '<div class="alert-row">' +
-            '<span class="alert-severity ' + sevClass + '">' + a.severity + '</span>' +
+            '<span class="alert-severity ' + sevClass + '">' + a.severity.toUpperCase() + '</span>' +
             '<span class="alert-message">' + a.message + '</span>' +
             '<span class="alert-time">' + new Date(a.createdAt).toLocaleString() + '</span>' +
             '<span class="alert-actions">' + resolved + '</span>' +
