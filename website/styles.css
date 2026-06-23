@@ -873,7 +873,7 @@ body::after {
   overflow-x: auto;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 420px;
 }
 
