@@ -643,6 +643,105 @@ function fallbackCopy(text, callback) {
 console.log('%cAgentAudit', 'font-size: 32px; font-weight: bold; color: #dc2626;');
 console.log('%cReal-time guardrails for AI agents.', 'font-size: 14px; color: #78716c;');
 
+// ─── Pack card buttons ────────────────────────────────────────────
+document.querySelectorAll('.pack-card .btn-primary').forEach(function(btn) {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (isLoggedIn()) {
+      window.location.href = '/dashboard.html';
+    } else {
+      showPackPrompt();
+    }
+  });
+});
+
+function showPackPrompt() {
+  // Remove any existing prompt
+  const existing = document.getElementById('pack-prompt');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'pack-prompt';
+  overlay.style.cssText = [
+    'position:fixed', 'inset:0', 'z-index:9000',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'background:rgba(0,0,0,0.7)', 'backdrop-filter:blur(4px)'
+  ].join(';');
+
+  overlay.innerHTML = `
+    <div style="
+      background:#1a1a1a;
+      border:1px solid rgba(250,250,249,0.15);
+      padding:40px;
+      max-width:420px;
+      width:90%;
+      text-align:center;
+      position:relative;
+    ">
+      <button id="pack-prompt-close" style="
+        position:absolute;top:16px;right:16px;
+        background:none;border:none;color:#78716c;
+        font-size:20px;cursor:pointer;line-height:1;
+      ">&times;</button>
+      <p style="
+        font-family:'JetBrains Mono',monospace;
+        font-size:10px;letter-spacing:0.15em;
+        text-transform:uppercase;color:#dc2626;
+        margin-bottom:16px;
+      ">Compliance Packs</p>
+      <h3 style="
+        font-family:'Instrument Serif',Georgia,serif;
+        font-size:24px;font-weight:400;
+        color:#fafaf9;margin-bottom:12px;
+      ">Create a free account to activate packs</h3>
+      <p style="
+        font-family:'JetBrains Mono',monospace;
+        font-size:12px;color:#a8a29e;
+        line-height:1.7;margin-bottom:32px;
+      ">Compliance packs are configured from your dashboard. Sign up free — no credit card required.</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <a href="#signup" id="pack-prompt-signup" style="
+          display:inline-flex;align-items:center;
+          padding:12px 24px;
+          font-family:'JetBrains Mono',monospace;
+          font-size:12px;letter-spacing:0.05em;
+          text-transform:uppercase;text-decoration:none;
+          background:#fafaf9;color:#0c0c0c;
+          border:1px solid #fafaf9;
+        ">Get Started Free</a>
+        <a href="#login" id="pack-prompt-login" style="
+          display:inline-flex;align-items:center;
+          padding:12px 24px;
+          font-family:'JetBrains Mono',monospace;
+          font-size:12px;letter-spacing:0.05em;
+          text-transform:uppercase;text-decoration:none;
+          background:transparent;color:#fafaf9;
+          border:1px solid rgba(250,250,249,0.15);
+        ">Log In</a>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('pack-prompt-close').addEventListener('click', function() {
+    overlay.remove();
+  });
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+  document.getElementById('pack-prompt-signup').addEventListener('click', function(e) {
+    e.preventDefault();
+    overlay.remove();
+    openModal('signup');
+  });
+  document.getElementById('pack-prompt-login').addEventListener('click', function(e) {
+    e.preventDefault();
+    overlay.remove();
+    openModal('login');
+  });
+}
+
 
 
 
