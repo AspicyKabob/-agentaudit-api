@@ -262,3 +262,27 @@ document.getElementById('trace-input')?.addEventListener('keydown', (e) => {
     document.getElementById('load-trace').click();
   }
 });
+
+// ─── Contextual hint ─────────────────────────────────────────────
+(function() {
+  var hintEl = document.getElementById('trace-hint-text');
+  if (!hintEl) return;
+
+  var loggedIn = !!getToken();
+
+  if (loggedIn) {
+    hintEl.innerHTML =
+      '<strong style="color:var(--text-secondary);">Where to find your trace IDs:</strong> ' +
+      'Pass a <code style="color:var(--accent)">traceId</code> field when you call <code style="color:var(--accent)">audit.guardrail()</code> — ' +
+      'every log in the same agent run should share the same ID. ' +
+      'You can find recent trace IDs in your ' +
+      '<a href="/dashboard.html" style="color:var(--text-secondary);text-decoration:underline;">dashboard audit logs</a>. ' +
+      'Example: <code style="color:var(--accent)">traceId: "run-" + Date.now()</code>';
+  } else {
+    hintEl.innerHTML =
+      '<strong style="color:var(--text-secondary);">Want to search your own agent traces?</strong> ' +
+      '<a href="/dashboard.html" style="color:var(--text-secondary);text-decoration:underline;">Log in</a> ' +
+      'or <a href="/#signup" style="color:var(--text-secondary);text-decoration:underline;">create a free account</a> ' +
+      '— then pass a <code style="color:var(--accent)">traceId</code> in your SDK calls and search it here.';
+  }
+}());
