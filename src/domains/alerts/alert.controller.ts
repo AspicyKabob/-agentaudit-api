@@ -16,6 +16,13 @@ export const alertController = {
     res.status(200).json(alerts);
   }),
 
+  get: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { id } = req.params;
+    const alert = await alertService.get(organizationId, id);
+    res.status(200).json(alert);
+  }),
+
   resolve: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
     const { id } = req.params;

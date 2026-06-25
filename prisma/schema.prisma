@@ -81,6 +81,7 @@ model AuditLog {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agent        Agent?       @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  alerts       Alert[]
 
   @@index([organizationId, traceId])
   @@index([organizationId, parentSpanId])
@@ -194,6 +195,7 @@ model Alert {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rule         ComplianceRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  auditLog     AuditLog?      @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
 }
 
 model RateLimit {

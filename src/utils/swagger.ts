@@ -86,13 +86,23 @@ export const swaggerSpec = {
         type: 'object',
         properties: {
           id: { type: 'string', format: 'uuid' },
-          type: { type: 'string' },
-          severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+          severity: { type: 'string', enum: ['warning', 'critical'] },
           message: { type: 'string' },
-          resolved: { type: 'boolean' },
+          details: { type: 'object', nullable: true },
+          isResolved: { type: 'boolean' },
+          resolvedAt: { type: 'string', format: 'date-time', nullable: true },
           auditLogId: { type: 'string', format: 'uuid', nullable: true },
+          ruleId: { type: 'string', format: 'uuid', nullable: true },
           organizationId: { type: 'string', format: 'uuid' },
           createdAt: { type: 'string', format: 'date-time' },
+          rule: {
+            type: 'object',
+            nullable: true,
+            properties: {
+              name: { type: 'string' },
+              ruleType: { type: 'string' },
+            },
+          },
         },
       },
       ApiKey: {
@@ -582,12 +592,25 @@ export const swaggerSpec = {
         summary: 'List alerts',
         security: [{ bearerAuth: [] }],
         parameters: [
-          { name: 'resolved', in: 'query', schema: { type: 'boolean' } },
-          { name: 'severity', in: 'query', schema: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] } },
+          { name: 'isResolved', in: 'query', schema: { type: 'boolean' }, description: 'Filter by resolved status. Omit to return all.' },
+          { name: 'severity', in: 'query', schema: { type: 'string', enum: ['warning', 'critical'] }, description: 'Filter by severity level.' },
         ],
         responses: {
           '200': { description: 'Alert list', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/Alert' } } } } },
           '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/alerts/{id}': {
+      get: {
+        tags: ['Alerts'],
+        summary: 'Get a single alert',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Alert', content: { 'application/json': { schema: { $ref: '#/components/schemas/Alert' } } } },
+          '401': { description: 'Unauthorized' },
+          '404': { description: 'Not found' },
         },
       },
     },

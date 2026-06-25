@@ -8,14 +8,23 @@ interface ListFilters {
   severity?: 'warning' | 'critical';
 }
 
+const alertInclude = {
+  rule: {
+    select: { name: true, ruleType: true },
+  },
+  auditLog: {
+    select: { id: true, action: true, agentId: true, createdAt: true },
+  },
+} as const;
+
 export const alertService = {
   async list(organizationId: string, filters: ListFilters = {}) {
     const where: any = { organizationId };
-    
+
     if (filters.isResolved !== undefined) {
       where.isResolved = filters.isResolved;
     }
-    
+
     if (filters.severity) {
       where.severity = filters.severity;
     }
@@ -26,15 +35,21 @@ export const alertService = {
         { severity: 'asc' },
         { createdAt: 'desc' },
       ],
-      include: {
-        rule: {
-          select: {
-            name: true,
-            ruleType: true,
-          },
-        },
-      },
+      include: alertInclude,
     });
+  },
+
+  async get(organizationId: string, id: string) {
+    const alert = await prisma.alert.findFirst({
+      where: { id, organizationId },
+      include: alertInclude,
+    });
+
+    if (!alert) {
+      throw new Error('Alert not found');
+    }
+
+    return alert;
   },
 
   async resolve(organizationId: string, id: string) {

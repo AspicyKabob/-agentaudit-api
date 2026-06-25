@@ -338,7 +338,13 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Recent Alerts</span>
-        <a href="/docs" class="btn-dash">Alert API</a>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <label style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);cursor:pointer;">
+            <input type="checkbox" id="alerts-show-resolved" style="accent-color:var(--accent);" onchange="loadDashboard()">
+            Show resolved
+          </label>
+          <a href="/docs.html#alerts" class="btn-dash">Alert API</a>
+        </div>
       </div>
       <div class="panel-body" id="alerts-list"><div class="empty-state">Loading...</div></div>
     </div>

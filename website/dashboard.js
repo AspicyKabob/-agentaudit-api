@@ -366,30 +366,43 @@
     } catch(e) { console.error('[Dashboard] Keys load failed:', e); document.getElementById('keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>'; }
 
     try {
-      var alerts = await api('GET', '/api/v1/alerts');
-      var alertsList = document.getElementById('alerts-list');
-      var unresolvedCount = alerts.filter(function(a){ return !a.isResolved; }).length;
+      // Fetch unresolved count for the stat card (always)
+      var allAlerts = await api('GET', '/api/v1/alerts');
+      var unresolvedCount = allAlerts.filter(function(a){ return !a.isResolved; }).length;
       document.getElementById('stat-alerts').textContent = unresolvedCount.toString();
-      if (alerts && alerts.length) {
-        alertsList.innerHTML = alerts.map(function(a) {
-          var sevClass = a.severity === 'critical' ? 'status-critical' : a.severity === 'warning' ? 'status-flag' : 'status-flag';
-          var resolved = a.isResolved ? '<span style="color:var(--text-muted);font-size:11px;font-family:var(--font-mono);">RESOLVED</span>' : '<button class="btn-dash btn-dash-primary resolve-btn" data-resolve-id="' + a.id + '">Resolve</button>';
-          return '<div class="alert-row">' +
-            '<span class="alert-severity ' + sevClass + '">' + a.severity.toUpperCase() + '</span>' +
-            '<span class="alert-message">' + a.message + '</span>' +
-            '<span class="alert-time">' + new Date(a.createdAt).toLocaleString() + '</span>' +
-            '<span class="alert-actions">' + resolved + '</span>' +
-            '</div>';
-        }).join('');
-        alertsList.querySelectorAll('.resolve-btn').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            var id = btn.getAttribute('data-resolve-id');
-            if (id) resolveAlert(id);
+
+      // Fetch only unresolved for the list by default
+      var showResolved = document.getElementById('alerts-show-resolved') && document.getElementById('alerts-show-resolved').checked;
+      var alertsUrl = '/api/v1/alerts' + (showResolved ? '' : '?isResolved=false');
+      var alerts = await api('GET', alertsUrl);
+      var alertsList = document.getElementById('alerts-list');
+
+      function renderAlertRows(alertData) {
+        if (alertData && alertData.length) {
+          alertsList.innerHTML = alertData.map(function(a) {
+            var sevClass = a.severity === 'critical' ? 'status-critical' : 'status-flag';
+            var agentInfo = a.auditLog && a.auditLog.agentId ? '<small style="color:var(--text-muted);font-family:var(--font-mono);font-size:10px;display:block;margin-top:2px;">agent: ' + a.auditLog.agentId + '</small>' : '';
+            var ruleInfo = a.rule ? '<small style="color:var(--text-muted);font-family:var(--font-mono);font-size:10px;display:block;margin-top:2px;">rule: ' + a.rule.name + '</small>' : '';
+            var resolveBtn = '<button class="btn-dash btn-dash-primary resolve-btn" data-resolve-id="' + a.id + '">Resolve</button>';
+            return '<div class="alert-row">' +
+              '<span class="alert-severity ' + sevClass + '">' + a.severity.toUpperCase() + '</span>' +
+              '<span class="alert-message">' + a.message + agentInfo + ruleInfo + '</span>' +
+              '<span class="alert-time">' + new Date(a.createdAt).toLocaleString() + '</span>' +
+              '<span class="alert-actions">' + resolveBtn + '</span>' +
+              '</div>';
+          }).join('');
+          alertsList.querySelectorAll('.resolve-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var id = btn.getAttribute('data-resolve-id');
+              if (id) resolveAlert(id);
+            });
           });
-        });
-      } else {
-        alertsList.innerHTML = '<div class="empty-state">No alerts yet.<br><small>Compliance violations will appear here automatically.</small></div>';
+        } else {
+          alertsList.innerHTML = '<div class="empty-state">No unresolved alerts.<br><small>Compliance violations will appear here automatically.</small></div>';
+        }
       }
+
+      renderAlertRows(alerts);
     } catch(e) { console.error('[Dashboard] Alerts load failed:', e); document.getElementById('alerts-list').innerHTML = '<div class="empty-state">Unable to load alerts.</div>'; }
 
     try {
