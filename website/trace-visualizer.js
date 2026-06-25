@@ -1,6 +1,6 @@
 const API_BASE = window.location.hostname === 'localhost'
   ? 'http://localhost:8080'
-  : 'https://agentaudit-api-production.up.railway.app';
+  : window.location.origin;
 
 function getToken() {
   return localStorage.getItem('aa_token');

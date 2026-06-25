@@ -496,6 +496,56 @@ export const swaggerSpec = {
       },
     },
 
+    // ── Compliance Packs ───────────────────────────────────────────────
+    '/compliance-rules/packs': {
+      get: {
+        tags: ['Compliance'],
+        summary: 'List available compliance packs',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Available packs', content: { 'application/json': { schema: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' }, description: { type: 'string' }, ruleCount: { type: 'integer' } } } } } } },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      post: {
+        tags: ['Compliance'],
+        summary: 'Install a compliance pack',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: { 'application/json': { schema: { type: 'object', required: ['packId'], properties: { packId: { type: 'string', example: 'hipaa' } } } } },
+        },
+        responses: {
+          '201': { description: 'Pack installed' },
+          '400': { description: 'Already installed or unknown pack' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/compliance-rules/packs/installed': {
+      get: {
+        tags: ['Compliance'],
+        summary: 'List installed compliance packs',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Installed packs', content: { 'application/json': { schema: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, packId: { type: 'string' }, installedAt: { type: 'string', format: 'date-time' } } } } } } },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/compliance-rules/packs/{id}': {
+      delete: {
+        tags: ['Compliance'],
+        summary: 'Remove an installed compliance pack',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' }, description: 'Installed pack record ID' }],
+        responses: {
+          '204': { description: 'Pack removed' },
+          '404': { description: 'Not found' },
+        },
+      },
+    },
+
     // ── Compliance Rules ───────────────────────────────────────────────
     '/compliance-rules': {
       get: {
@@ -523,7 +573,7 @@ export const swaggerSpec = {
                   type: { type: 'string', enum: ['keyword', 'regex', 'sentiment', 'custom'] },
                   pattern: { type: 'string' },
                   keywords: { type: 'array', items: { type: 'string' } },
-                  severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+                  severity: { type: 'string', enum: ['warning', 'critical'] },
                   enabled: { type: 'boolean', default: true },
                 },
               },
@@ -561,7 +611,7 @@ export const swaggerSpec = {
                   name: { type: 'string' },
                   pattern: { type: 'string' },
                   keywords: { type: 'array', items: { type: 'string' } },
-                  severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+                  severity: { type: 'string', enum: ['warning', 'critical'] },
                   enabled: { type: 'boolean' },
                 },
               },
@@ -682,6 +732,18 @@ export const swaggerSpec = {
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
           '204': { description: 'Deleted' },
+          '404': { description: 'Not found' },
+        },
+      },
+    },
+    '/reports/{id}/download': {
+      get: {
+        tags: ['Reports'],
+        summary: 'Download a report as JSON',
+        security: [{ bearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Report file', content: { 'application/json': { schema: { type: 'object' } } } },
           '404': { description: 'Not found' },
         },
       },
