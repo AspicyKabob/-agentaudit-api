@@ -222,11 +222,20 @@
     .copy-btn.copied { color: var(--success); border-color: var(--success); }
 
     /* ── Tabs ─────────────────────────────────────────────────────── */
-    .code-tabs { margin: 20px 0; border: 1px solid var(--border); }
+    .code-tabs {
+      display: flex !important;
+      flex-direction: column !important;
+      margin: 20px 0;
+      border: 1px solid var(--border);
+    }
     .tab-bar {
-      display: flex;
+      display: flex !important;
+      flex-direction: row !important;
+      flex-shrink: 0;
+      align-items: stretch;
       background: #0f0f0f;
       border-bottom: 1px solid var(--border);
+      width: 100%;
     }
     .tab-btn {
       font-family: var(--font-mono);
@@ -237,21 +246,51 @@
       background: none;
       border: none;
       border-right: 1px solid var(--border);
-      border-bottom: 2px solid transparent;
+      border-bottom: 3px solid transparent;
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.15s;
-      margin-bottom: -1px;
+      flex-shrink: 0;
     }
-    .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+    .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
     .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); background: #0a0a0a; }
-    .tab-panel { display: none; }
+    .tab-copy-btn {
+      margin-left: auto;
+      background: transparent;
+      border: none;
+      border-left: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .tab-copy-btn:hover { color: var(--text); }
+    .tab-copy-btn.copied { color: var(--success); }
+    .tab-panel { display: none; width: 100%; }
     .tab-panel.active { display: block; }
-    .tab-panel .code-block { margin: 0; }
-    .tab-panel .code-block pre {
+    .tab-panel pre {
+      background: #0a0a0a;
       border: none;
       margin: 0;
+      padding: 20px 24px;
+      overflow-x: auto;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.9;
+      color: var(--text-secondary);
+      white-space: pre;
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      scrollbar-width: thin;
     }
+    .tab-panel pre::-webkit-scrollbar { height: 4px; }
+    .tab-panel pre::-webkit-scrollbar-thumb { background: var(--border-strong); }
 
     /* ── Endpoint rows ────────────────────────────────────────────── */
     .endpoint-row {
@@ -461,10 +500,10 @@
                 <button class="tab-btn active" data-tab="curl">cURL</button>
                 <button class="tab-btn" data-tab="python">Python</button>
                 <button class="tab-btn" data-tab="typescript">TypeScript</button>
+                <button class="tab-copy-btn">Copy</button>
               </div>
               <div class="tab-panel active" data-tab="curl">
-                <div class="code-block">
-                  <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+                <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -473,12 +512,9 @@
     "response": "Q1 revenue was $2.4M...",
     "metadata": { "model": "gpt-4o", "tokens": 340 }
   }'</pre>
-                  <button class="copy-btn">Copy</button>
-                </div>
               </div>
               <div class="tab-panel" data-tab="python">
-                <div class="code-block">
-                  <pre>from agentaudit import AgentAuditClient
+                <pre>from agentaudit import AgentAuditClient
 
 client = AgentAuditClient(api_key="aa_your_key_here")
 
@@ -488,12 +524,9 @@ client.log(
     response="Q1 revenue was $2.4M...",
     metadata={"model": "gpt-4o", "tokens": 340}
 )</pre>
-                  <button class="copy-btn">Copy</button>
-                </div>
               </div>
               <div class="tab-panel" data-tab="typescript">
-                <div class="code-block">
-                  <pre>import { AgentAuditClient } from 'agentaudit-client';
+                <pre>import { AgentAuditClient } from 'agentaudit-client';
 
 const client = new AgentAuditClient({ apiKey: 'aa_your_key_here' });
 
@@ -503,8 +536,6 @@ await client.log({
   response: 'Q1 revenue was $2.4M...',
   metadata: { model: 'gpt-4o', tokens: 340 },
 });</pre>
-                  <button class="copy-btn">Copy</button>
-                </div>
               </div>
             </div>
 
@@ -895,9 +926,23 @@ Authorization: Bearer &lt;jwt&gt;
           panels.forEach(function(p) { p.classList.toggle('active', p.getAttribute('data-tab') === target); });
         });
       });
+      // Tab-level copy button — copies visible panel's pre
+      var copyBtn = group.querySelector('.tab-copy-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+          var activePanel = group.querySelector('.tab-panel.active');
+          if (!activePanel) return;
+          var code = activePanel.querySelector('pre').textContent;
+          navigator.clipboard.writeText(code).then(function() {
+            copyBtn.textContent = 'Copied!';
+            copyBtn.classList.add('copied');
+            setTimeout(function() { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 2000);
+          });
+        });
+      }
     });
 
-    // ── Copy buttons ───────────────────────────────────────────────
+    // ── Copy buttons (standalone code blocks) ─────────────────────
     document.querySelectorAll('.copy-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var code = btn.closest('.code-block').querySelector('pre').textContent;
