@@ -973,7 +973,7 @@ Authorization: Bearer &lt;jwt&gt;
     // ── Active sidebar link on scroll ──────────────────────────────
     var sections = document.querySelectorAll('.docs-section[id]');
     var sidebarLinks = document.querySelectorAll('.docs-sidebar a[href^="#"]');
-    var observer = new IntersectionObserver(function(entries) {
+    var sidebarObserver = new IntersectionObserver(function(entries) {
       entries.forEach(function(entry) {
         if (entry.isIntersecting) {
           sidebarLinks.forEach(function(a) {
@@ -982,7 +982,7 @@ Authorization: Bearer &lt;jwt&gt;
         }
       });
     }, { rootMargin: '-20% 0px -70% 0px' });
-    sections.forEach(function(s) { observer.observe(s); });
+    sections.forEach(function(s) { sidebarObserver.observe(s); });
   </script>
 </body>
 </html>
