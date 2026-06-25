@@ -497,9 +497,9 @@
             <h3>2. Send your first log</h3>
             <div class="code-tabs" data-tab-group="quickstart">
               <div class="tab-bar">
-                <button class="tab-btn active" data-tab="curl">cURL</button>
-                <button class="tab-btn" data-tab="python">Python</button>
-                <button class="tab-btn" data-tab="typescript">TypeScript</button>
+                <button class="tab-btn active" data-tab="curl" onclick="docsTabSwitch(this)">cURL</button>
+                <button class="tab-btn" data-tab="python" onclick="docsTabSwitch(this)">Python</button>
+                <button class="tab-btn" data-tab="typescript" onclick="docsTabSwitch(this)">TypeScript</button>
                 <button class="tab-copy-btn">Copy</button>
               </div>
               <div class="tab-panel active" data-tab="curl">
@@ -915,7 +915,20 @@ Authorization: Bearer &lt;jwt&gt;
 
   <script src="script.js"></script>
   <script>
-    // ── Tab switching ──────────────────────────────────────────────
+    // ── Global tab switch function (called by onclick attributes) ──
+    function docsTabSwitch(btn) {
+      var group = btn.closest('.code-tabs');
+      if (!group) return;
+      var target = btn.getAttribute('data-tab');
+      group.querySelectorAll('.tab-btn').forEach(function(b) {
+        b.classList.toggle('active', b === btn);
+      });
+      group.querySelectorAll('.tab-panel').forEach(function(p) {
+        p.classList.toggle('active', p.getAttribute('data-tab') === target);
+      });
+    }
+
+    // ── Tab switching (addEventListener fallback) ──────────────────
     document.querySelectorAll('.code-tabs').forEach(function(group) {
       var btns = group.querySelectorAll('.tab-btn');
       var panels = group.querySelectorAll('.tab-panel');
