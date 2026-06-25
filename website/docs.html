@@ -189,13 +189,15 @@
     .code-block pre {
       background: #0a0a0a;
       border: 1px solid var(--border);
-      padding: 20px 24px;
+      padding: 20px 52px 20px 24px;
       overflow-x: auto;
       font-family: var(--font-mono);
       font-size: 12px;
       line-height: 1.9;
       color: var(--text-secondary);
       scrollbar-width: thin;
+      display: block;
+      white-space: pre;
     }
     .code-block pre::-webkit-scrollbar { height: 4px; }
     .code-block pre::-webkit-scrollbar-track { background: transparent; }
@@ -220,34 +222,35 @@
     .copy-btn.copied { color: var(--success); border-color: var(--success); }
 
     /* ── Tabs ─────────────────────────────────────────────────────── */
-    .code-tabs { margin: 20px 0; }
+    .code-tabs { margin: 20px 0; border: 1px solid var(--border); }
     .tab-bar {
       display: flex;
-      gap: 0;
+      background: #0f0f0f;
       border-bottom: 1px solid var(--border);
-      margin-bottom: 0;
     }
     .tab-btn {
       font-family: var(--font-mono);
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      padding: 8px 18px;
+      padding: 10px 20px;
       background: none;
       border: none;
+      border-right: 1px solid var(--border);
+      border-bottom: 2px solid transparent;
       color: var(--text-muted);
       cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
       transition: all 0.15s;
+      margin-bottom: -1px;
     }
-    .tab-btn:hover { color: var(--text-secondary); }
-    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+    .tab-btn:hover { color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+    .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); background: #0a0a0a; }
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
-    .tab-panel .code-block { margin-top: 0; }
+    .tab-panel .code-block { margin: 0; }
     .tab-panel .code-block pre {
-      border-top: none;
+      border: none;
+      margin: 0;
     }
 
     /* ── Endpoint rows ────────────────────────────────────────────── */
