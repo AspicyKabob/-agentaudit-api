@@ -564,11 +564,14 @@
     btn.disabled = false; btn.textContent = editingPolicyId ? 'Save' : 'Create';
   });
 
-  // Policy list: toggle switch or row click → open detail
+  // Policy list: manage button → open detail; toggle → activate/deactivate only
   document.getElementById('policies-list').addEventListener('click', async function(e) {
-    // Inline active toggle — don't open detail modal
-    var toggleInput = e.target.closest('input[data-policy-toggle]');
-    if (toggleInput) {
+    // Toggle switch area — stop propagation so the row handler never fires
+    var switchEl = e.target.closest('.policy-switch-wrap');
+    if (switchEl) {
+      var toggleInput = switchEl.querySelector('input[data-policy-toggle]');
+      if (!toggleInput) return;
+      // Let the checkbox change first, then read its new value
       var id = toggleInput.getAttribute('data-policy-toggle');
       var isActive = toggleInput.checked;
       try {
@@ -580,10 +583,12 @@
       }
       return;
     }
-    var row = e.target.closest('.policy-row[data-policy-id]');
-    if (!row) return;
-    var id = row.getAttribute('data-policy-id');
-    openPolicyDetail(id);
+    // Manage button → open detail
+    var manageBtn = e.target.closest('button[data-manage-policy]');
+    if (manageBtn) {
+      openPolicyDetail(manageBtn.getAttribute('data-manage-policy'));
+      return;
+    }
   });
 
   async function openPolicyDetail(id) {
@@ -1046,15 +1051,16 @@
       var items = Array.isArray(policies) ? policies : (policies.data || []);
       if (items.length) {
         list.innerHTML = items.map(function(p) {
-          var switchHtml = '<label class="switch" onclick="event.stopPropagation()" style="margin:0;">' +
+          var switchHtml = '<div class="policy-switch-wrap" style="display:flex;align-items:center;">' +
+            '<label class="switch" style="margin:0;">' +
             '<input type="checkbox" data-policy-toggle="' + p.id + '"' + (p.isActive ? ' checked' : '') + '>' +
-            '<span class="switch-track"></span></label>';
-          return '<div class="policy-row" data-policy-id="' + p.id + '" style="cursor:pointer;">' +
+            '<span class="switch-track"></span></label></div>';
+          return '<div class="policy-row">' +
             '<div><div class="policy-name">' + escapeHtml(p.name) + '</div>' +
             '<div class="policy-meta">' + escapeHtml(p.description || '') + ' · Priority: ' + (p.priority || 0) + ' · Updated ' + new Date(p.updatedAt || p.createdAt).toLocaleDateString() + '</div></div>' +
             '<span class="policy-mode">' + (p.mode || 'flag').toUpperCase() + '</span>' +
             switchHtml +
-            '<span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">Click to manage</span>' +
+            '<button class="btn-dash" data-manage-policy="' + p.id + '">Manage</button>' +
             '</div>';
         }).join('');
       } else {
