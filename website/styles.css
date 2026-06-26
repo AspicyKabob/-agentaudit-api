@@ -496,7 +496,48 @@ body::after {
 }
 
 .demo-header {
-  margin-bottom: 64px;
+  margin-bottom: 40px;
+}
+
+.demo-presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.demo-presets-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.demo-preset-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.demo-preset-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: var(--bg-elevated);
+}
+
+.demo-preset-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg-elevated);
 }
 
 .demo-header h2 {

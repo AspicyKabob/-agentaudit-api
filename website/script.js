@@ -486,23 +486,25 @@ const demoOutput = document.getElementById('demo-output');
 
 const PII_PATTERNS = [
   { name: 'SSN', pattern: /\b\d{3}-\d{2}-\d{4}\b/, severity: 'critical' },
-  { name: 'Email', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/, severity: 'warning' },
-  { name: 'Credit Card', pattern: /\b(?:\d[ -]*?){13,16}\b/, severity: 'critical' },
-  { name: 'Phone', pattern: /\b\d{3}-\d{3}-\d{4}\b/, severity: 'warning' },
+  { name: 'Email address', pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/, severity: 'warning' },
+  { name: 'Credit card number', pattern: /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\b/, severity: 'critical' },
+  { name: 'Phone number', pattern: /\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b/, severity: 'warning' },
+  { name: 'IP address', pattern: /\b(?:\d{1,3}\.){3}\d{1,3}\b/, severity: 'warning' },
 ];
 
 const KEYWORD_RULES = [
-  { keywords: ['password', 'secret', 'token', 'api_key', 'apikey'], severity: 'warning' },
-  { keywords: ['ssn', 'social security', 'credit card', 'cvv'], severity: 'critical' },
+  { keywords: ['password', 'secret', 'token', 'api_key', 'apikey', 'private_key'], severity: 'warning' },
+  { keywords: ['ssn', 'social security', 'credit card', 'cvv', 'bank account'], severity: 'critical' },
 ];
 
 const REGEX_RULES = [
-  { name: 'Custom SSN', pattern: /\b\d{3}-\d{2}-\d{4}\b/, severity: 'critical' },
+  { name: 'AWS key', pattern: /\bAKIA[0-9A-Z]{16}\b/, severity: 'critical' },
+  { name: 'JWT token', pattern: /\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/, severity: 'critical' },
 ];
 
 const CUSTOM_RULES = [
   {
-    name: 'Length Check',
+    name: 'Response too long (>200 chars)',
     check: (text) => text.length > 200,
     severity: 'warning',
   },
@@ -510,9 +512,9 @@ const CUSTOM_RULES = [
 
 const SENTIMENT_RULES = [
   {
-    name: 'Toxic Language',
+    name: 'Toxic language',
     check: (text) => {
-      const toxicWords = ['worthless', 'pathetic', 'stupid', 'idiot', 'hate', 'kill', 'die'];
+      const toxicWords = ['worthless', 'pathetic', 'stupid', 'idiot', 'hate you', 'kill', 'die'];
       return toxicWords.some(w => text.toLowerCase().includes(w));
     },
     severity: 'critical',
@@ -563,12 +565,14 @@ function renderResult(violations) {
     `<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg> [${v.type}] ${v.detail}</li>`
   ).join('');
 
+  const hasCriticalForResponse = violations.some(v => v.severity === 'critical');
   const flags = violations.map(v => `${v.severity.toUpperCase()}_${v.type.toLowerCase()}_${v.detail.replace(/\s+/g, '_').substring(0, 20)}`);
   const apiResponse = {
     id: 'log_' + Math.random().toString(36).substring(2, 10),
     action: 'prompt_submitted',
+    blocked: hasCriticalForResponse,
     complianceFlags: flags,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
   };
 
   const curlCmd = `curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \\
@@ -586,7 +590,17 @@ function renderResult(violations) {
       <div class="demo-violations">
         <div class="demo-violations-title">Violations (${violations.length})</div>
         <ul class="demo-violations-list">${listItems}</ul>
-      </div>` : ''}
+      </div>` : `
+      <div class="demo-violations">
+        <div class="demo-violations-title">Rules checked (5 categories)</div>
+        <ul class="demo-violations-list">
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> PII detection — SSN, email, credit card, phone, IP</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Credential keywords — password, secret, token, API key</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Regex patterns — AWS keys, JWT tokens</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Sentiment — toxic language detection</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Custom rules — response length, format checks</li>
+        </ul>
+      </div>`}
       
       <div class="demo-api-section">
         <div class="demo-api-header">
@@ -641,11 +655,33 @@ demoCheck?.addEventListener('click', () => {
 
 demoClear?.addEventListener('click', () => {
   if (demoText) demoText.value = '';
+  document.querySelectorAll('.demo-preset-btn').forEach(b => b.classList.remove('active'));
   demoOutput.innerHTML = `
     <div class="demo-output-placeholder">
       <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       <p>Results will appear here</p>
     </div>`;
+});
+
+const DEMO_PRESETS = {
+  ssn:    "The patient's record shows Name: John Doe, SSN: 523-41-7890, DOB: 1985-03-12. Please update the file accordingly.",
+  cc:     "Payment processed. Card: 4532015112830366, Exp: 09/26, CVV: 847. Transaction ID: TXN-99812. Amount: $249.00.",
+  creds:  "Deployment config — DB_PASSWORD=Sup3rS3cr3t!, API_KEY=abc123token, STRIPE_SECRET=sk_live_abcdef. Do not share.",
+  toxic:  "This response is completely worthless. The agent is stupid and I hate the output it keeps producing.",
+  jwt:    "Auth header received: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+  clean:  "The quarterly report shows a 12% increase in revenue driven by enterprise customer growth. Key metrics are on track and no compliance issues were identified during the audit period.",
+};
+
+document.querySelectorAll('.demo-preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const preset = DEMO_PRESETS[btn.dataset.preset];
+    if (!preset || !demoText) return;
+    demoText.value = preset;
+    document.querySelectorAll('.demo-preset-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Auto-run the check
+    demoCheck?.click();
+  });
 });
 
 document.querySelectorAll('.integration-code').forEach(container => {

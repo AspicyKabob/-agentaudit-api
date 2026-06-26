@@ -166,10 +166,19 @@
         <h2>Try the guardrail — <span class="gradient-text">no signup required</span></h2>
         <p>Paste agent output below. Our client-side simulator runs the same PII and keyword checks as the real API.</p>
       </div>
+      <div class="demo-presets">
+        <span class="demo-presets-label">Try an example:</span>
+        <button class="demo-preset-btn" data-preset="ssn">SSN leak</button>
+        <button class="demo-preset-btn" data-preset="cc">Credit card</button>
+        <button class="demo-preset-btn" data-preset="creds">Credentials</button>
+        <button class="demo-preset-btn" data-preset="toxic">Toxic output</button>
+        <button class="demo-preset-btn" data-preset="jwt">JWT token</button>
+        <button class="demo-preset-btn" data-preset="clean">Clean response</button>
+      </div>
       <div class="demo-grid">
         <div class="demo-input">
           <label for="demo-text">Agent Output / Response</label>
-          <textarea id="demo-text" rows="6" placeholder="Paste text to check... Try: 'User SSN is 123-45-6789' or 'The password is secret123' or 'Regex match: ABC-12345' or 'You are worthless' or paste 200+ chars for custom length rule"></textarea>
+          <textarea id="demo-text" rows="6" placeholder="Paste agent output here, or click an example above..."></textarea>
           <div class="demo-actions">
             <button class="btn btn-primary" id="demo-check">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
