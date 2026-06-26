@@ -172,6 +172,7 @@
     .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
     .field textarea { min-height: 80px; resize: vertical; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row > * { min-width: 0; }
 
     /* Switch */
     .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
@@ -639,7 +640,7 @@
 
   <!-- Report modal -->
   <div class="dash-modal-overlay" id="report-modal">
-    <div class="dash-modal">
+    <div class="dash-modal wide">
       <button class="modal-x" id="report-modal-x">&times;</button>
       <h3>Generate Report</h3>
       <p>Export audit logs within a date range.</p>
