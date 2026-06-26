@@ -13,9 +13,40 @@
       --dash-border: rgba(148,163,184,0.12);
       --dash-border-hover: rgba(148,163,184,0.25);
       --dash-bg: rgba(255,255,255,0.02);
+      --sidebar-width: 220px;
     }
 
-    .dashboard-wrap { padding: 80px 0 40px; min-height: 100vh; }
+    .dashboard-layout { display: flex; gap: 32px; padding: 96px 0 40px; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      position: sticky;
+      top: 80px;
+      align-self: flex-start;
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      border: 1px solid var(--dash-border);
+      background: var(--dash-bg);
+      padding: 16px 0;
+    }
+    .sidebar-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 20px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      cursor: pointer; transition: all 0.15s;
+      border-left: 2px solid transparent;
+    }
+    .sidebar-item:hover { color: var(--text); background: rgba(250,250,249,0.03); }
+    .sidebar-item.active { color: var(--text); border-left-color: var(--accent); background: rgba(220,38,38,0.06); }
+    .sidebar-icon { width: 16px; height: 16px; opacity: 0.7; }
+    .sidebar-item.active .sidebar-icon { opacity: 1; }
+
+    /* Main content */
+    .dashboard-main { flex: 1; min-width: 0; }
+    .dashboard-section { display: none; }
+    .dashboard-section.active { display: block; }
 
     /* Header */
     .dashboard-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; gap: 16px; border-bottom: 1px solid var(--dash-border); padding-bottom: 24px; }
@@ -39,20 +70,28 @@
     .panel-body { padding: 0; }
 
     /* Rows */
-    .key-row, .log-row, .alert-row, .pack-row { display: grid; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--dash-border); font-size: 13px; align-items: center; }
-    .key-row:last-child, .log-row:last-child, .alert-row:last-child, .pack-row:last-child { border-bottom: none; }
-    .key-row:hover, .log-row:hover, .alert-row:hover, .pack-row:hover { background: var(--dash-bg); }
+    .key-row, .log-row, .alert-row, .pack-row, .report-row, .policy-row { display: grid; gap: 16px; padding: 12px 24px; border-bottom: 1px solid var(--dash-border); font-size: 13px; align-items: center; }
+    .key-row:last-child, .log-row:last-child, .alert-row:last-child, .pack-row:last-child, .report-row:last-child, .policy-row:last-child { border-bottom: none; }
+    .key-row:hover, .log-row:hover, .alert-row:hover, .pack-row:hover, .report-row:hover, .policy-row:hover { background: var(--dash-bg); cursor: pointer; }
     .key-row { grid-template-columns: 1fr auto; }
-    .log-row { grid-template-columns: 140px 1fr 120px 80px; }
+    .log-row { grid-template-columns: 150px 1fr 140px 100px; }
     .alert-row { grid-template-columns: 70px 1fr 120px 90px; }
     .pack-row { grid-template-columns: 1fr auto; }
-    .pack-name { font-size: 13px; font-weight: 500; color: var(--text); }
-    .pack-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
+    .report-row { grid-template-columns: 1fr 90px 100px 140px; }
+    .policy-row { grid-template-columns: 1fr 80px 70px 70px 180px; }
+    .pack-name, .report-name, .policy-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .pack-meta, .report-meta, .policy-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; line-height: 1.5; }
     .pack-status { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #22c55e; }
     .pack-status.pending { color: var(--text-muted); }
+    .report-status { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .report-status.ready { color: #22c55e; }
+    .report-status.pending { color: #f59e0b; }
+    .policy-mode { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .policy-active { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #22c55e; }
+    .policy-inactive { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
     .key-name { font-size: 13px; font-weight: 500; color: var(--text); }
     .key-meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
-    .log-time, .alert-time { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
+    .log-time, .alert-time, .report-date { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
     .log-action { color: var(--text); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); }
     .log-agent { color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; }
     .log-status { text-align: right; }
@@ -113,9 +152,11 @@
     .settings-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
     .field { margin-bottom: 16px; }
     .field label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 6px; }
-    .field input, .field select { width: 100%; background: transparent; border: 1px solid var(--dash-border); padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; box-sizing: border-box; font-family: var(--font-mono); }
-    .field input:focus, .field select:focus { border-color: var(--dash-border-hover); }
-    .field input::placeholder { color: var(--text-muted); }
+    .field input, .field select, .field textarea { width: 100%; background: transparent; border: 1px solid var(--dash-border); padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; box-sizing: border-box; font-family: var(--font-mono); }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--dash-border-hover); }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+    .field textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
     /* Switch */
     .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
@@ -125,10 +166,18 @@
     .switch-track:before { content: ''; position: absolute; height: 14px; width: 14px; left: 2px; bottom: 2px; background: var(--text); transition: 0.15s; }
     .switch input:checked + .switch-track:before { transform: translateX(14px); background: #fff; }
 
+    /* Pagination */
+    .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-top: 1px solid var(--dash-border); font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+    .pagination button { font-size: 11px; }
+    .pagination-info { display: flex; gap: 12px; align-items: center; }
+    .page-size { display: flex; align-items: center; gap: 6px; }
+    .page-size select { background: transparent; border: 1px solid var(--dash-border); color: var(--text); padding: 4px 8px; font-family: var(--font-mono); font-size: 11px; }
+
     /* Modal - sharp */
     .dash-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
     .dash-modal-overlay.open { display: flex; }
     .dash-modal { background: #0a0a0a; border: 1px solid var(--dash-border); padding: 32px; width: 100%; max-width: 420px; position: relative; }
+    .dash-modal.wide { max-width: 640px; }
     .dash-modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.2px; }
     .dash-modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
     .modal-x { position: absolute; top: 12px; right: 16px; background: none; border: none; color: var(--text-muted); font-size: 20px; line-height: 1; cursor: pointer; }
@@ -189,13 +238,33 @@
     .btn-dash-danger { border-color: rgba(220,38,38,0.4); color: var(--accent); }
     .btn-dash-danger:hover { background: var(--accent); color: #fff; }
     .btn-dash-full { width: 100%; justify-content: center; padding: 10px; font-size: 12px; }
+    .btn-dash:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Chain viewer */
+    .chain-log { border-left: 2px solid var(--dash-border); padding-left: 16px; margin-bottom: 16px; }
+    .chain-log.current { border-left-color: var(--accent); }
+    .chain-log-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .chain-log-meta { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 8px; }
+    .chain-log-content { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+    .chain-log-content pre { background: var(--dash-bg); padding: 8px; border: 1px solid var(--dash-border); overflow: auto; font-size: 11px; font-family: var(--font-mono); }
+
+    /* Analytics cards */
+    .analytics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--dash-border); border: 1px solid var(--dash-border); margin-bottom: 24px; }
+    .analytics-cell { background: var(--bg); padding: 16px 20px; }
+    .analytics-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+    .analytics-value { font-size: 22px; font-weight: 700; color: var(--text); font-family: var(--font-mono); }
 
     @media (max-width: 900px) {
+      .dashboard-layout { flex-direction: column; }
+      .sidebar { position: relative; top: 0; width: 100%; }
       .stat-row { grid-template-columns: repeat(2, 1fr); }
       .log-row { grid-template-columns: 1fr 1fr; }
       .alert-row { grid-template-columns: 1fr 1fr; }
-      .settings-grid { grid-template-columns: 1fr; }
+      .report-row { grid-template-columns: 1fr; }
+      .policy-row { grid-template-columns: 1fr; }
+      .settings-grid, .analytics-grid { grid-template-columns: 1fr; }
       .key-row { grid-template-columns: 1fr; gap: 8px; }
+      .form-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -222,138 +291,272 @@
     </div>
   </nav>
 
-  <div class="container dashboard-wrap">
-    <div class="dashboard-error" id="dashboard-error">
-      <h3 id="error-title">Dashboard unavailable</h3>
-      <p id="error-message">We couldn't load your dashboard. Please try again in a moment.</p>
-      <div class="error-actions">
-        <button class="btn-dash btn-dash-primary" id="btn-retry">Retry</button>
-        <button class="btn-dash" id="btn-error-logout">Log Out</button>
+  <div class="container dashboard-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-item active" data-section="overview">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Overview
       </div>
-    </div>
-
-    <div class="dashboard-header">
-      <div>
-        <div class="dashboard-title">Dashboard</div>
-        <div class="dashboard-org" id="org-name">Loading...</div>
+      <div class="sidebar-item" data-section="audit-logs">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        Audit Logs
       </div>
-      <div style="display:flex;gap:10px;align-items:center;">
-        <button class="btn-dash btn-dash-primary" id="btn-upgrade" style="display:none">Upgrade Plan</button>
+      <div class="sidebar-item" data-section="alerts">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Alerts
       </div>
-    </div>
-
-    <div class="stat-row">
-      <div class="stat-cell"><div class="stat-label">Audit Logs</div><div class="stat-value" id="stat-logs">—</div></div>
-      <div class="stat-cell"><div class="stat-label">Agents</div><div class="stat-value" id="stat-agents">—</div></div>
-      <div class="stat-cell"><div class="stat-label">API Calls (Month)</div><div class="stat-value" id="stat-api">—</div></div>
-      <div class="stat-cell"><div class="stat-label">Unread Alerts</div><div class="stat-value accent" id="stat-alerts">—</div></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">API Keys</span>
-        <button class="btn-dash btn-dash-primary" id="btn-new-key">+ New Key</button>
+      <div class="sidebar-item" data-section="reports">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Reports
       </div>
-      <div class="panel-body" id="keys-list"><div class="empty-state">Loading...</div></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Compliance Packs</span>
-        <a href="/docs" class="btn-dash">Pack Docs</a>
+      <div class="sidebar-item" data-section="policies">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Policies
       </div>
-      <div class="panel-body" id="packs-list"><div class="empty-state">Loading...</div></div>
-    </div>
+      <div class="sidebar-item" data-section="settings">
+        <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </div>
+    </aside>
 
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Notification Settings</span>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span id="save-confirm" style="font-family:var(--font-mono);font-size:11px;color:#22c55e;opacity:0;transition:opacity 0.3s;pointer-events:none;">Settings saved</span>
-          <button class="btn-dash btn-dash-primary" id="btn-save-webhook">Save</button>
+    <main class="dashboard-main">
+      <div class="dashboard-error" id="dashboard-error">
+        <h3 id="error-title">Dashboard unavailable</h3>
+        <p id="error-message">We couldn't load your dashboard. Please try again in a moment.</p>
+        <div class="error-actions">
+          <button class="btn-dash btn-dash-primary" id="btn-retry">Retry</button>
+          <button class="btn-dash" id="btn-error-logout">Log Out</button>
         </div>
       </div>
-      <div class="panel-body" style="padding: 16px 24px;">
-        <div class="field" style="margin-bottom: 20px;">
-          <label for="webhook-url">Webhook URL</label>
-          <input id="webhook-url" type="url" placeholder="https://hooks.slack.com/services/...">
+
+      <!-- Overview -->
+      <section class="dashboard-section active" id="section-overview">
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-title">Dashboard</div>
+            <div class="dashboard-org" id="org-name">Loading...</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn-dash btn-dash-primary" id="btn-upgrade" style="display:none">Upgrade Plan</button>
+          </div>
         </div>
 
-        <div class="settings-grid" style="margin-bottom: 16px;">
-          <div class="settings-cell">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:12px;font-weight:500;color:var(--text);">Webhook Alerts</span>
-              <label class="switch">
-                <input type="checkbox" id="toggle-webhook">
-                <span class="switch-track"></span>
-              </label>
-            </div>
-            <div class="settings-hint">POST to your URL on violations</div>
-          </div>
+        <div class="stat-row">
+          <div class="stat-cell"><div class="stat-label">Audit Logs</div><div class="stat-value" id="stat-logs">—</div></div>
+          <div class="stat-cell"><div class="stat-label">Agents</div><div class="stat-value" id="stat-agents">—</div></div>
+          <div class="stat-cell"><div class="stat-label">API Calls (Month)</div><div class="stat-value" id="stat-api">—</div></div>
+          <div class="stat-cell"><div class="stat-label">Unread Alerts</div><div class="stat-value accent" id="stat-alerts">—</div></div>
+        </div>
 
-          <div class="settings-cell">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:12px;font-weight:500;color:var(--text);">Email Alerts</span>
-              <label class="switch">
-                <input type="checkbox" id="toggle-email">
-                <span class="switch-track"></span>
-              </label>
-            </div>
-            <div class="settings-hint">Send to your account email</div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">API Keys</span>
+            <button class="btn-dash btn-dash-primary" id="btn-new-key">+ New Key</button>
           </div>
+          <div class="panel-body" id="keys-list"><div class="empty-state">Loading...</div></div>
+        </div>
 
-          <div class="settings-cell">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-size:12px;font-weight:500;color:var(--text);">Min Severity</span>
-              <div class="sev-dropdown" id="sev-dropdown" data-value="warning">
-                <button class="sev-trigger" id="sev-trigger" type="button">
-                  <span id="sev-label">Warning+</span>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="sev-menu" id="sev-menu">
-                  <div class="sev-option" data-value="low">All severities</div>
-                  <div class="sev-option" data-value="medium">Medium+</div>
-                  <div class="sev-option" data-value="high">High+</div>
-                  <div class="sev-option selected" data-value="warning">Warning+</div>
-                  <div class="sev-option" data-value="critical">Critical only</div>
-                </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Compliance Packs</span>
+            <a href="/docs" class="btn-dash">Pack Docs</a>
+          </div>
+          <div class="panel-body" id="packs-list"><div class="empty-state">Loading...</div></div>
+        </div>
+      </section>
+
+      <!-- Audit Logs -->
+      <section class="dashboard-section" id="section-audit-logs">
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-title">Audit Logs</div>
+            <div class="dashboard-org">All agent activity</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn-dash" id="btn-export-logs">Export JSON</button>
+            <a href="/docs" class="btn-dash">API Docs</a>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Recent Audit Logs</span>
+          </div>
+          <div class="panel-body" id="logs-list"><div class="empty-state">Loading...</div></div>
+          <div class="pagination" id="logs-pagination" style="display:none">
+            <div class="pagination-info">
+              <span id="logs-page-info">Page 1</span>
+              <div class="page-size">
+                <label for="logs-page-size">Per page:</label>
+                <select id="logs-page-size">
+                  <option value="10">10</option>
+                  <option value="25" selected>25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
               </div>
             </div>
-            <div class="settings-hint">Filter noise level</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-dash" id="logs-prev">Previous</button>
+              <button class="btn-dash" id="logs-next">Next</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Alerts -->
+      <section class="dashboard-section" id="section-alerts">
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-title">Alerts</div>
+            <div class="dashboard-org">Compliance violations</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <a href="/docs.html#alerts" class="btn-dash">Alert API</a>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Recent Alerts</span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <label style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);cursor:pointer;">
+                <input type="checkbox" id="alerts-show-resolved" style="accent-color:var(--accent);">
+                Show resolved
+              </label>
+            </div>
+          </div>
+          <div class="panel-body" id="alerts-list"><div class="empty-state">Loading...</div></div>
+        </div>
+      </section>
+
+      <!-- Reports -->
+      <section class="dashboard-section" id="section-reports">
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-title">Reports</div>
+            <div class="dashboard-org">Compliance and activity exports</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn-dash btn-dash-primary" id="btn-new-report">Generate Report</button>
+            <a href="/docs" class="btn-dash">API Docs</a>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Saved Reports</span>
+          </div>
+          <div class="panel-body" id="reports-list"><div class="empty-state">Loading...</div></div>
+        </div>
+      </section>
+
+      <!-- Policies -->
+      <section class="dashboard-section" id="section-policies">
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-title">Policies</div>
+            <div class="dashboard-org">Policy-based guardrails</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn-dash btn-dash-primary" id="btn-new-policy">Create Policy</button>
+            <a href="/docs" class="btn-dash">API Docs</a>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Policies</span>
+          </div>
+          <div class="panel-body" id="policies-list"><div class="empty-state">Loading...</div></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="dashboard-section" id="section-settings">
+        <div class="dashboard-header">
+          <div>
+            <div class="dashboard-title">Settings</div>
+            <div class="dashboard-org">Notifications and preferences</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Notification Settings</span>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span id="save-confirm" style="font-family:var(--font-mono);font-size:11px;color:#22c55e;opacity:0;transition:opacity 0.3s;pointer-events:none;">Settings saved</span>
+              <button class="btn-dash btn-dash-primary" id="btn-save-webhook">Save</button>
+            </div>
+          </div>
+          <div class="panel-body" style="padding: 16px 24px;">
+            <div class="field" style="margin-bottom: 20px;">
+              <label for="webhook-url">Webhook URL</label>
+              <input id="webhook-url" type="url" placeholder="https://hooks.slack.com/services/...">
+            </div>
+
+            <div class="settings-grid" style="margin-bottom: 16px;">
+              <div class="settings-cell">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-size:12px;font-weight:500;color:var(--text);">Webhook Alerts</span>
+                  <label class="switch">
+                    <input type="checkbox" id="toggle-webhook">
+                    <span class="switch-track"></span>
+                  </label>
+                </div>
+                <div class="settings-hint">POST to your URL on violations</div>
+              </div>
+
+              <div class="settings-cell">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-size:12px;font-weight:500;color:var(--text);">Email Alerts</span>
+                  <label class="switch">
+                    <input type="checkbox" id="toggle-email">
+                    <span class="switch-track"></span>
+                  </label>
+                </div>
+                <div class="settings-hint">Send to your account email</div>
+              </div>
+
+              <div class="settings-cell">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-size:12px;font-weight:500;color:var(--text);">Min Severity</span>
+                  <div class="sev-dropdown" id="sev-dropdown" data-value="warning">
+                    <button class="sev-trigger" id="sev-trigger" type="button">
+                      <span id="sev-label">Warning+</span>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="sev-menu" id="sev-menu">
+                      <div class="sev-option" data-value="low">All severities</div>
+                      <div class="sev-option" data-value="medium">Medium+</div>
+                      <div class="sev-option" data-value="high">High+</div>
+                      <div class="sev-option selected" data-value="warning">Warning+</div>
+                      <div class="sev-option" data-value="critical">Critical only</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="settings-hint">Filter noise level</div>
+              </div>
+            </div>
+
+            <p style="font-size:11px;color:var(--text-muted);margin:0;">When a compliance violation is detected, AgentAudit will notify you based on these preferences. <a href="/docs" style="color:var(--text-secondary);text-decoration:underline;">View webhook schema</a>.</p>
+            <div class="junk-warning">Important: alert emails may land in your junk or spam folder. Check there and add <strong>noreply@agentaudit.online</strong> to your contacts so you don't miss anything.</div>
           </div>
         </div>
 
-        <p style="font-size:11px;color:var(--text-muted);margin:0;">When a compliance violation is detected, AgentAudit will notify you based on these preferences. <a href="/docs" style="color:var(--text-secondary);text-decoration:underline;">View webhook schema</a>.</p>
-        <div class="junk-warning">Important: alert emails may land in your junk or spam folder. Check there and add <strong>noreply@agentaudit.online</strong> to your contacts so you don't miss anything.</div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Recent Audit Logs</span>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button class="btn-dash" id="btn-export-logs">Export JSON</button>
-          <a href="/docs" class="btn-dash">API Docs</a>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Developer</span>
+          </div>
+          <div class="panel-body" style="padding: 16px 24px;">
+            <div class="field">
+              <label for="api-base-url">API Base URL</label>
+              <input id="api-base-url" type="text" placeholder="https://your-domain.com or http://localhost:8080">
+              <div class="settings-hint">Override the API base URL. Leave empty to use the current origin.</div>
+            </div>
+            <button class="btn-dash btn-dash-primary" id="btn-save-api-base">Save API Base</button>
+          </div>
         </div>
-      </div>
-      <div class="panel-body" id="logs-list"><div class="empty-state">Loading...</div></div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Recent Alerts</span>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <label style="display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px;color:var(--text-muted);cursor:pointer;">
-            <input type="checkbox" id="alerts-show-resolved" style="accent-color:var(--accent);" onchange="loadDashboard()">
-            Show resolved
-          </label>
-          <a href="/docs.html#alerts" class="btn-dash">Alert API</a>
-        </div>
-      </div>
-      <div class="panel-body" id="alerts-list"><div class="empty-state">Loading...</div></div>
-    </div>
+      </section>
+    </main>
   </div>
 
+  <!-- API Key modal -->
   <div class="dash-modal-overlay" id="key-modal">
     <div class="dash-modal">
       <button class="modal-x" id="key-modal-x">&times;</button>
@@ -373,6 +576,116 @@
         <div class="key-warn">Store this somewhere safe. You cannot recover it.</div>
         <button class="btn-dash btn-dash-primary btn-dash-full" id="btn-copy-key">Copy &amp; Close</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Report modal -->
+  <div class="dash-modal-overlay" id="report-modal">
+    <div class="dash-modal">
+      <button class="modal-x" id="report-modal-x">&times;</button>
+      <h3>Generate Report</h3>
+      <p>Export audit logs within a date range.</p>
+      <div class="field">
+        <label for="report-name">Report name</label>
+        <input id="report-name" type="text" placeholder="e.g. March Compliance Report" />
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="report-format">Format</label>
+          <select id="report-format">
+            <option value="json">JSON</option>
+            <option value="csv">CSV</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="report-start">Date range start</label>
+          <input id="report-start" type="datetime-local" />
+        </div>
+        <div class="field">
+          <label for="report-end">Date range end</label>
+          <input id="report-end" type="datetime-local" />
+        </div>
+      </div>
+      <button class="btn-dash btn-dash-primary btn-dash-full" id="btn-create-report">Generate</button>
+    </div>
+  </div>
+
+  <!-- Policy modal -->
+  <div class="dash-modal-overlay" id="policy-modal">
+    <div class="dash-modal">
+      <button class="modal-x" id="policy-modal-x">&times;</button>
+      <h3 id="policy-modal-title">Create Policy</h3>
+      <p id="policy-modal-desc">Policies group rules and can be assigned to agents.</p>
+      <div class="field">
+        <label for="policy-name">Policy name</label>
+        <input id="policy-name" type="text" placeholder="e.g. Production Guardrails" />
+      </div>
+      <div class="field">
+        <label for="policy-description">Description</label>
+        <input id="policy-description" type="text" placeholder="Optional description" />
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="policy-mode">Mode</label>
+          <select id="policy-mode">
+            <option value="flag">Flag</option>
+            <option value="block">Block</option>
+            <option value="log">Log</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="policy-priority">Priority</label>
+          <input id="policy-priority" type="number" value="0" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="policy-conditions">Conditions (JSON)</label>
+        <textarea id="policy-conditions" placeholder='{"agentTypes": ["langchain"]}'></textarea>
+      </div>
+      <button class="btn-dash btn-dash-primary btn-dash-full" id="btn-create-policy">Create</button>
+    </div>
+  </div>
+
+  <!-- Policy detail modal -->
+  <div class="dash-modal-overlay" id="policy-detail-modal">
+    <div class="dash-modal wide">
+      <button class="modal-x" id="policy-detail-modal-x">&times;</button>
+      <h3 id="policy-detail-name">Policy</h3>
+      <p id="policy-detail-desc">Details</p>
+      <div class="analytics-grid" id="policy-analytics" style="display:none"></div>
+      <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-header">
+          <span class="panel-title">Assigned Agents</span>
+          <div style="display:flex;gap:8px;">
+            <select id="policy-assign-agent" style="background:transparent;border:1px solid var(--dash-border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:4px 8px;"><option value="">Select agent</option></select>
+            <button class="btn-dash btn-dash-primary" id="btn-policy-assign">Assign</button>
+          </div>
+        </div>
+        <div class="panel-body" id="policy-agents-list"><div class="empty-state">No agents assigned.</div></div>
+      </div>
+      <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-header">
+          <span class="panel-title">Versions</span>
+          <button class="btn-dash" id="btn-policy-version">Save Version</button>
+        </div>
+        <div class="panel-body" id="policy-versions-list"><div class="empty-state">No versions saved.</div></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn-dash" id="btn-policy-edit">Edit</button>
+        <button class="btn-dash btn-dash-danger" id="btn-policy-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chain viewer modal -->
+  <div class="dash-modal-overlay" id="chain-modal">
+    <div class="dash-modal wide">
+      <button class="modal-x" id="chain-modal-x">&times;</button>
+      <h3>Audit Chain</h3>
+      <p>Related audit logs for this request.</p>
+      <div id="chain-list" style="max-height: 60vh; overflow-y: auto; padding-right: 8px;"></div>
     </div>
   </div>
 
