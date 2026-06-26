@@ -314,80 +314,17 @@
 
   <script src="script.js"></script>
   <script>
-    (function () {
-      const API = '';  // same-origin
-
-      function getToken() {
-        return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-      }
-
-      // Fetch configured price IDs once on load
-      let priceMap = {};
-      fetch(API + '/api/v1/billing/prices')
-        .then(r => r.json())
-        .then(data => { priceMap = data; })
-        .catch(() => {});  // silently degrade — buttons still redirect to signup
-
-      async function handlePlanClick(plan) {
-        const token = getToken();
-
-        // Free plan — just sign up, no Stripe needed
-        if (plan === 'free') {
-          window.location.href = token ? '/dashboard.html' : 'index.html#signup';
-          return;
-        }
-
-        // Paid plan — must be authenticated first
-        if (!token) {
-          // Stash intended plan so we can resume after login
-          sessionStorage.setItem('pendingPlan', plan);
-          window.location.href = 'index.html#signup';
-          return;
-        }
-
-        const priceId = priceMap[plan];
-        if (!priceId) {
-          // Price IDs not configured — fall back to signup/dashboard
-          window.location.href = '/dashboard.html';
-          return;
-        }
-
-        const btn = document.querySelector(`.btn-plan[data-plan="${plan}"]`);
-        if (btn) { btn.disabled = true; btn.textContent = 'Redirecting…'; }
-
-        try {
-          const res = await fetch(API + '/api/v1/billing/checkout-session', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + token,
-            },
-            body: JSON.stringify({ priceId }),
-          });
-          const data = await res.json();
-          if (data.url) {
-            window.location.href = data.url;
-          } else {
-            throw new Error(data.error || 'No checkout URL returned');
-          }
-        } catch (err) {
-          console.error('Checkout error:', err);
-          if (btn) { btn.disabled = false; btn.textContent = 'Get Started'; }
-          alert('Could not start checkout. Please try again or contact support.');
-        }
-      }
-
-      document.querySelectorAll('.btn-plan').forEach(btn => {
-        btn.addEventListener('click', () => handlePlanClick(btn.dataset.plan));
-      });
-
-      // Resume pending plan after login redirect
-      const pending = sessionStorage.getItem('pendingPlan');
-      if (pending && getToken()) {
-        sessionStorage.removeItem('pendingPlan');
-        handlePlanClick(pending);
-      }
-    })();
+    // Fetch configured Stripe price IDs and set data-price on each plan button.
+    // script.js [data-plan] handler reads btn.dataset.price to start checkout.
+    fetch('/api/v1/billing/prices')
+      .then(r => r.json())
+      .then(prices => {
+        document.querySelectorAll('.btn-plan[data-plan]').forEach(btn => {
+          const plan = btn.dataset.plan;
+          if (prices[plan]) btn.dataset.price = prices[plan];
+        });
+      })
+      .catch(() => {}); // silently degrade — script.js shows a graceful error toast
   </script>
 </body>
 </html>

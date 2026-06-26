@@ -121,11 +121,17 @@ const signupForm = document.getElementById('signup-form');
 const loginForm = document.getElementById('login-form');
 
 function openModal(tab = 'signup') {
+  if (!modal) {
+    // No auth modal on this page — navigate to index with the right tab
+    window.location.href = 'index.html?' + (tab === 'login' ? 'login=1' : 'signup=1');
+    return;
+  }
   switchTab(tab);
   modal.classList.add('active');
 }
 
 function closeModal() {
+  if (!modal) return;
   modal.classList.remove('active');
 }
 
@@ -235,7 +241,7 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
     }
     const plan = btn.dataset.plan;
     if (plan === 'free') {
-      showToast('You are already on the Free plan!', 'info');
+      window.location.href = '/dashboard.html';
       return;
     }
     if (plan === 'enterprise') {
@@ -288,6 +294,13 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
 
   updateNav();
   bindAuthLinks();
+
+  // Auto-open modal when redirected from another page with ?login=1 or ?signup=1
+  if (modal) {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('login')) openModal('login');
+    else if (params.get('signup')) openModal('signup');
+  }
 
 // ─── Existing visual scripts (unchanged) ─────────────────────────
 
