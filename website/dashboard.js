@@ -1220,7 +1220,8 @@
         packsList.innerHTML = packs.map(function(p) {
           var isInstalled = installedIds.has(p.id);
           var packRules = rulesByPack[p.id] || [];
-          var ruleCount = isInstalled ? packRules.length : (p.rules ? p.rules.length : '?');
+          var staticRules = Array.isArray(p.rules) ? p.rules : [];
+          var ruleCount = isInstalled ? packRules.length : staticRules.length;
           var activeCount = isInstalled ? packRules.filter(function(r){ return r.isActive !== false; }).length : 0;
 
           // Status chip
@@ -1236,7 +1237,7 @@
             : '<button class="btn-dash btn-dash-primary" data-action="install" data-pack-id="' + p.id + '">Install</button>';
 
           // Preview rules (static from pack definition if not installed, live from DB if installed)
-          var previewRules = isInstalled ? packRules : (p.rules || []);
+          var previewRules = isInstalled ? packRules : staticRules;
           var rulesHtml = previewRules.map(function(r) {
             var sevClass = (r.severity === 'critical') ? 'status-critical' : 'status-flag';
             var toggleHtml = isInstalled

@@ -135,7 +135,7 @@ export const complianceService = {
   listPacks() {
     return PACK_IDS.map((id) => {
       const pack = PACKS[id];
-      return { id, name: pack.name, description: pack.description, rules: pack.rules.length };
+      return { id, name: pack.name, description: pack.description, category: pack.category, rules: pack.rules };
     });
   },
 
