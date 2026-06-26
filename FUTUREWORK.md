@@ -172,18 +172,91 @@ A richer dashboard layer on top of the audit log — trend charts, violation rat
 
 ---
 
+### 4. SOC 2 Type II Certification
+
+**What it is:**
+SOC 2 (System and Organization Controls 2) is a formal third-party audit conducted by a licensed CPA firm that verifies a SaaS company's security, availability, processing integrity, confidentiality, and privacy controls meet the AICPA Trust Service Criteria. Type I is a point-in-time snapshot. Type II covers a 6–12 month observation window and is the version enterprise procurement teams actually require.
+
+**Why it matters:**
+Enterprise customers in healthcare, finance, and government cannot sign contracts with vendors who have not completed SOC 2 Type II. It is typically the first hard blocker in a $10k+/year deal. A completed report also shortens vendor review processes from months to days.
+
+**What AgentAudit already has (counts toward SOC 2):**
+- Comprehensive audit trails (literally the core product)
+- Encryption in transit (TLS) and at rest (PostgreSQL/Railway)
+- Row-level data isolation per organization
+- API key hashing and rate limiting
+- CORS and Helmet.js security headers
+- Open-source and independently auditable codebase
+- Incident reporting contact already published
+
+**What still needs to be built or documented:**
+
+*Technical controls:*
+- Formal penetration test by an approved vendor (~$8–15k)
+- Vulnerability scanning pipeline (e.g. Snyk, Dependabot alerts enforced)
+- Intrusion detection / anomaly alerting on production infrastructure
+- Formal disaster recovery and backup verification process
+
+*Organizational controls (the hard part):*
+- Written information security policy, acceptable use policy, and incident response plan
+- Employee security awareness training records
+- Background check process for all personnel with production access
+- Formal access provisioning / deprovisioning process with evidence
+- MDM (mobile device management) on all employee devices
+- Vendor risk assessments for Railway, Stripe, Resend, and any other sub-processors
+- Business continuity and disaster recovery plan (BCP/DRP)
+- Regular internal access reviews (quarterly evidence required for Type II)
+- Change management process with documented approvals
+
+*Readiness infrastructure:*
+- A compliance management tool to collect and store evidence continuously (e.g. Vanta, Drata, Sprinto — $10–20k/yr)
+- A public trust center page listing sub-processors, security practices, and the completed report
+
+**Capital required:**
+
+| Item | One-time cost | Annual recurring |
+|---|---|---|
+| Compliance readiness platform (Vanta / Drata) | — | $10,000–20,000/yr |
+| Penetration test (external vendor) | $8,000–15,000 | $8,000–15,000/yr to maintain |
+| CPA auditor fees (Type II) | $25,000–50,000 | $20,000–40,000/yr renewal |
+| Legal review (BAA templates, DPA, security addendum) | $3,000–8,000 | $1,000–3,000/yr |
+| Engineering time (controls implementation) | ~8–12 weeks eng | Ongoing maintenance |
+| **Total first-year estimate** | **$46,000–93,000** | **$39,000–78,000/yr** |
+
+Engineering time estimate: 8–12 weeks of a senior engineer's time to implement technical controls, integrate with the compliance platform, and produce evidence artifacts.
+
+**Timeline:**
+- Months 1–2: Gap assessment, policy writing, compliance platform onboarded, technical controls implemented
+- Months 3–4: Penetration test completed, all controls live and evidence flowing
+- Months 5–10: Type II observation window (controls must hold with continuous evidence)
+- Months 11–12: Auditor fieldwork and report issuance
+- **Total: ~12 months from start to completed Type II report**
+
+**Trigger to start:**
+Do not pursue SOC 2 until at least one of these is true:
+1. An enterprise prospect ($10k+/yr ARR) has explicitly blocked on it
+2. ARR reaches ~$50k (revenue covers first-year cost without strain)
+3. A regulated-industry vertical (healthcare, finance, government) becomes a target market
+
+**Build time:** 12 months end-to-end  
+**Capital needed:** $46,000–93,000 first year; $39,000–78,000/yr to maintain  
+**Users needed to validate:** 1 enterprise prospect explicitly requiring it, or $50k ARR
+
+---
+
 ### Recommended build order
 
-| Priority | Feature | Build time | Infra cost/mo | Users to validate |
+| Priority | Feature | Build time | Capital needed | Users to validate |
 |---|---|---|---|---|
 | 1 | Agent limits | 1–2 weeks | $0 | 20–50 Pro |
-| 2 | Log retention | 2–3 weeks + archival | $50–200 | Any paying |
-| 3 | Advanced analytics | 2–4 weeks + analytics DB | $50–300 | 5–10 Business |
+| 2 | Log retention | 2–3 weeks + archival | $50–200/mo infra | Any paying |
+| 3 | Advanced analytics | 2–4 weeks + analytics DB | $50–300/mo infra | 5–10 Business |
+| 4 | SOC 2 Type II | 12 months end-to-end | $46k–93k first year | 1 enterprise prospect or $50k ARR |
 
-**Rationale:** Agent limits first — pure backend, high perceived value for Pro, zero infra cost. Retention second — required for regulated industries and unlocks enterprise conversations. Analytics last — biggest engineering lift; validate demand before committing.
+**Rationale:** Agent limits first — pure backend, high perceived value for Pro, zero infra cost. Retention second — required for regulated industries and unlocks enterprise conversations. Analytics third — biggest engineering lift; validate demand before committing. SOC 2 last — only pursue when an enterprise deal is blocked on it or ARR supports the cost.
 
 ---
 
 ## Last Updated
 
-June 23, 2026
+July 2, 2026
