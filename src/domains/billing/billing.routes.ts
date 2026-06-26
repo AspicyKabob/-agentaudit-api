@@ -5,6 +5,7 @@ import express from 'express';
 
 const router = Router();
 
+router.get('/prices', billingController.getPrices); // public — no auth required
 router.post('/checkout-session', authenticate, billingController.createCheckoutSession);
 router.get('/subscription', authenticate, billingController.getSubscriptionStatus);
 router.post('/portal-session', authenticate, billingController.createPortalSession);

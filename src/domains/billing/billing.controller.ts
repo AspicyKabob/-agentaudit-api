@@ -6,6 +6,21 @@ import { config } from '../../config';
 import { logger } from '../../utils/logger';
 
 export const billingController = {
+  // Public — returns configured price IDs so the frontend can initiate checkout
+  getPrices: asyncHandler(async (_req: Request, res: Response) => {
+    const { isAllowedPriceId } = await import('./plans');
+    const priceIds = {
+      pro:      config.get('stripePricePro'),
+      business: config.get('stripePriceBusiness'),
+    };
+    // Only expose IDs that are actually configured (not placeholder values)
+    const filtered: Record<string, string> = {};
+    for (const [plan, id] of Object.entries(priceIds)) {
+      if (isAllowedPriceId(id)) filtered[plan] = id;
+    }
+    res.status(200).json(filtered);
+  }),
+
   createCheckoutSession: asyncHandler(async (req: Request, res: Response) => {
     const { priceId } = req.body;
     const organizationId = req.organization!.id;

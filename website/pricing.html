@@ -143,7 +143,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Basic compliance rules</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Email support</li>
           </ul>
-          <a href="index.html#signup" class="btn btn-secondary btn-full">Get Started</a>
+          <button class="btn btn-secondary btn-full btn-plan" data-plan="free">Get Started</button>
         </div>
       </div>
 
@@ -165,7 +165,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
           </ul>
-          <a href="index.html#signup" class="btn btn-primary btn-full">Get Started</a>
+          <button class="btn btn-primary btn-full btn-plan" data-plan="pro">Get Started</button>
         </div>
       </div>
 
@@ -187,7 +187,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom integrations</li>
           </ul>
-          <a href="index.html#signup" class="btn btn-secondary btn-full">Get Started</a>
+          <button class="btn btn-secondary btn-full btn-plan" data-plan="business">Get Started</button>
         </div>
       </div>
 
@@ -208,7 +208,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Dedicated engineer</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Annual contracts</li>
           </ul>
-          <a href="mailto:contact@agentaudit.io?subject=Enterprise%20Inquiry" class="btn btn-secondary btn-full">Contact Sales</a>
+          <a href="mailto:support@agentaudit.online?subject=Enterprise%20Inquiry" class="btn btn-secondary btn-full">Contact Sales</a>
         </div>
       </div>
     </div>
@@ -313,5 +313,81 @@
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    (function () {
+      const API = '';  // same-origin
+
+      function getToken() {
+        return localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+      }
+
+      // Fetch configured price IDs once on load
+      let priceMap = {};
+      fetch(API + '/api/v1/billing/prices')
+        .then(r => r.json())
+        .then(data => { priceMap = data; })
+        .catch(() => {});  // silently degrade — buttons still redirect to signup
+
+      async function handlePlanClick(plan) {
+        const token = getToken();
+
+        // Free plan — just sign up, no Stripe needed
+        if (plan === 'free') {
+          window.location.href = token ? '/dashboard.html' : 'index.html#signup';
+          return;
+        }
+
+        // Paid plan — must be authenticated first
+        if (!token) {
+          // Stash intended plan so we can resume after login
+          sessionStorage.setItem('pendingPlan', plan);
+          window.location.href = 'index.html#signup';
+          return;
+        }
+
+        const priceId = priceMap[plan];
+        if (!priceId) {
+          // Price IDs not configured — fall back to signup/dashboard
+          window.location.href = '/dashboard.html';
+          return;
+        }
+
+        const btn = document.querySelector(`.btn-plan[data-plan="${plan}"]`);
+        if (btn) { btn.disabled = true; btn.textContent = 'Redirecting…'; }
+
+        try {
+          const res = await fetch(API + '/api/v1/billing/checkout-session', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token,
+            },
+            body: JSON.stringify({ priceId }),
+          });
+          const data = await res.json();
+          if (data.url) {
+            window.location.href = data.url;
+          } else {
+            throw new Error(data.error || 'No checkout URL returned');
+          }
+        } catch (err) {
+          console.error('Checkout error:', err);
+          if (btn) { btn.disabled = false; btn.textContent = 'Get Started'; }
+          alert('Could not start checkout. Please try again or contact support.');
+        }
+      }
+
+      document.querySelectorAll('.btn-plan').forEach(btn => {
+        btn.addEventListener('click', () => handlePlanClick(btn.dataset.plan));
+      });
+
+      // Resume pending plan after login redirect
+      const pending = sessionStorage.getItem('pendingPlan');
+      if (pending && getToken()) {
+        sessionStorage.removeItem('pendingPlan');
+        handlePlanClick(pending);
+      }
+    })();
+  </script>
 </body>
 </html>
