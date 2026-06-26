@@ -138,7 +138,7 @@
         <div class="card-body">
           <ul>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>5,000 audit logs / month</li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>1 agent <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Up to 3 agents</li>
             <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>7-day retention <span class="coming-soon-tag">Coming soon</span></span></li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Basic compliance rules</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Email support</li>
@@ -159,7 +159,7 @@
         <div class="card-body">
           <ul>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>50,000 audit logs / month</li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>10 agents <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Up to 25 agents</li>
             <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>1-year retention <span class="coming-soon-tag">Coming soon</span></span></li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Advanced compliance rules</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
@@ -181,7 +181,7 @@
         <div class="card-body">
           <ul>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>250,000 audit logs / month</li>
-            <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Unlimited agents <span class="coming-soon-tag">Coming soon</span></span></li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unlimited agents</li>
             <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>7-year retention <span class="coming-soon-tag">Coming soon</span></span></li>
             <li class="coming-soon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg><span>Advanced analytics <span class="coming-soon-tag">Coming soon</span></span></li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
@@ -208,7 +208,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Dedicated engineer</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Annual contracts</li>
           </ul>
-          <button class="btn btn-secondary btn-full" onclick="showEnterpriseModal()">Get Started</button>
+          <a href="mailto:contact@agentaudit.io?subject=Enterprise%20Inquiry" class="btn btn-secondary btn-full">Contact Sales</a>
         </div>
       </div>
     </div>
@@ -225,7 +225,7 @@
 
           <div class="faq-item">
             <h4>What are the API rate limits?</h4>
-            <p><code>POST /audit-logs</code>: 1,000 req / 15 min. <code>POST /audit-logs/batch</code>: 500 req / 15 min (up to 100 entries each). <code>GET</code> queries: 200 / 15 min. Auth: 5 / 15 min.</p>
+            <p><code>POST /audit-logs</code>: 1,000 req / 15 min. <code>POST /audit-logs/batch</code>: 500 req / 15 min (up to 50 entries each). <code>GET</code> queries: 200 / 15 min. Auth: 5 / 15 min.</p>
           </div>
 
           <div class="faq-item">
@@ -236,6 +236,21 @@
           <div class="faq-item">
             <h4>Can I self-host?</h4>
             <p>Yes. AgentAudit is 100% open-source and self-hostable with Docker Compose or bare-metal. See the <a href="https://github.com/AspicyKabob/-agentaudit-api/blob/main/docs/self-hosting.md" target="_blank">self-hosting guide</a> for details.</p>
+          </div>
+
+          <div class="faq-item">
+            <h4>Which agent frameworks are supported?</h4>
+            <p>LangChain (callback handler), CrewAI (observer), AutoGPT (decorator + context manager), and OpenAI (wrapped client) all have drop-in SDKs. Any other framework can use the <a href="integrations.html#rest-api">REST API directly</a> — one POST, any language.</p>
+          </div>
+
+          <div class="faq-item">
+            <h4>Is there an SDK?</h4>
+            <p>Yes — <code>pip install agentaudit-client</code> for Python and <code>npm install agentaudit-client</code> for TypeScript/Node. Both are open-source and published to PyPI and npm respectively.</p>
+          </div>
+
+          <div class="faq-item">
+            <h4>What compliance packs are included?</h4>
+            <p>All plans include three built-in packs: <strong>Healthcare (HIPAA)</strong> for PHI and SSN detection, <strong>Finance (PCI-DSS)</strong> for credit card and insider-trading keyword detection, and <strong>Data Protection (GDPR/CCPA)</strong> for email, phone, and address leakage. Packs are installed in one click from the dashboard and run automatically on every audit log.</p>
           </div>
         </div>
       </div>
