@@ -217,9 +217,16 @@
     }
     .qs-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: repeat(6, 1fr);
       gap: 20px;
     }
+    /* First 3 cards: each spans 2 of 6 columns */
+    .qs-grid .qs-card:nth-child(1) { grid-column: span 2; }
+    .qs-grid .qs-card:nth-child(2) { grid-column: span 2; }
+    .qs-grid .qs-card:nth-child(3) { grid-column: span 2; }
+    /* Last 2 cards: each spans 3 of 6 columns — fills the full row evenly */
+    .qs-grid .qs-card:nth-child(4) { grid-column: span 3; }
+    .qs-grid .qs-card:nth-child(5) { grid-column: span 3; }
     .qs-card {
       border: 1px solid var(--border);
       padding: 24px;
