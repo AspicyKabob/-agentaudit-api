@@ -19,6 +19,11 @@ Thumbs.db
 # Logs
 *.log
 
+# Local test/seed data files
+log*.json
+seed*.json
+seed-key.json
+
 # Python
 __pycache__/
 *.pyc
