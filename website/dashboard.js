@@ -623,13 +623,13 @@
         }
       } catch(e) { /* analytics optional */ }
 
-      // Agents
+      // Agents — backend returns agentPolicies[].agent, not agents[]
       var agentsList = document.getElementById('policy-agents-list');
-      var assignedAgents = policy.agents || [];
+      var assignedAgents = (policy.agentPolicies || []).map(function(ap) { return ap.agent; }).filter(Boolean);
       if (assignedAgents.length) {
         agentsList.innerHTML = assignedAgents.map(function(a) {
           return '<div class="key-row">' +
-            '<div><div class="key-name">' + (a.name || a.id) + '</div><div class="key-meta">' + a.id + '</div></div>' +
+            '<div><div class="key-name">' + escapeHtml(a.name || a.id) + '</div><div class="key-meta">' + a.id + '</div></div>' +
             '<button class="btn-dash btn-dash-danger" data-unassign-agent="' + a.id + '" type="button">Remove</button>' +
             '</div>';
         }).join('');
