@@ -708,30 +708,34 @@
   </div>
 
   <!-- Policy detail modal -->
-  <div class="dash-modal-overlay" id="policy-detail-modal">
-    <div class="dash-modal wide">
-      <button class="modal-x" id="policy-detail-modal-x">&times;</button>
-      <h3 id="policy-detail-name">Policy</h3>
-      <p id="policy-detail-desc">Details</p>
-      <div class="analytics-grid" id="policy-analytics" style="display:none"></div>
-      <div class="panel" style="margin-bottom: 16px;">
-        <div class="panel-header">
-          <span class="panel-title">Assigned Agents</span>
-          <div style="display:flex;gap:8px;">
-            <select id="policy-assign-agent" style="background:#0a0a0a;border:1px solid var(--dash-border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:4px 24px 4px 8px;color-scheme:dark;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;"><option value="">Select agent</option></select>
-            <button class="btn-dash btn-dash-primary" id="btn-policy-assign">Assign</button>
+  <div class="dash-modal-overlay" id="policy-detail-modal" style="align-items:flex-start;padding:40px 16px;">
+    <div class="dash-modal wide" style="display:flex;flex-direction:column;max-height:calc(100vh - 80px);padding:0;">
+      <!-- Scrollable body -->
+      <div style="overflow-y:auto;flex:1;padding:32px 32px 16px;">
+        <button class="modal-x" id="policy-detail-modal-x">&times;</button>
+        <h3 id="policy-detail-name">Policy</h3>
+        <p id="policy-detail-desc">Details</p>
+        <div class="analytics-grid" id="policy-analytics" style="display:none;margin-bottom:16px;"></div>
+        <div class="panel" style="margin-bottom: 16px;">
+          <div class="panel-header">
+            <span class="panel-title">Assigned Agents</span>
+            <div style="display:flex;gap:8px;">
+              <select id="policy-assign-agent" style="background:#0a0a0a;border:1px solid var(--dash-border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:4px 24px 4px 8px;color-scheme:dark;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 7px center;"><option value="">Select agent</option></select>
+              <button class="btn-dash btn-dash-primary" id="btn-policy-assign">Assign</button>
+            </div>
           </div>
+          <div class="panel-body" id="policy-agents-list" style="max-height:180px;overflow-y:auto;"><div class="empty-state">No agents assigned.</div></div>
         </div>
-        <div class="panel-body" id="policy-agents-list" style="max-height:160px;overflow-y:auto;"><div class="empty-state">No agents assigned.</div></div>
-      </div>
-      <div class="panel" style="margin-bottom: 16px;">
-        <div class="panel-header">
-          <span class="panel-title">Versions</span>
-          <button class="btn-dash" id="btn-policy-version">Save Version</button>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Versions</span>
+            <button class="btn-dash" id="btn-policy-version">Save Version</button>
+          </div>
+          <div class="panel-body" id="policy-versions-list" style="max-height:240px;overflow-y:auto;"><div class="empty-state">No versions saved.</div></div>
         </div>
-        <div class="panel-body" id="policy-versions-list" style="max-height:220px;overflow-y:auto;"><div class="empty-state">No versions saved.</div></div>
       </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <!-- Sticky footer -->
+      <div style="display:flex;gap:10px;justify-content:flex-end;padding:16px 32px;border-top:1px solid var(--dash-border);flex-shrink:0;">
         <button class="btn-dash" id="btn-policy-edit">Edit</button>
         <button class="btn-dash btn-dash-danger" id="btn-policy-delete">Delete</button>
       </div>
