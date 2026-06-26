@@ -112,6 +112,34 @@
     btn.textContent = 'Save';
   });
 
+  document.getElementById('btn-export-logs').addEventListener('click', async function() {
+    var btn = this;
+    var originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Exporting...';
+    try {
+      var res = await fetch(API + '/api/v1/audit-logs/export?format=json', {
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      if (!res.ok) throw new Error('Export failed: ' + res.status);
+      var blob = await res.blob();
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'audit-logs.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('Export downloaded', 'success');
+    } catch(e) {
+      toast(e.message || 'Export failed', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = originalText;
+  });
+
   document.getElementById('btn-upgrade').addEventListener('click', async function() {
     var btn = this;
     var originalText = btn.textContent;
@@ -288,6 +316,23 @@
       badge.className = 'plan-badge plan-' + plan;
       document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
       if (plan === 'free') document.getElementById('btn-upgrade').style.display = '';
+
+      // Load subscription status from Stripe if billing is configured
+      try {
+        var sub = await api('GET', '/api/v1/billing/subscription');
+        var subEl = document.getElementById('sub-status');
+        if (subEl && sub.status && sub.status !== 'inactive' && sub.status !== 'error') {
+          subEl.textContent = sub.status === 'active' ? 'Subscribed' : sub.status;
+          subEl.className = 'plan-tag plan-' + plan;
+          subEl.style.display = '';
+        } else if (subEl) {
+          subEl.style.display = 'none';
+        }
+      } catch(subErr) {
+        var subEl2 = document.getElementById('sub-status');
+        if (subEl2) subEl2.style.display = 'none';
+        console.log('[Dashboard] Subscription status not available:', subErr.message || subErr);
+      }
       document.getElementById('webhook-url').value = me.webhookUrl || '';
       document.getElementById('toggle-webhook').checked = me.notifyWebhook === true;
       document.getElementById('toggle-email').checked = me.notifyEmail === true;

@@ -6,7 +6,7 @@
   <title>API Documentation — AgentAudit</title>
   <meta name="description" content="AgentAudit API reference. Quickstart, authentication, audit logging, compliance rules, distributed tracing, and SDK examples.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://agentaudit-api-production.up.railway.app/docs.html">
+  <meta property="og:url" content="https://agentaudit.online/docs.html">
   <meta property="og:title" content="API Documentation — AgentAudit">
   <meta property="og:description" content="AgentAudit API reference. Quickstart, authentication, audit logging, compliance rules, distributed tracing, and SDK examples.">
   <meta name="twitter:card" content="summary">
@@ -439,7 +439,7 @@
       <h1>AgentAudit <span class="gradient-text">Docs</span></h1>
       <p>Everything you need to integrate audit logging, guardrails, and compliance monitoring into your agent stack.</p>
       <div class="docs-hero-meta">
-        <span>Base URL: <a href="https://agentaudit-api-production.up.railway.app" target="_blank">agentaudit-api-production.up.railway.app</a></span>
+        <span>Base URL: <code>/api/v1</code> (same origin) — or <a href="/api/v1" target="_blank">https://your-domain.com/api/v1</a></span>
         <span>Version: <strong>v1</strong></span>
         <a href="/docs" target="_blank">Interactive Swagger UI ↗</a>
       </div>
@@ -503,7 +503,7 @@
                 <button class="tab-copy-btn">Copy</button>
               </div>
               <div class="tab-panel active" data-tab="curl">
-                <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+                <pre>curl -X POST https://your-domain.com/api/v1/audit-logs \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -669,7 +669,7 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
 
             <div class="code-block">
-              <pre>curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+              <pre>curl -X POST https://your-domain.com/api/v1/audit-logs/batch \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '[

@@ -215,6 +215,7 @@
         </div>
         <div style="display:flex;gap:12px;align-items:center;">
           <span id="plan-badge" class="plan-tag">Free</span>
+          <span id="sub-status" class="plan-tag" style="display:none"></span>
           <button class="btn-dash" id="btn-logout">Log Out</button>
         </div>
       </div>
@@ -330,7 +331,10 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Recent Audit Logs</span>
-        <a href="/docs" class="btn-dash">API Docs</a>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn-dash" id="btn-export-logs">Export JSON</button>
+          <a href="/docs" class="btn-dash">API Docs</a>
+        </div>
       </div>
       <div class="panel-body" id="logs-list"><div class="empty-state">Loading...</div></div>
     </div>

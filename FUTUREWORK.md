@@ -99,6 +99,7 @@ The goal of the future work below is to give AgentAudit a clear edge in a crowde
 
 These ideas are worth tracking but are lower priority or more speculative than the eight above.
 
+- **GitHub OAuth login:** Allow users to sign up and log in with their GitHub account. Reduces onboarding friction for developer-focused teams, and can automatically pull organization name and public email. Implementation needs a backend OAuth flow, a `provider` field on the organization record, email matching / duplicate handling, and an optional "link account" path for existing email users.
 - **Data residency / EU deployment:** Offer regional hosting for GDPR-sensitive customers.
 - **SLA and enterprise support:** Dedicated success engineer, guaranteed response times, and custom rule development.
 - **Built-in model evaluation / red-teaming:** Run automated adversarial test suites against a customer’s agent and report weakness.
