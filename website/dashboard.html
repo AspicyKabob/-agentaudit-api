@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles.css">
   <style>
     :root {
+      color-scheme: dark;
       --dash-border: rgba(148,163,184,0.12);
       --dash-border-hover: rgba(148,163,184,0.25);
       --dash-bg: rgba(255,255,255,0.02);
@@ -166,7 +167,7 @@
     .field { margin-bottom: 16px; }
     .field label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 6px; }
     .field input, .field select, .field textarea { width: 100%; background: #0a0a0a; border: 1px solid var(--dash-border); padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; box-sizing: border-box; font-family: var(--font-mono); }
-    .field select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
+    .field select { appearance: none; -webkit-appearance: none; color-scheme: dark; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; cursor: pointer; }
     .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--dash-border-hover); }
     .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
     .field textarea { min-height: 80px; resize: vertical; }
