@@ -93,6 +93,8 @@
 
   // ─── Sidebar navigation ───────────────────────────────────────────
   var currentSection = 'overview';
+  // Track which sections have been loaded at least once
+  var sectionLoaded = {};
 
   function showSection(name) {
     currentSection = name;
@@ -102,11 +104,15 @@
     document.querySelectorAll('.dashboard-section').forEach(function(sec) {
       sec.classList.toggle('active', sec.id === 'section-' + name);
     });
-    // Lazy-load section data
-    if (name === 'audit-logs') loadAuditLogs();
-    if (name === 'alerts') loadAlerts();
-    if (name === 'reports') loadReports();
-    if (name === 'policies') loadPolicies();
+    // Lazy-load section data (only first visit; explicit refreshes still call directly)
+    if (!sectionLoaded[name]) {
+      sectionLoaded[name] = true;
+      if (name === 'audit-logs') loadAuditLogs();
+      if (name === 'alerts') loadAlerts();
+      if (name === 'reports') loadReports();
+      if (name === 'policies') loadPolicies();
+      if (name === 'agents') loadAgents();
+    }
   }
 
   document.querySelectorAll('.sidebar-item').forEach(function(item) {
@@ -270,10 +276,11 @@
     alertsShowResolved.addEventListener('change', function() { loadAlerts(); });
   }
 
-  // ─── Audit log pagination state ───────────────────────────────────
+  // ─── Audit log pagination + filter state ─────────────────────────
   var logsPage = 1;
   var logsPageSize = 25;
   var logsTotalPages = 1;
+  var logsFilter = { action: '', agentId: '', startDate: '', endDate: '' };
 
   document.getElementById('logs-page-size').addEventListener('change', function() {
     logsPageSize = parseInt(this.value, 10);
@@ -287,6 +294,153 @@
 
   document.getElementById('logs-next').addEventListener('click', function() {
     if (logsPage < logsTotalPages) { logsPage++; loadAuditLogs(); }
+  });
+
+  document.getElementById('btn-logs-filter').addEventListener('click', function() {
+    logsFilter.action = document.getElementById('logs-filter-action').value.trim();
+    logsFilter.agentId = document.getElementById('logs-filter-agent').value;
+    logsFilter.startDate = document.getElementById('logs-filter-start').value;
+    logsFilter.endDate = document.getElementById('logs-filter-end').value;
+    logsPage = 1;
+    loadAuditLogs();
+  });
+
+  document.getElementById('btn-logs-filter-clear').addEventListener('click', function() {
+    document.getElementById('logs-filter-action').value = '';
+    document.getElementById('logs-filter-agent').value = '';
+    document.getElementById('logs-filter-start').value = '';
+    document.getElementById('logs-filter-end').value = '';
+    logsFilter = { action: '', agentId: '', startDate: '', endDate: '' };
+    logsPage = 1;
+    loadAuditLogs();
+  });
+
+  // ─── Agent modal ─────────────────────────────────────────────────
+  var agentModal = document.getElementById('agent-modal');
+  var editingAgentId = null;
+
+  function openAgentModal(editId, editData) {
+    editingAgentId = editId || null;
+    document.getElementById('agent-modal-title').textContent = editId ? 'Edit Agent' : 'Register Agent';
+    document.getElementById('agent-modal-desc').textContent = editId ? 'Update agent details.' : 'Add an AI agent to track in AgentAudit.';
+    document.getElementById('btn-create-agent').textContent = editId ? 'Save' : 'Register';
+    document.getElementById('agent-name').value = editData ? editData.name : '';
+    document.getElementById('agent-type').value = editData ? (editData.type || 'custom') : 'custom';
+    document.getElementById('agent-description').value = editData ? (editData.description || '') : '';
+    agentModal.classList.add('open');
+    document.getElementById('agent-name').focus();
+  }
+  function closeAgentModal() { agentModal.classList.remove('open'); editingAgentId = null; }
+
+  document.getElementById('btn-new-agent').addEventListener('click', function() { openAgentModal(null, null); });
+  document.getElementById('agent-modal-x').addEventListener('click', closeAgentModal);
+  agentModal.addEventListener('click', function(e) { if (e.target === agentModal) closeAgentModal(); });
+
+  document.getElementById('btn-create-agent').addEventListener('click', async function() {
+    var btn = this;
+    var name = document.getElementById('agent-name').value.trim();
+    var type = document.getElementById('agent-type').value;
+    var description = document.getElementById('agent-description').value.trim();
+    if (!name) { toast('Enter an agent name', 'error'); return; }
+    btn.disabled = true; btn.textContent = editingAgentId ? 'Saving...' : 'Registering...';
+    try {
+      var body = { name: name, type: type };
+      if (description) body.description = description;
+      if (editingAgentId) {
+        await api('PATCH', '/api/v1/agents/' + editingAgentId, { name: name, description: description || null });
+        toast('Agent updated', 'success');
+      } else {
+        await api('POST', '/api/v1/agents', body);
+        toast('Agent registered', 'success');
+      }
+      closeAgentModal();
+      sectionLoaded['agents'] = false;
+      loadAgents();
+      // Refresh agent count on overview stat
+      api('GET', '/api/v1/agents').then(function(a) {
+        document.getElementById('stat-agents').textContent = Array.isArray(a) ? a.length : '0';
+      }).catch(function() {});
+    } catch(err) { toast(err.message || 'Failed', 'error'); }
+    btn.disabled = false; btn.textContent = editingAgentId ? 'Save' : 'Register';
+  });
+
+  // ─── Rule modal ──────────────────────────────────────────────────
+  var ruleModal = document.getElementById('rule-modal');
+  var editingRuleId = null;
+
+  function openRuleModal(editId, editData) {
+    editingRuleId = editId || null;
+    document.getElementById('rule-modal-title').textContent = editId ? 'Edit Rule' : 'New Compliance Rule';
+    document.getElementById('btn-create-rule').textContent = editId ? 'Save' : 'Create Rule';
+    document.getElementById('rule-name').value = editData ? editData.name : '';
+    document.getElementById('rule-type').value = editData ? (editData.ruleType || 'keyword_match') : 'keyword_match';
+    document.getElementById('rule-severity').value = editData ? (editData.severity || 'warning') : 'warning';
+    document.getElementById('rule-condition').value = editData && editData.condition ? JSON.stringify(editData.condition, null, 2) : '';
+    ruleModal.classList.add('open');
+    document.getElementById('rule-name').focus();
+  }
+  function closeRuleModal() { ruleModal.classList.remove('open'); editingRuleId = null; }
+
+  document.getElementById('btn-new-rule').addEventListener('click', function() { openRuleModal(null, null); });
+  document.getElementById('rule-modal-x').addEventListener('click', closeRuleModal);
+  ruleModal.addEventListener('click', function(e) { if (e.target === ruleModal) closeRuleModal(); });
+
+  document.getElementById('btn-create-rule').addEventListener('click', async function() {
+    var btn = this;
+    var name = document.getElementById('rule-name').value.trim();
+    var ruleType = document.getElementById('rule-type').value;
+    var severity = document.getElementById('rule-severity').value;
+    var condRaw = document.getElementById('rule-condition').value.trim();
+    var condition = {};
+    if (condRaw) {
+      try { condition = JSON.parse(condRaw); } catch(e) { toast('Condition is not valid JSON', 'error'); return; }
+    }
+    if (!name) { toast('Enter a rule name', 'error'); return; }
+    btn.disabled = true; btn.textContent = editingRuleId ? 'Saving...' : 'Creating...';
+    try {
+      if (editingRuleId) {
+        await api('PATCH', '/api/v1/compliance-rules/' + editingRuleId, { name: name, condition: condition, severity: severity });
+        toast('Rule updated', 'success');
+      } else {
+        await api('POST', '/api/v1/compliance-rules', { name: name, ruleType: ruleType, condition: condition, severity: severity });
+        toast('Rule created', 'success');
+      }
+      closeRuleModal();
+      loadRules();
+    } catch(err) { toast(err.message || 'Failed', 'error'); }
+    btn.disabled = false; btn.textContent = editingRuleId ? 'Save' : 'Create Rule';
+  });
+
+  // Rules list: edit / toggle / delete (event delegation)
+  document.getElementById('rules-list').addEventListener('click', async function(e) {
+    var btn = e.target.closest('button[data-rule-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-rule-action');
+    var id = btn.getAttribute('data-rule-id');
+
+    if (action === 'edit') {
+      try {
+        var rule = await api('GET', '/api/v1/compliance-rules/' + id);
+        openRuleModal(id, rule);
+      } catch(err) { toast(err.message || 'Failed to load rule', 'error'); }
+    }
+
+    if (action === 'toggle') {
+      var isActive = btn.getAttribute('data-rule-active') === 'true';
+      try {
+        await api('PATCH', '/api/v1/compliance-rules/' + id, { isActive: !isActive });
+        toast(isActive ? 'Rule disabled' : 'Rule enabled', 'success');
+        loadRules();
+      } catch(err) { toast(err.message || 'Failed', 'error'); }
+    }
+
+    if (action === 'delete') {
+      confirmModal('Delete rule?', 'This rule will stop running immediately.', 'Delete', 'btn-dash-danger', function() {
+        api('DELETE', '/api/v1/compliance-rules/' + id)
+          .then(function() { toast('Rule deleted', 'info'); loadRules(); })
+          .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+      });
+    }
   });
 
   // ─── Reports modal ────────────────────────────────────────────────
@@ -410,8 +564,22 @@
     btn.disabled = false; btn.textContent = editingPolicyId ? 'Save' : 'Create';
   });
 
-  // Policy list: row click → open detail
+  // Policy list: toggle switch or row click → open detail
   document.getElementById('policies-list').addEventListener('click', async function(e) {
+    // Inline active toggle — don't open detail modal
+    var toggleInput = e.target.closest('input[data-policy-toggle]');
+    if (toggleInput) {
+      var id = toggleInput.getAttribute('data-policy-toggle');
+      var isActive = toggleInput.checked;
+      try {
+        await api('PATCH', '/api/v1/policies/' + id, { isActive: isActive });
+        toast(isActive ? 'Policy activated' : 'Policy deactivated', 'success');
+      } catch(err) {
+        toast(err.message || 'Failed', 'error');
+        toggleInput.checked = !isActive; // revert on error
+      }
+      return;
+    }
     var row = e.target.closest('.policy-row[data-policy-id]');
     if (!row) return;
     var id = row.getAttribute('data-policy-id');
@@ -690,6 +858,9 @@
       }
     } catch(e) { document.getElementById('keys-list').innerHTML = '<div class="empty-state">Unable to load keys.</div>'; }
 
+    // Custom rules
+    loadRules();
+
     // Compliance packs
     try {
       var packs = await api('GET', '/api/v1/compliance-rules/packs');
@@ -715,13 +886,33 @@
     } catch(e) { document.getElementById('packs-list').innerHTML = '<div class="empty-state">Unable to load packs.</div>'; }
   }
 
-  // ─── Load: Audit Logs (paginated) ─────────────────────────────────
+  // ─── Load: Audit Logs (paginated + filtered) ──────────────────────
   async function loadAuditLogs() {
     var list = document.getElementById('logs-list');
     list.innerHTML = '<div class="empty-state">Loading...</div>';
+
+    // Populate agent filter dropdown (best-effort, only on first load)
+    try {
+      var agentSel = document.getElementById('logs-filter-agent');
+      if (agentSel.options.length <= 1) {
+        var agentsForFilter = await api('GET', '/api/v1/agents');
+        (agentsForFilter || []).forEach(function(a) {
+          var opt = document.createElement('option');
+          opt.value = a.id;
+          opt.textContent = (a.name || a.id);
+          agentSel.appendChild(opt);
+        });
+      }
+    } catch(e) { /* filter dropdown is optional */ }
+
     try {
       var offset = (logsPage - 1) * logsPageSize;
-      var data = await api('GET', '/api/v1/audit-logs?limit=' + logsPageSize + '&offset=' + offset);
+      var qs = 'limit=' + logsPageSize + '&offset=' + offset;
+      if (logsFilter.action) qs += '&action=' + encodeURIComponent(logsFilter.action);
+      if (logsFilter.agentId) qs += '&agentId=' + encodeURIComponent(logsFilter.agentId);
+      if (logsFilter.startDate) qs += '&startDate=' + encodeURIComponent(new Date(logsFilter.startDate).toISOString());
+      if (logsFilter.endDate) qs += '&endDate=' + encodeURIComponent(new Date(logsFilter.endDate).toISOString());
+      var data = await api('GET', '/api/v1/audit-logs?' + qs);
       var logs = data.data || [];
       var pagination = data.pagination || {};
       var total = pagination.total || logs.length;
@@ -855,15 +1046,15 @@
       var items = Array.isArray(policies) ? policies : (policies.data || []);
       if (items.length) {
         list.innerHTML = items.map(function(p) {
-          var activeClass = p.isActive ? 'policy-active' : 'policy-inactive';
-          var activeLabel = p.isActive ? 'Active' : 'Inactive';
+          var switchHtml = '<label class="switch" onclick="event.stopPropagation()" style="margin:0;">' +
+            '<input type="checkbox" data-policy-toggle="' + p.id + '"' + (p.isActive ? ' checked' : '') + '>' +
+            '<span class="switch-track"></span></label>';
           return '<div class="policy-row" data-policy-id="' + p.id + '" style="cursor:pointer;">' +
             '<div><div class="policy-name">' + escapeHtml(p.name) + '</div>' +
-            '<div class="policy-meta">' + escapeHtml(p.description || '') + '</div></div>' +
+            '<div class="policy-meta">' + escapeHtml(p.description || '') + ' · Priority: ' + (p.priority || 0) + ' · Updated ' + new Date(p.updatedAt || p.createdAt).toLocaleDateString() + '</div></div>' +
             '<span class="policy-mode">' + (p.mode || 'flag').toUpperCase() + '</span>' +
-            '<span class="' + activeClass + '">' + activeLabel + '</span>' +
-            '<span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">Priority: ' + (p.priority || 0) + '</span>' +
-            '<span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">Updated ' + new Date(p.updatedAt || p.createdAt).toLocaleDateString() + '</span>' +
+            switchHtml +
+            '<span style="color:var(--text-muted);font-family:var(--font-mono);font-size:11px;">Click to manage</span>' +
             '</div>';
         }).join('');
       } else {
@@ -872,6 +1063,103 @@
     } catch(e) {
       console.error('[Dashboard] Policies load failed:', e);
       list.innerHTML = '<div class="empty-state">Unable to load policies.</div>';
+    }
+  }
+
+  // ─── Load: Agents ─────────────────────────────────────────────────
+  async function loadAgents() {
+    var list = document.getElementById('agents-list');
+    list.innerHTML = '<div class="empty-state">Loading...</div>';
+    try {
+      var agents = await api('GET', '/api/v1/agents');
+      var items = Array.isArray(agents) ? agents : [];
+      if (items.length) {
+        list.innerHTML = items.map(function(a) {
+          return '<div class="agent-row">' +
+            '<div><div class="agent-name">' + escapeHtml(a.name) + '</div>' +
+            '<div class="agent-meta">' + (a.type || 'custom').toUpperCase() + ' &nbsp;·&nbsp; ' + a.id.slice(0, 12) + '...' +
+              (a.description ? ' &nbsp;·&nbsp; ' + escapeHtml(a.description) : '') + '</div></div>' +
+            '<span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">Created ' + new Date(a.createdAt).toLocaleDateString() + '</span>' +
+            '<div style="display:flex;gap:8px;">' +
+              '<button class="btn-dash" data-edit-agent="' + a.id + '" data-agent-name="' + escapeHtml(a.name) + '" data-agent-type="' + (a.type||'custom') + '" data-agent-desc="' + escapeHtml(a.description||'') + '">Edit</button>' +
+              '<button class="btn-dash btn-dash-danger" data-delete-agent="' + a.id + '">Delete</button>' +
+            '</div>' +
+            '</div>';
+        }).join('');
+
+        list.querySelectorAll('button[data-edit-agent]').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openAgentModal(btn.getAttribute('data-edit-agent'), {
+              name: btn.getAttribute('data-agent-name'),
+              type: btn.getAttribute('data-agent-type'),
+              description: btn.getAttribute('data-agent-desc'),
+            });
+          });
+        });
+
+        list.querySelectorAll('button[data-delete-agent]').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var id = btn.getAttribute('data-delete-agent');
+            confirmModal('Delete agent?', 'All associated audit logs will remain but the agent registration will be removed.', 'Delete', 'btn-dash-danger', function() {
+              api('DELETE', '/api/v1/agents/' + id)
+                .then(function() {
+                  toast('Agent deleted', 'info');
+                  sectionLoaded['agents'] = false;
+                  loadAgents();
+                  api('GET', '/api/v1/agents').then(function(a) {
+                    document.getElementById('stat-agents').textContent = Array.isArray(a) ? a.length : '0';
+                  }).catch(function() {});
+                })
+                .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+            });
+          });
+        });
+      } else {
+        list.innerHTML = '<div class="empty-state">No agents registered yet.<br><small>Register an agent to start tracking its activity.</small></div>';
+      }
+    } catch(e) {
+      console.error('[Dashboard] Agents load failed:', e);
+      list.innerHTML = '<div class="empty-state">Unable to load agents.</div>';
+    }
+  }
+
+  // ─── Load: Compliance Rules ────────────────────────────────────────
+  async function loadRules() {
+    var list = document.getElementById('rules-list');
+    list.innerHTML = '<div class="empty-state">Loading...</div>';
+    try {
+      var rules = await api('GET', '/api/v1/compliance-rules');
+      var items = Array.isArray(rules) ? rules : (rules.data || []);
+      // Show only rules not installed by a pack (custom/user-created)
+      var customRules = items.filter(function(r) { return !r.packId; });
+      if (customRules.length) {
+        list.innerHTML = customRules.map(function(r) {
+          var activeLabel = r.isActive !== false ? 'Enabled' : 'Disabled';
+          var activeColor = r.isActive !== false ? '#22c55e' : 'var(--text-muted)';
+          var sevClass = r.severity === 'critical' ? 'status-critical' : 'status-flag';
+          return '<div class="rule-row">' +
+            '<div><div class="rule-name">' + escapeHtml(r.name) + '</div>' +
+            '<div class="rule-meta">' + (r.ruleType || '').replace(/_/g, ' ') + '</div></div>' +
+            '<span class="alert-severity ' + sevClass + '">' + (r.severity || 'warning').toUpperCase() + '</span>' +
+            '<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:' + activeColor + ';">' + activeLabel + '</span>' +
+            '<div style="display:flex;gap:8px;">' +
+              '<button class="btn-dash" data-rule-action="edit" data-rule-id="' + r.id + '">Edit</button>' +
+              '<button class="btn-dash" data-rule-action="toggle" data-rule-id="' + r.id + '" data-rule-active="' + (r.isActive !== false) + '">' + (r.isActive !== false ? 'Disable' : 'Enable') + '</button>' +
+              '<button class="btn-dash btn-dash-danger" data-rule-action="delete" data-rule-id="' + r.id + '">Delete</button>' +
+            '</div>' +
+            '</div>';
+        }).join('');
+      } else if (items.length) {
+        // All rules come from packs
+        list.innerHTML = '<div class="empty-state">No custom rules yet — all your rules come from installed packs.<br><small>Click "+ New Rule" to add a custom one.</small></div>';
+      } else {
+        list.innerHTML = '<div class="empty-state">No custom rules yet.<br><small>Click "+ New Rule" to create a keyword, regex, or PII detection rule.</small></div>';
+      }
+    } catch(e) {
+      console.error('[Dashboard] Rules load failed:', e);
+      list.innerHTML = '<div class="empty-state">Unable to load rules.</div>';
     }
   }
 
