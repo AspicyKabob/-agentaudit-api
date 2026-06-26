@@ -465,6 +465,12 @@
             <a href="#alerts">Alerts</a>
           </div>
           <div class="docs-sidebar-group">
+            <span class="docs-sidebar-label">Management</span>
+            <a href="#agents">Agents</a>
+            <a href="#policies">Policies</a>
+            <a href="#reports">Reports</a>
+          </div>
+          <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Reference</span>
             <a href="#endpoints">All Endpoints</a>
             <a href="#errors">Errors</a>
@@ -660,7 +666,7 @@ Authorization: Bearer &lt;jwt&gt;
           <div class="docs-section" id="batch">
             <span class="docs-section-badge">04 — Batch logging</span>
             <h2>Batch Logging</h2>
-            <p>Submit up to 100 log entries in a single request. Ideal for high-throughput agents or flushing a local buffer at the end of a run.</p>
+            <p>Submit up to 50 log entries in a single request. Ideal for high-throughput agents or flushing a local buffer at the end of a run.</p>
 
             <div class="endpoint-row">
               <span class="method-badge post">POST</span>
@@ -790,9 +796,220 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
           </div>
 
+          <!-- ── Agents ─────────────────────────────────────────────── -->
+          <div class="docs-section" id="agents">
+            <span class="docs-section-badge">08 — Agents</span>
+            <h2>Agents</h2>
+            <p>Register named agents so you can filter audit logs and alerts by agent, and attach policies directly to individual agents.</p>
+
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/agents</span>
+              <span class="desc">List all agents for your org</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/agents</span>
+              <span class="desc">Register a new agent</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/agents/:id</span>
+              <span class="desc">Get a single agent</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge patch">PATCH</span>
+              <span class="path">/api/v1/agents/:id</span>
+              <span class="desc">Update agent name / metadata</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge delete">DELETE</span>
+              <span class="path">/api/v1/agents/:id</span>
+              <span class="desc">Remove an agent</span>
+            </div>
+
+            <h3>Create an agent</h3>
+            <div class="code-block">
+              <pre>POST /api/v1/agents
+Authorization: Bearer &lt;jwt&gt;
+
+{
+  "name": "writer-agent",
+  "metadata": { "version": "1.0", "team": "content" }
+}
+
+// Response
+{
+  "id": "agent_...",
+  "name": "writer-agent",
+  "organizationId": "org_...",
+  "metadata": { "version": "1.0", "team": "content" },
+  "createdAt": "2026-01-15T10:00:00.000Z"
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <p>Once an agent is registered, pass its <code>id</code> as <code>agentId</code> in any audit log to link the log to that agent.</p>
+          </div>
+
+          <!-- ── Policies ────────────────────────────────────────────── -->
+          <div class="docs-section" id="policies">
+            <span class="docs-section-badge">09 — Policies</span>
+            <h2>Policies</h2>
+            <p>Policies are named, versioned bundles of compliance rules. Attach a policy to an agent and every log from that agent is evaluated against it automatically.</p>
+
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/policies</span>
+              <span class="desc">List all policies</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/policies</span>
+              <span class="desc">Create a policy</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/policies/clone-pack</span>
+              <span class="desc">Clone a compliance pack into a policy</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/policies/analytics</span>
+              <span class="desc">Org-wide policy analytics</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/policies/:id</span>
+              <span class="desc">Get a single policy</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/policies/:id/analytics</span>
+              <span class="desc">Per-policy analytics</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/policies/:id/versions</span>
+              <span class="desc">Create a new version</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/policies/:id/versions</span>
+              <span class="desc">List versions</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/policies/:id/versions/:versionId</span>
+              <span class="desc">Get a specific version</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/policies/:id/versions/:versionId/restore</span>
+              <span class="desc">Restore an older version</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge patch">PATCH</span>
+              <span class="path">/api/v1/policies/:id</span>
+              <span class="desc">Update a policy</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge delete">DELETE</span>
+              <span class="path">/api/v1/policies/:id</span>
+              <span class="desc">Delete a policy</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/policies/:id/agents</span>
+              <span class="desc">Attach policy to an agent</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge delete">DELETE</span>
+              <span class="path">/api/v1/policies/:id/agents</span>
+              <span class="desc">Detach policy from an agent</span>
+            </div>
+
+            <h3>Attach a policy to an agent</h3>
+            <div class="code-block">
+              <pre>POST /api/v1/policies/:id/agents
+Authorization: Bearer &lt;jwt&gt;
+
+{ "agentId": "agent_..." }</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <h3>Clone a compliance pack into a policy</h3>
+            <p>Available pack IDs: <code>hipaa</code>, <code>gdpr</code>, <code>finance</code></p>
+            <div class="code-block">
+              <pre>POST /api/v1/policies/clone-pack
+Authorization: Bearer &lt;jwt&gt;
+
+{ "packId": "hipaa", "name": "HIPAA Policy v1" }</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+          </div>
+
+          <!-- ── Reports ─────────────────────────────────────────────── -->
+          <div class="docs-section" id="reports">
+            <span class="docs-section-badge">10 — Reports</span>
+            <h2>Reports</h2>
+            <p>Generate downloadable compliance and audit reports for any time window. Reports are created asynchronously — poll <code>GET /api/v1/reports/:id</code> until <code>status</code> is <code>ready</code>, then call the download endpoint.</p>
+
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/reports</span>
+              <span class="desc">List all reports for your org</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge post">POST</span>
+              <span class="path">/api/v1/reports</span>
+              <span class="desc">Request a new report</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/reports/:id</span>
+              <span class="desc">Check report status</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge get">GET</span>
+              <span class="path">/api/v1/reports/:id/download</span>
+              <span class="desc">Download the generated file</span>
+            </div>
+            <div class="endpoint-row">
+              <span class="method-badge delete">DELETE</span>
+              <span class="path">/api/v1/reports/:id</span>
+              <span class="desc">Delete a report</span>
+            </div>
+
+            <h3>Request a report</h3>
+            <div class="code-block">
+              <pre>POST /api/v1/reports
+Authorization: Bearer &lt;jwt&gt;
+
+{
+  "type": "compliance_summary",
+  "from": "2026-01-01T00:00:00Z",
+  "to": "2026-03-31T23:59:59Z"
+}
+
+// Response
+{
+  "id": "report_...",
+  "status": "pending",
+  "type": "compliance_summary",
+  "createdAt": "2026-04-01T09:00:00.000Z"
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <div class="callout info">
+              <strong>Tip:</strong> Once <code>status</code> becomes <code>ready</code>, call <code>GET /api/v1/reports/:id/download</code> to receive the file. The response includes the correct <code>Content-Type</code> and <code>Content-Disposition</code> headers for direct browser download.
+            </div>
+          </div>
+
           <!-- ── All endpoints ───────────────────────────────────────── -->
           <div class="docs-section" id="endpoints">
-            <span class="docs-section-badge">08 — Reference</span>
+            <span class="docs-section-badge">11 — Reference</span>
             <h2>All Endpoints</h2>
 
             <h3>Auth</h3>
@@ -823,6 +1040,36 @@ Authorization: Bearer &lt;jwt&gt;
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/alerts</span></div>
             <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/alerts/:id/resolve</span></div>
 
+            <h3>Agents</h3>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/agents</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/agents</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/agents/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/agents/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/agents/:id</span></div>
+
+            <h3>Policies</h3>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/policies</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/policies</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/policies/clone-pack</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/policies/analytics</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/policies/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/policies/:id/analytics</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/policies/:id/versions</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/policies/:id/versions</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/policies/:id/versions/:versionId</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/policies/:id/versions/:versionId/restore</span></div>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/policies/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/policies/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/policies/:id/agents</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/policies/:id/agents</span></div>
+
+            <h3>Reports</h3>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/reports</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/reports</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/reports/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/reports/:id/download</span></div>
+            <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/reports/:id</span></div>
+
             <div class="docs-cta">
               <a href="/docs" target="_blank" class="btn btn-primary">Open Swagger UI →</a>
               <a href="integrations.html" class="btn btn-glass">Integration Guides</a>
@@ -831,7 +1078,7 @@ Authorization: Bearer &lt;jwt&gt;
 
           <!-- ── Errors ─────────────────────────────────────────────── -->
           <div class="docs-section" id="errors">
-            <span class="docs-section-badge">09 — Errors</span>
+            <span class="docs-section-badge">12 — Errors</span>
             <h2>Errors</h2>
             <p>All errors return JSON with a consistent shape:</p>
             <div class="code-block">

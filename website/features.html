@@ -302,17 +302,17 @@ result = audit.guardrail(
     <section id="mcp" class="feature-detail">
       <span class="section-badge">06 — MCP</span>
       <h2>MCP <span class="gradient-text">Compatible</span></h2>
-      <p>The Model Context Protocol (MCP) is becoming the standard for how AI agents communicate structured data. AgentAudit supports MCP out of the box, so your agents can self-report with machine-readable schemas.</p>
-      <p>Instead of manually wrapping every agent action in logging code, you configure the agent to emit MCP-compliant events. AgentAudit ingests them, validates them against your compliance rules, and stores them with full trace context. It's observability built into the protocol layer.</p>
+      <p>The Model Context Protocol is emerging as a standard for how AI agents exchange structured data. AgentAudit's REST API accepts the same structured JSON payloads that MCP-based agents already emit, so you can route agent events to AgentAudit without reformatting them.</p>
+      <p>Map your MCP tool-call results or context updates to audit log fields (<code>action</code>, <code>prompt</code>, <code>response</code>, <code>metadata</code>), and every event flows through the full compliance and tracing pipeline — no framework lock-in, no special adapter required.</p>
       <ul>
-        <li>Native MCP event ingestion</li>
-        <li>Structured, machine-readable log schemas</li>
-        <li>Automatic compliance validation on ingest</li>
-        <li>Works with LangChain, CrewAI, AutoGPT, OpenAI, and custom agents</li>
+        <li>JSON schema aligned with MCP tool-call payloads</li>
+        <li>Structured, machine-readable log entries</li>
+        <li>Automatic compliance validation on every ingest</li>
+        <li>Works with LangChain, CrewAI, AutoGPT, OpenAI, and custom MCP agents</li>
       </ul>
       <div class="cta-row">
         <a href="https://github.com/AspicyKabob/-agentaudit-api#-compliance-rules" target="_blank" class="btn-primary">Compliance Rules</a>
-        <a href="/docs" class="btn-glass">API Reference</a>
+        <a href="docs.html" class="btn-glass">API Reference</a>
       </div>
     </section>
   </div>
