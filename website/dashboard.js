@@ -236,24 +236,71 @@
     });
   });
 
-  // ─── Packs: install / remove (event delegation) ───────────────────
-  document.getElementById('packs-list').addEventListener('click', function(e) {
+  // ─── Packs: all actions (event delegation) ────────────────────────
+  document.getElementById('packs-list').addEventListener('click', async function(e) {
+    // Install / Remove
     var btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    var action = btn.getAttribute('data-action');
-    var packId = btn.getAttribute('data-pack-id');
-    if (action === 'install') {
-      btn.disabled = true; btn.textContent = 'Installing...';
-      api('POST', '/api/v1/compliance-rules/packs', { packId: packId })
-        .then(function() { toast('Pack installed', 'success'); loadOverview(); })
-        .catch(function(err) { toast(err.message || 'Failed', 'error'); btn.disabled = false; btn.textContent = 'Install'; });
+    if (btn) {
+      var action = btn.getAttribute('data-action');
+      var packId = btn.getAttribute('data-pack-id');
+      if (action === 'install') {
+        btn.disabled = true; btn.textContent = 'Installing...';
+        api('POST', '/api/v1/compliance-rules/packs', { packId: packId })
+          .then(function() { toast('Pack installed — rules are now active on all logs', 'success'); loadPacks(); })
+          .catch(function(err) { toast(err.message || 'Failed', 'error'); btn.disabled = false; btn.textContent = 'Install'; });
+      }
+      if (action === 'remove') {
+        confirmModal('Remove pack?', 'All rules installed by this pack will be permanently deleted.', 'Remove', 'btn-dash-danger', function() {
+          api('DELETE', '/api/v1/compliance-rules/packs/' + packId)
+            .then(function() { toast('Pack removed', 'info'); loadPacks(); })
+            .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+        });
+      }
+      if (action === 'test') {
+        btn.disabled = true; btn.textContent = 'Testing...';
+        var resultEl = document.getElementById('pack-test-result-' + packId);
+        if (resultEl) { resultEl.style.display = 'none'; resultEl.textContent = ''; }
+        try {
+          var testPayloads = {
+            hipaa:   { action: 'test_hipaa',   prompt: 'Patient SSN is 123-45-6789 and phone is 555-867-5309', response: 'Processed patient record for john.doe@hospital.com' },
+            finance: { action: 'test_finance',  prompt: 'Card number 4111111111111111 with bank account 12345678', response: 'mnpi: confidential offering discussed in call' },
+            gdpr:    { action: 'test_gdpr',     prompt: 'Email user@example.com phone 555-867-5309 at 123 Main St', response: 'User data exported' },
+          };
+          var payload = testPayloads[packId] || { action: 'test_pack_' + packId, prompt: 'Test log for pack verification', response: 'Test response' };
+          var result = await api('POST', '/api/v1/audit-logs', payload);
+          var flags = result.complianceFlags || [];
+          if (resultEl) {
+            resultEl.style.display = '';
+            if (flags.length) {
+              resultEl.innerHTML = '<span style="color:#22c55e;">&#10003; ' + flags.length + ' rule(s) triggered: ' + flags.map(function(f){ return escapeHtml(f); }).join(', ') + '</span>';
+            } else {
+              resultEl.innerHTML = '<span style="color:#f59e0b;">&#9888; No flags — check that the pack is installed and rules are enabled</span>';
+            }
+          }
+          toast(flags.length ? 'Test passed — ' + flags.length + ' flag(s) detected' : 'Test completed — no flags', flags.length ? 'success' : 'info');
+        } catch(err) { toast(err.message || 'Test failed', 'error'); }
+        btn.disabled = false; btn.textContent = 'Test';
+        return;
+      }
+      return;
     }
-    if (action === 'remove') {
-      confirmModal('Remove pack?', 'All rules installed by this pack will be deleted.', 'Remove', 'btn-dash-danger', function() {
-        api('DELETE', '/api/v1/compliance-rules/packs/' + packId)
-          .then(function() { toast('Pack removed', 'info'); loadOverview(); })
-          .catch(function(err) { toast(err.message || 'Failed', 'error'); });
-      });
+
+    // Expand/collapse preview
+    var header = e.target.closest('.pack-row-header');
+    if (header) {
+      var packRow = header.closest('.pack-row-wrap');
+      if (packRow) packRow.classList.toggle('expanded');
+      return;
+    }
+
+    // Per-rule toggle
+    var ruleToggle = e.target.closest('input[data-rule-toggle]');
+    if (ruleToggle) {
+      var ruleId = ruleToggle.getAttribute('data-rule-toggle');
+      var isActive = ruleToggle.checked;
+      api('PATCH', '/api/v1/compliance-rules/' + ruleId, { isActive: isActive })
+        .then(function() { toast(isActive ? 'Rule enabled' : 'Rule disabled', 'success'); })
+        .catch(function(err) { toast(err.message || 'Failed', 'error'); ruleToggle.checked = !isActive; });
     }
   });
 
@@ -867,28 +914,7 @@
     loadRules();
 
     // Compliance packs
-    try {
-      var packs = await api('GET', '/api/v1/compliance-rules/packs');
-      var installed = await api('GET', '/api/v1/compliance-rules/packs/installed');
-      var installedIds = new Set((installed || []).map(function(p) { return p.id; }));
-      var packsList = document.getElementById('packs-list');
-      if (packs && packs.length) {
-        packsList.innerHTML = packs.map(function(p) {
-          var isInstalled = installedIds.has(p.id);
-          var status = isInstalled ? '<span class="pack-status">Installed</span>' : '<span class="pack-status pending">Not installed</span>';
-          var action = isInstalled
-            ? '<button class="btn-dash btn-dash-danger" data-action="remove" data-pack-id="' + p.id + '">Remove</button>'
-            : '<button class="btn-dash btn-dash-primary" data-action="install" data-pack-id="' + p.id + '">Install</button>';
-          return '<div class="pack-row">' +
-            '<div><div class="pack-name">' + escapeHtml(p.name) + '</div>' +
-            '<div class="pack-meta">' + escapeHtml(p.description || '') + '</div></div>' +
-            '<div style="display:flex;align-items:center;gap:12px;">' + status + action + '</div>' +
-            '</div>';
-        }).join('');
-      } else {
-        packsList.innerHTML = '<div class="empty-state">No compliance packs available.</div>';
-      }
-    } catch(e) { document.getElementById('packs-list').innerHTML = '<div class="empty-state">Unable to load packs.</div>'; }
+    loadPacks();
   }
 
   // ─── Load: Audit Logs (paginated + filtered) ──────────────────────
@@ -1166,6 +1192,118 @@
     } catch(e) {
       console.error('[Dashboard] Rules load failed:', e);
       list.innerHTML = '<div class="empty-state">Unable to load rules.</div>';
+    }
+  }
+
+  // ─── Load: Compliance Packs ───────────────────────────────────────
+  async function loadPacks() {
+    var packsList = document.getElementById('packs-list');
+    packsList.innerHTML = '<div class="empty-state">Loading...</div>';
+    try {
+      var packs = await api('GET', '/api/v1/compliance-rules/packs');
+      var installed = await api('GET', '/api/v1/compliance-rules/packs/installed');
+      var installedIds = new Set((installed || []).map(function(p) { return p.id; }));
+
+      // Fetch all rules to get per-pack rule state (best-effort)
+      var allRules = [];
+      try { allRules = await api('GET', '/api/v1/compliance-rules'); } catch(e) {}
+      // Index rules by packId
+      var rulesByPack = {};
+      (Array.isArray(allRules) ? allRules : []).forEach(function(r) {
+        if (r.packId) {
+          if (!rulesByPack[r.packId]) rulesByPack[r.packId] = [];
+          rulesByPack[r.packId].push(r);
+        }
+      });
+
+      if (packs && packs.length) {
+        packsList.innerHTML = packs.map(function(p) {
+          var isInstalled = installedIds.has(p.id);
+          var packRules = rulesByPack[p.id] || [];
+          var ruleCount = isInstalled ? packRules.length : (p.rules ? p.rules.length : '?');
+          var activeCount = isInstalled ? packRules.filter(function(r){ return r.isActive !== false; }).length : 0;
+
+          // Status chip
+          var statusHtml = isInstalled
+            ? '<span class="pack-status">' + activeCount + '/' + ruleCount + ' rules active</span>' +
+              '<span style="font-size:10px;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:0.04em;"> · runs on all logs</span>'
+            : '<span class="pack-status pending">' + ruleCount + ' rules · not installed</span>';
+
+          // Action buttons
+          var actionHtml = isInstalled
+            ? '<button class="btn-dash" data-action="test" data-pack-id="' + p.id + '">Test</button>' +
+              '<button class="btn-dash btn-dash-danger" data-action="remove" data-pack-id="' + p.id + '">Remove</button>'
+            : '<button class="btn-dash btn-dash-primary" data-action="install" data-pack-id="' + p.id + '">Install</button>';
+
+          // Preview rules (static from pack definition if not installed, live from DB if installed)
+          var previewRules = isInstalled ? packRules : (p.rules || []);
+          var rulesHtml = previewRules.map(function(r) {
+            var sevClass = (r.severity === 'critical') ? 'status-critical' : 'status-flag';
+            var toggleHtml = isInstalled
+              ? '<label class="switch" style="margin:0;" onclick="event.stopPropagation()">' +
+                '<input type="checkbox" data-rule-toggle="' + r.id + '"' + (r.isActive !== false ? ' checked' : '') + '>' +
+                '<span class="switch-track"></span></label>'
+              : '';
+            var ruleTypeFmt = (r.ruleType || '').replace(/_/g, ' ');
+            return '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--dash-border);">' +
+              '<div style="flex:1;min-width:0;">' +
+                '<div style="font-size:12px;font-weight:500;color:var(--text);">' + escapeHtml(r.name) + '</div>' +
+                '<div style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">' + ruleTypeFmt + '</div>' +
+              '</div>' +
+              '<span class="alert-severity ' + sevClass + '" style="flex-shrink:0;">' + (r.severity||'warning').toUpperCase() + '</span>' +
+              toggleHtml +
+              '</div>';
+          }).join('');
+
+          return '<div class="pack-row-wrap' + (isInstalled ? ' installed' : '') + '" data-pack-id="' + p.id + '">' +
+            '<div class="pack-row-header" style="display:flex;align-items:center;gap:16px;padding:12px 24px;cursor:pointer;">' +
+              '<div style="flex:1;min-width:0;">' +
+                '<div class="pack-name">' + escapeHtml(p.name) + '</div>' +
+                '<div class="pack-meta">' + escapeHtml(p.description || '') + '</div>' +
+              '</div>' +
+              '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">' +
+                statusHtml +
+                actionHtml +
+                '<span class="pack-expand-arrow" style="font-size:14px;color:var(--text-muted);transition:transform 0.2s;">&#9656;</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="pack-rule-preview" style="display:none;padding:0 24px 12px;border-top:1px solid var(--dash-border);">' +
+              (rulesHtml || '<div style="padding:12px 0;font-size:12px;color:var(--text-muted);">No rules defined.</div>') +
+              (isInstalled ? '<div id="pack-test-result-' + p.id + '" style="display:none;margin-top:8px;font-family:var(--font-mono);font-size:11px;padding:8px;border:1px solid var(--dash-border);"></div>' : '') +
+            '</div>' +
+            '</div>';
+        }).join('');
+
+        // Wire up expand/collapse
+        packsList.querySelectorAll('.pack-row-header').forEach(function(header) {
+          header.addEventListener('click', function(e) {
+            if (e.target.closest('button') || e.target.closest('input')) return;
+            var wrap = header.closest('.pack-row-wrap');
+            var preview = wrap.querySelector('.pack-rule-preview');
+            var arrow = wrap.querySelector('.pack-expand-arrow');
+            var expanded = preview.style.display !== 'none';
+            preview.style.display = expanded ? 'none' : '';
+            arrow.style.transform = expanded ? '' : 'rotate(90deg)';
+          });
+        });
+
+        // Wire rule toggles
+        packsList.querySelectorAll('input[data-rule-toggle]').forEach(function(input) {
+          input.addEventListener('change', function() {
+            var ruleId = input.getAttribute('data-rule-toggle');
+            var isActive = input.checked;
+            api('PATCH', '/api/v1/compliance-rules/' + ruleId, { isActive: isActive })
+              .then(function() { toast(isActive ? 'Rule enabled' : 'Rule disabled', 'success'); })
+              .catch(function(err) { toast(err.message || 'Failed', 'error'); input.checked = !isActive; });
+          });
+        });
+
+      } else {
+        packsList.innerHTML = '<div class="empty-state">No compliance packs available.</div>';
+      }
+    } catch(e) {
+      console.error('[Dashboard] Packs load failed:', e);
+      document.getElementById('packs-list').innerHTML = '<div class="empty-state">Unable to load packs.</div>';
     }
   }
 

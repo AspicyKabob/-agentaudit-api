@@ -125,6 +125,13 @@
     .alert-severity.status-flag     { color: #f59e0b; border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); }
     .alert-severity.status-critical { color: #dc2626; border-color: rgba(220,38,38,0.4);   background: rgba(220,38,38,0.06); }
 
+    /* Pack rows */
+    .pack-row-wrap { border-bottom: 1px solid var(--dash-border); }
+    .pack-row-wrap:last-child { border-bottom: none; }
+    .pack-row-wrap.installed .pack-row-header { background: rgba(34,197,94,0.02); }
+    .pack-row-header:hover { background: var(--dash-bg); }
+    .pack-rule-preview { background: rgba(0,0,0,0.2); }
+
     /* Empty state */
     .empty-state { padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 13px; line-height: 1.6; }
 
