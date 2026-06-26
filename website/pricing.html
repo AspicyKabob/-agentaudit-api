@@ -165,7 +165,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Webhook alerts</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
           </ul>
-          <button class="btn btn-primary btn-full btn-plan" data-plan="pro">Get Started</button>
+          <button class="btn btn-primary btn-full btn-plan" data-plan="pro" data-price="price_1TbR4b1DJBx5xOxFiiIvXDYz">Get Started</button>
         </div>
       </div>
 
@@ -187,7 +187,7 @@
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
             <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Custom integrations</li>
           </ul>
-          <button class="btn btn-secondary btn-full btn-plan" data-plan="business">Get Started</button>
+          <button class="btn btn-secondary btn-full btn-plan" data-plan="business" data-price="price_1TbR611DJBx5xOxFBI323s75">Get Started</button>
         </div>
       </div>
 
@@ -313,18 +313,5 @@
   </footer>
 
   <script src="script.js"></script>
-  <script>
-    // Fetch configured Stripe price IDs and set data-price on each plan button.
-    // script.js [data-plan] handler reads btn.dataset.price to start checkout.
-    fetch('/api/v1/billing/prices')
-      .then(r => r.json())
-      .then(prices => {
-        document.querySelectorAll('.btn-plan[data-plan]').forEach(btn => {
-          const plan = btn.dataset.plan;
-          if (prices[plan]) btn.dataset.price = prices[plan];
-        });
-      })
-      .catch(() => {}); // silently degrade — script.js shows a graceful error toast
-  </script>
 </body>
 </html>
