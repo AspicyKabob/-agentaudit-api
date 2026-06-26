@@ -412,6 +412,100 @@ logger = AgentAuditAutoGPT(
           </div>
         </div>
 
+        <!-- REST API -->
+        <div class="integration-block" id="rest-api">
+          <div class="integration-header">
+            <h2>REST API</h2>
+            <span class="badge">Any Language</span>
+          </div>
+          <p class="integration-desc">
+            No SDK required. Send a single HTTP POST from any language, platform, or agent runtime. Useful for custom frameworks, serverless functions, or anywhere you just want raw HTTP without a dependency.
+          </p>
+          <div class="code-tabs">
+            <div class="code-tabs-header">
+              <button class="code-tab active" data-tab="rest-curl">cURL</button>
+              <button class="code-tab" data-tab="rest-python">Python</button>
+              <button class="code-tab" data-tab="rest-ts">TypeScript</button>
+            </div>
+            <div class="integration-code active" data-tab-content="rest-curl">
+              <pre><code><span class="code-comment"># Log a single agent action</span>
+curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+  -H <span class="code-str">"X-API-Key: aa_your_key_here"</span> \
+  -H <span class="code-str">"Content-Type: application/json"</span> \
+  -d <span class="code-str">'{
+    "action": "llm_call",
+    "agentId": "uuid-of-your-agent",
+    "traceId": "run-abc-123",
+    "prompt": "Summarise the document.",
+    "response": "The document covers Q3 financials.",
+    "metadata": { "model": "gpt-4o", "tokens": 512 }
+  }'</span>
+
+<span class="code-comment"># Batch endpoint — up to 50 logs in one request</span>
+curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+  -H <span class="code-str">"X-API-Key: aa_your_key_here"</span> \
+  -H <span class="code-str">"Content-Type: application/json"</span> \
+  -d <span class="code-str">'{ "logs": [ { "action": "tool_use", ... }, { "action": "llm_call", ... } ] }'</span></code></pre>
+            </div>
+            <div class="integration-code" data-tab-content="rest-python">
+              <pre><code><span class="code-kw">import</span> requests
+
+AGENTAUDIT_URL = <span class="code-str">"https://agentaudit-api-production.up.railway.app/api/v1/audit-logs"</span>
+HEADERS = {
+    <span class="code-str">"X-API-Key"</span>: <span class="code-str">"aa_your_key_here"</span>,
+    <span class="code-str">"Content-Type"</span>: <span class="code-str">"application/json"</span>,
+}
+
+<span class="code-kw">def</span> log_action(action, prompt, response, agent_id, trace_id=<span class="code-kw">None</span>, metadata=<span class="code-kw">None</span>):
+    payload = {
+        <span class="code-str">"action"</span>: action,
+        <span class="code-str">"agentId"</span>: agent_id,
+        <span class="code-str">"prompt"</span>: prompt,
+        <span class="code-str">"response"</span>: response,
+    }
+    <span class="code-kw">if</span> trace_id: payload[<span class="code-str">"traceId"</span>] = trace_id
+    <span class="code-kw">if</span> metadata: payload[<span class="code-str">"metadata"</span>] = metadata
+
+    r = requests.post(AGENTAUDIT_URL, json=payload, headers=HEADERS, timeout=3)
+    result = r.json()
+    <span class="code-kw">if</span> result.get(<span class="code-str">"blocked"</span>):
+        <span class="code-kw">raise</span> Exception(<span class="code-str">f"Compliance block: {result['complianceFlags']}"</span>)
+    <span class="code-kw">return</span> result</code></pre>
+            </div>
+            <div class="integration-code" data-tab-content="rest-ts">
+              <pre><code><span class="code-comment">// Works in Node.js, Deno, Bun, or browser</span>
+<span class="code-kw">async function</span> logAction(payload: {
+  action: string;
+  agentId: string;
+  prompt?: string;
+  response?: string;
+  traceId?: string;
+  metadata?: Record&lt;string, unknown&gt;;
+}) {
+  <span class="code-kw">const</span> res = <span class="code-kw">await</span> fetch(
+    <span class="code-str">'https://agentaudit-api-production.up.railway.app/api/v1/audit-logs'</span>,
+    {
+      method: <span class="code-str">'POST'</span>,
+      headers: {
+        <span class="code-str">'X-API-Key'</span>: <span class="code-str">'aa_your_key_here'</span>,
+        <span class="code-str">'Content-Type'</span>: <span class="code-str">'application/json'</span>,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
+  <span class="code-kw">const</span> data = <span class="code-kw">await</span> res.json();
+  <span class="code-kw">if</span> (data.blocked) <span class="code-kw">throw new</span> Error(<span class="code-str">`Blocked: ${data.complianceFlags.join(', ')}`</span>);
+  <span class="code-kw">return</span> data;
+}</code></pre>
+            </div>
+          </div>
+          <div class="integration-meta">
+            <span><span class="dot green"></span> Any language, any runtime</span>
+            <span><span class="dot"></span> Batch up to 50 logs per request</span>
+            <span><span class="dot yellow"></span> Check <code>blocked: true</code> to enforce guardrails</span>
+          </div>
+        </div>
+
         <!-- OpenAI -->
         <div class="integration-block" id="openai">
           <div class="integration-header">
@@ -429,9 +523,11 @@ logger = AgentAuditAutoGPT(
             <div class="code-tabs-header">
               <button class="code-tab active" data-tab="python">Python</button>
               <button class="code-tab" data-tab="typescript">TypeScript</button>
+              <button class="code-tab" data-tab="curl">cURL</button>
             </div>
             <div class="integration-code active" data-tab-content="python">
-              <pre><code><span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditOpenAI, ComplianceViolationOpenAI
+              <pre><code><span class="code-comment"># pip install agentaudit-client[openai]</span>
+<span class="code-kw">from</span> agentaudit <span class="code-kw">import</span> AgentAuditOpenAI, ComplianceViolationOpenAI
 
 client = AgentAuditOpenAI(
     openai_api_key=<span class="code-str">"sk-..."</span>,
@@ -440,46 +536,54 @@ client = AgentAuditOpenAI(
     guard=<span class="code-kw">True</span>
 )
 
-try:
+<span class="code-kw">try</span>:
     response = client.chat_completions_create(
         model=<span class="code-str">"gpt-4o"</span>,
         messages=[{<span class="code-str">"role"</span>: <span class="code-str">"user"</span>, <span class="code-str">"content"</span>: <span class="code-str">"Hello!"</span>}]
     )
-except ComplianceViolationOpenAI <span class="code-kw">as</span> e:
+<span class="code-kw">except</span> ComplianceViolationOpenAI <span class="code-kw">as</span> e:
     <span class="code-kw">print</span>(<span class="code-str">f"Blocked: {e.violations}"</span>)
 
 <span class="code-kw">print</span>(client.trace_id)  <span class="code-comment"># "trace-uuid-123"</span></code></pre>
             </div>
-                        <div class="integration-code" data-tab-content="typescript">
-              <pre><code><span class="code-comment">// TypeScript Example</span>
+            <div class="integration-code" data-tab-content="typescript">
+              <pre><code><span class="code-comment">// npm install agentaudit-client</span>
 <span class="code-kw">import</span> { AgentAudit } <span class="code-kw">from</span> <span class="code-str">'agentaudit-client'</span>;
 
-<span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({ apiKey: <span class="code-str">'aa_your_key_here'</span> });
+<span class="code-kw">const</span> audit = <span class="code-kw">new</span> AgentAudit({
+  apiKey: <span class="code-str">'aa_your_key_here'</span>,
+  agentId: <span class="code-str">'uuid-of-your-agent'</span>,
+});
 
-<span class="code-comment">// Guard any prompt/response pair before delivery</span>
+<span class="code-comment">// Wrap any OpenAI call — guardrail runs on the response before it returns</span>
 <span class="code-kw">const</span> result = <span class="code-kw">await</span> audit.guardrail({
   action: <span class="code-str">'openai_chat_end'</span>,
   prompt: <span class="code-str">'User: Hello!'</span>,
   response: <span class="code-str">'Assistant: Hi there.'</span>,
-  metadata: { model: <span class="code-str">'gpt-4o'</span> }
+  metadata: { model: <span class="code-str">'gpt-4o'</span> },
 });
 
 <span class="code-kw">if</span> (!result.allowed) {
   <span class="code-kw">throw</span> <span class="code-kw">new</span> Error(<span class="code-str">'Blocked: '</span> + result.violations.join(<span class="code-str">', '</span>));
-}</code></pre>
+}
+<span class="code-kw">console</span>.log(result.traceId); <span class="code-comment">// "trace-uuid-123"</span></code></pre>
             </div>
             <div class="integration-code" data-tab-content="curl">
-              <pre><code><span class="code-comment"># cURL Example</span>
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs   -H "X-API-Key: aa_your_key_here"   -H "Content-Type: application/json"   -d '{
+              <pre><code><span class="code-comment"># Submit an audit log directly — no SDK needed</span>
+curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+  -H <span class="code-str">"X-API-Key: aa_your_key_here"</span> \
+  -H <span class="code-str">"Content-Type: application/json"</span> \
+  -d <span class="code-str">'{
     "action": "openai_chat_end",
+    "agentId": "uuid-of-your-agent",
     "prompt": "User: Hello!",
     "response": "Assistant: Hi there.",
-    "agentId": "uuid-of-your-agent",
     "metadata": { "model": "gpt-4o" }
-  }'
+  }'</span>
 
-<span class="code-comment"># Response: {"id": "...", "complianceFlags": [...]}</span>
-<span class="code-comment"># Your code checks complianceFlags and blocks before delivery.</span></code></pre>
+<span class="code-comment"># Response</span>
+<span class="code-comment"># { "id": "...", "complianceFlags": [], "blocked": false, "traceId": "..." }</span>
+<span class="code-comment"># If blocked: true, discard the response before delivery.</span></code></pre>
             </div>
           </div>
           <div class="integration-meta">
@@ -515,6 +619,11 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs 
             <h4>OpenAI</h4>
             <p>Wrap the client. Every completion and embedding call is audited and guarded automatically.</p>
             <a href="#openai">View setup &rarr;</a>
+          </div>
+          <div class="qs-card">
+            <h4>REST API</h4>
+            <p>No SDK needed. One POST from any language — Python, TypeScript, Go, Ruby, or raw cURL.</p>
+            <a href="#rest-api">View setup &rarr;</a>
           </div>
         </div>
       </div>
