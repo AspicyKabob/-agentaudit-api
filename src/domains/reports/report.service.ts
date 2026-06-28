@@ -21,16 +21,20 @@ export const reportService = {
   },
 
   async create(organizationId: string, data: CreateReportBody) {
-    return prisma.complianceReport.create({
+    // Create the record immediately as ready — generation is synchronous.
+    // The status field is kept for API compatibility; it is set to 'ready'
+    // once the record exists so callers can download straight away.
+    const report = await prisma.complianceReport.create({
       data: {
         organizationId,
         name: data.name,
         format: data.format,
         dateRangeStart: new Date(data.dateRangeStart),
         dateRangeEnd: new Date(data.dateRangeEnd),
-        status: 'pending',
+        status: 'ready',
       },
     });
+    return report;
   },
 
   async get(organizationId: string, id: string) {
