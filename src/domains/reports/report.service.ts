@@ -181,8 +181,10 @@ function drawTableHeader(
   const ROW_H = 18;
   doc.rect(ML, y, doc.page.width - ML - MR, ROW_H).fill(GRAY3);
   cols.forEach(({ label, x, w }) => {
+    doc.save();
     doc.fillColor(BLACK).fontSize(7.5).font('Helvetica-Bold')
        .text(label, x + 4, y + 5, { width: w - 8, lineBreak: false, ellipsis: true });
+    doc.restore();
   });
   return y + ROW_H;
 }
@@ -303,18 +305,37 @@ function generatePdf(
     // Column definitions — widths must sum to CW exactly
     // CW = 499. We use: 80 + 110 + 80 + 44 + 92 + 93 = 499
     const cols = [
-      { label: 'Timestamp',         x: ML,           w: 80  },
-      { label: 'Action',            x: ML + 80,      w: 110 },
-      { label: 'Agent',             x: ML + 190,     w: 80  },
-      { label: 'Flags',             x: ML + 270,     w: 44  },
-      { label: 'Prompt preview',    x: ML + 314,     w: 92  },
-      { label: 'Response preview',  x: ML + 406,     w: 93  },
+      { label: 'Timestamp',  x: ML,           w: 80  },
+      { label: 'Action',     x: ML + 80,      w: 110 },
+      { label: 'Agent',      x: ML + 190,     w: 80  },
+      { label: 'Flags',      x: ML + 270,     w: 44  },
+      { label: 'Prompt',     x: ML + 314,     w: 92  },
+      { label: 'Response',   x: ML + 406,     w: 93  },
     ];
 
     let rowY = drawTableHeader(doc, SECTION_Y + 22, cols);
-    const ROW_H   = 24;   // tall enough for 2-line timestamp
-    const CELL_FS = 7.5;
-    const BOTTOM_MARGIN = 60;  // leave space for footer
+    const ROW_H        = 24;   // tall enough for 2-line timestamp
+    const CELL_FS      = 7.5;
+    const BOTTOM_MARGIN = 60;
+
+    // Helper: draw one text cell without advancing the PDFKit cursor.
+    // We save/restore the graphics state (which includes the text position)
+    // around every cell so that cursor drift cannot propagate between columns.
+    function cell(
+      color: string,
+      size: number,
+      fontName: string,
+      value: string,
+      x: number,
+      y: number,
+      w: number,
+      align: 'left' | 'center' = 'left',
+    ): void {
+      doc.save();
+      doc.fillColor(color).fontSize(size).font(fontName)
+         .text(value, x, y, { width: w, lineBreak: false, ellipsis: true, align });
+      doc.restore();
+    }
 
     logs.forEach((log, idx) => {
       // Page overflow
@@ -332,38 +353,20 @@ function generatePdf(
       const rowBdr  = hasFlag ? '#f5c6c6' : BORDER;
       doc.rect(ML, rowY, CW, ROW_H).fillAndStroke(rowBg, rowBdr);
 
-      // Timestamp — date and time on two lines, vertically centred in ROW_H
-      const ts = log.createdAt.toISOString();
-      doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(ts.slice(0, 10), cols[0].x + 4, rowY + 5, { width: cols[0].w - 8, lineBreak: false });
-      doc.fillColor(GRAY2).fontSize(6.5).font('Helvetica')
-         .text(ts.slice(11, 19) + ' UTC', cols[0].x + 4, rowY + 14, { width: cols[0].w - 8, lineBreak: false });
+      const mid = rowY + 8;   // vertical centre for single-line cells (ROW_H=24, font≈8pt)
+      const ts  = log.createdAt.toISOString();
 
-      // Action
-      doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(log.action, cols[1].x + 4, rowY + 8, { width: cols[1].w - 8, lineBreak: false, ellipsis: true });
+      // Timestamp: two lines stacked, each via cell() so cursor stays put
+      cell(GRAY1, CELL_FS, 'Helvetica', ts.slice(0, 10),         cols[0].x + 4, rowY + 4,  cols[0].w - 8);
+      cell(GRAY2, 6.5,     'Helvetica', ts.slice(11, 19) + ' UTC', cols[0].x + 4, rowY + 13, cols[0].w - 8);
 
-      // Agent
-      const agentLabel = log.agent?.name ?? (log.agentId ? trunc(log.agentId, 10) : '—');
-      doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(agentLabel, cols[2].x + 4, rowY + 8, { width: cols[2].w - 8, lineBreak: false, ellipsis: true });
-
-      // Flags
-      if (hasFlag) {
-        doc.fillColor(RED).fontSize(CELL_FS).font('Helvetica-Bold')
-           .text(String(log.complianceFlags.length), cols[3].x + 4, rowY + 8, { width: cols[3].w - 8, align: 'center', lineBreak: false });
-      } else {
-        doc.fillColor(GRAY2).fontSize(CELL_FS).font('Helvetica')
-           .text('—', cols[3].x + 4, rowY + 8, { width: cols[3].w - 8, align: 'center', lineBreak: false });
-      }
-
-      // Prompt preview
-      doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(trunc(log.prompt, 38), cols[4].x + 4, rowY + 8, { width: cols[4].w - 8, lineBreak: false, ellipsis: true });
-
-      // Response preview
-      doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(trunc(log.response, 38), cols[5].x + 4, rowY + 8, { width: cols[5].w - 8, lineBreak: false, ellipsis: true });
+      // Single-line cells — all at mid-row Y
+      cell(GRAY1, CELL_FS, 'Helvetica',      log.action,                                     cols[1].x + 4, mid, cols[1].w - 8);
+      cell(GRAY1, CELL_FS, 'Helvetica',      log.agent?.name ?? (log.agentId ? trunc(log.agentId, 10) : '—'), cols[2].x + 4, mid, cols[2].w - 8);
+      cell(hasFlag ? RED : GRAY2, CELL_FS, hasFlag ? 'Helvetica-Bold' : 'Helvetica',
+           hasFlag ? String(log.complianceFlags.length) : '—',    cols[3].x + 4, mid, cols[3].w - 8, 'center');
+      cell(GRAY1, CELL_FS, 'Helvetica',      trunc(log.prompt,   30),                        cols[4].x + 4, mid, cols[4].w - 8);
+      cell(GRAY1, CELL_FS, 'Helvetica',      trunc(log.response, 30),                        cols[5].x + 4, mid, cols[5].w - 8);
 
       rowY += ROW_H;
     });
