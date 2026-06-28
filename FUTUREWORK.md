@@ -99,6 +99,7 @@ The goal of the future work below is to give AgentAudit a clear edge in a crowde
 
 These ideas are worth tracking but are lower priority or more speculative than the eight above.
 
+- **Native Slack Integration:** See full spec below.
 - **GitHub OAuth login:** Allow users to sign up and log in with their GitHub account. Reduces onboarding friction for developer-focused teams, and can automatically pull organization name and public email. Implementation needs a backend OAuth flow, a `provider` field on the organization record, email matching / duplicate handling, and an optional "link account" path for existing email users.
 - **Data residency / EU deployment:** Offer regional hosting for GDPR-sensitive customers.
 - **SLA and enterprise support:** Dedicated success engineer, guaranteed response times, and custom rule development.
@@ -257,6 +258,76 @@ Do not pursue SOC 2 until at least one of these is true:
 
 ---
 
+---
+
+## Native Slack Integration
+
+### What it is
+
+A first-class Slack integration that goes beyond the current outbound webhook support. Today, users can point their webhook URL at a Slack Incoming Webhook — it works, but it requires the user to set up the webhook manually, there is no Slack-aware formatting, and there is no bidirectional flow. This feature replaces that with a proper Slack App that AgentAudit publishes to the Slack App Directory.
+
+### Current state
+
+Right now: users can set a `webhookUrl` in their org profile. If they point it at a Slack Incoming Webhook URL, alerts will arrive in Slack as plain JSON payloads. There is no Slack-specific formatting, no rich message blocks, no channel routing, and no ability to act on alerts from within Slack.
+
+### What needs to be built
+
+**Backend:**
+- Register AgentAudit as a Slack App in the Slack Developer portal (OAuth 2.0, `incoming-webhook` and `chat:write` bot scopes)
+- Add a Slack OAuth install flow (`GET /api/v1/integrations/slack/install` → Slack OAuth → `GET /api/v1/integrations/slack/callback`) that stores the workspace's `access_token`, `bot_user_id`, and default `channel_id` on the organization record
+- Replace the plain JSON webhook payload with Slack Block Kit messages: an accent-coloured header block, a fields block showing agent name, rule triggered, severity, and action taken, a truncated prompt/response preview in a context block, and a "View in Dashboard" button
+- Add per-severity channel routing: organizations can configure a different channel for `critical` vs `warning` alerts
+- Add a "Resolve from Slack" action button that calls `PATCH /api/v1/alerts/:id/resolve` directly from the Slack message so on-call engineers do not need to leave Slack
+- Add a test-message endpoint (`POST /api/v1/integrations/slack/test`) so users can verify the integration is wired up correctly
+
+**Database:**
+- Add `slackAccessToken`, `slackTeamId`, `slackChannelId`, `slackChannelCritical`, `slackChannelWarning` fields to the `Organization` model
+- Migrate existing `webhookUrl`-based Slack users (those whose `webhookUrl` starts with `hooks.slack.com`) to the new OAuth flow with a migration guide
+
+**Dashboard:**
+- "Connect Slack" button on the Settings → Notifications page that initiates the OAuth flow
+- Channel picker once connected
+- "Disconnect" button and connection status indicator
+- Preview of what the alert messages look like
+
+**Slack App Directory listing:**
+- Privacy policy, support contact, and app description
+- Pass Slack's app review (typically 1–3 weeks for first submission)
+
+### Why it matters
+
+Slack is where engineering and on-call teams live. A native integration with rich formatting and one-click resolve reduces the time from "alert fired" to "alert resolved" — which is the core value proposition of AgentAudit's alerting feature. Users who have to leave Slack, log into the dashboard, find the alert, and click resolve are users who eventually stop paying attention to alerts.
+
+The current generic webhook works, but it looks like a developer tool, not a product. A proper Slack integration looks like a product.
+
+### Security considerations
+
+- OAuth tokens must be encrypted at rest (same standard as existing API key hashing)
+- The "Resolve from Slack" action must use Slack's signed request verification (`X-Slack-Signature` + `X-Slack-Request-Timestamp`) — not trust the incoming payload blindly
+- SSRF protection already in place for outbound webhooks applies; the Slack API client bypasses the generic webhook path
+- Tokens scoped to minimum required: `incoming-webhook` + `chat:write` only; no reading of Slack messages
+
+### Capital required
+
+| Item | Cost |
+|---|---|
+| Slack App registration | Free |
+| Slack App Directory review | Free (time cost: 1–3 weeks) |
+| Engineering time | ~3–4 weeks (backend + dashboard) |
+| Additional infrastructure | $0 (no new services needed) |
+
+### Trigger to start
+
+- 20+ users ask for Slack integration via support or feedback
+- A Pro/Business deal stalls because the team lives in Slack
+- Competitor releases a native Slack integration
+
+**Build time:** 3–4 weeks  
+**Capital needed:** $0 direct cost; ~3–4 weeks of engineering time  
+**Users needed to validate:** 10–20 users requesting it, or 1 deal blocked on it
+
+---
+
 ## Last Updated
 
-July 2, 2026
+June 28, 2026
