@@ -205,71 +205,93 @@ function generatePdf(
     const violations = logs.filter(l => l.complianceFlags.length > 0).length;
 
     // ── 1. Header bar ─────────────────────────────────────────────────
-    const HDR_H = 60;
-    doc.rect(ML, 40, CW, HDR_H).fill(BLACK);
+    const HDR_H = 64;
+    const HDR_Y = 40;
+    doc.rect(ML, HDR_Y, CW, HDR_H).fill(BLACK);
 
-    // Logo: red "A" + white "gentAudit"
-    doc.fillColor(RED).fontSize(22).font('Helvetica-Bold')
-       .text('A', ML + 18, 53);
-    doc.fillColor('white').fontSize(22).font('Helvetica')
-       .text('gentAudit', ML + 18 + doc.widthOfString('A') + 1, 53);
+    // Logo — measure "A" width at the correct font/size so placement is exact
+    doc.font('Helvetica-Bold').fontSize(24);
+    const aWidth = doc.widthOfString('A');
+    doc.fillColor(RED).text('A', ML + 20, HDR_Y + 16);
+    doc.fillColor('white').font('Helvetica').fontSize(24)
+       .text('gentAudit', ML + 20 + aWidth + 1, HDR_Y + 16);
 
-    // Sub-label left, generated date right — both on same baseline
-    doc.fillColor('#aaaaaa').fontSize(8).font('Helvetica')
-       .text('Compliance Report', ML + 18, 77);
-    doc.fillColor('#aaaaaa').fontSize(8).font('Helvetica')
-       .text(`Generated: ${genDate}`, ML, 77, { width: CW - 18, align: 'right' });
+    // Subtitle row — same Y, one left-aligned, one right-aligned
+    const subY = HDR_Y + 44;
+    doc.fillColor('#999999').font('Helvetica').fontSize(8)
+       .text('Compliance Report', ML + 20, subY, { lineBreak: false });
+    doc.fillColor('#999999').font('Helvetica').fontSize(8)
+       .text(`Generated: ${genDate}`, ML, subY, { width: CW, align: 'right', lineBreak: false });
 
     // ── 2. Report title + meta block ──────────────────────────────────
-    const META_Y  = 40 + HDR_H + 16;
-    const META_H  = 74;
+    // Layout: title row (24pt) + 2 label rows × 20pt each + padding = 96pt total
+    const META_Y = HDR_Y + HDR_H + 14;
+    const META_H = 96;
     doc.rect(ML, META_Y, CW, META_H).fillAndStroke(GRAY4, BORDER);
 
-    // Report name
-    doc.fillColor(BLACK).fontSize(15).font('Helvetica-Bold')
+    // Report name on its own row
+    doc.fillColor(BLACK).font('Helvetica-Bold').fontSize(14)
        .text(report.name, ML + 16, META_Y + 14, { width: CW - 32, lineBreak: false, ellipsis: true });
 
-    // Two-column meta grid
-    const metaRows = [
-      { label: 'Report ID',    value: report.id },
-      { label: 'Date range',   value: `${dateFrom}  to  ${dateTo}` },
-      { label: 'Total events', value: String(logs.length) },
-      { label: 'Violations',   value: String(violations) },
-    ];
-    const halfW = CW / 2 - 16;
-    metaRows.forEach((row, i) => {
-      const col = i % 2;
-      const line = Math.floor(i / 2);
-      const x = ML + 16 + col * (CW / 2);
-      const y = META_Y + 36 + line * 17;
-      doc.fillColor(GRAY2).fontSize(7.5).font('Helvetica')
-         .text(row.label.toUpperCase(), x, y, { width: halfW, lineBreak: false });
-      doc.fillColor(BLACK).fontSize(8).font('Helvetica-Bold')
-         .text(row.value, x, y + 8, { width: halfW, lineBreak: false, ellipsis: true });
-    });
+    // Divider under title
+    doc.moveTo(ML + 16, META_Y + 36).lineTo(ML + CW - 16, META_Y + 36)
+       .strokeColor(BORDER).lineWidth(0.5).stroke();
+
+    // Two-column grid — all 4 items at fully explicit absolute coordinates
+    // Row 0: Report ID (left col) | Date range (right col)
+    // Row 1: Total events (left col) | Violations (right col)
+    const COL_L = ML + 16;
+    const COL_R = ML + 16 + Math.floor(CW / 2) + 8;
+    const HALF  = Math.floor(CW / 2) - 24;
+    const R0_LABEL_Y = META_Y + 44;
+    const R0_VAL_Y   = META_Y + 54;
+    const R1_LABEL_Y = META_Y + 68;
+    const R1_VAL_Y   = META_Y + 78;
+
+    // Row 0
+    doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
+       .text('REPORT ID', COL_L, R0_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.fillColor(BLACK).font('Helvetica').fontSize(8)
+       .text(report.id, COL_L, R0_VAL_Y, { width: HALF, lineBreak: false, ellipsis: true });
+
+    doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
+       .text('DATE RANGE', COL_R, R0_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.fillColor(BLACK).font('Helvetica').fontSize(8)
+       .text(`${dateFrom}  –  ${dateTo}`, COL_R, R0_VAL_Y, { width: HALF, lineBreak: false });
+
+    // Row 1
+    doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
+       .text('TOTAL EVENTS', COL_L, R1_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.fillColor(BLACK).font('Helvetica-Bold').fontSize(8)
+       .text(String(logs.length), COL_L, R1_VAL_Y, { width: HALF, lineBreak: false });
+
+    doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
+       .text('VIOLATIONS', COL_R, R1_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.fillColor(violations > 0 ? RED : BLACK).font('Helvetica-Bold').fontSize(8)
+       .text(String(violations), COL_R, R1_VAL_Y, { width: HALF, lineBreak: false });
 
     // ── 3. Summary stat cards ─────────────────────────────────────────
-    const STAT_Y = META_Y + META_H + 14;
-    const STAT_H = 56;
-    const STAT_GAP = 8;
-    const STAT_W = Math.floor((CW - STAT_GAP * 2) / 3);
+    // Three equal cards that span exactly CW with no gaps
+    const STAT_Y  = META_Y + META_H + 14;
+    const STAT_H  = 60;
+    const STAT_W  = Math.floor(CW / 3);          // 166pt each
+    const STAT_W3 = CW - STAT_W * 2;              // last card absorbs rounding: 167pt
 
     const stats = [
-      { label: 'Total Events',  value: String(logs.length),                                      accent: false },
-      { label: 'Violations',    value: String(violations),                                        accent: true  },
-      { label: 'Clean Events',  value: String(logs.length - violations),                          accent: false },
+      { label: 'Total Events', value: String(logs.length),           accent: false },
+      { label: 'Violations',   value: String(violations),            accent: true  },
+      { label: 'Clean Events', value: String(logs.length - violations), accent: false },
     ];
 
     stats.forEach((stat, i) => {
-      const x = ML + i * (STAT_W + STAT_GAP);
-      const bg  = stat.accent && violations > 0 ? '#fff2f2' : GRAY4;
-      const brd = stat.accent && violations > 0 ? RED       : BORDER;
-      const fg  = stat.accent && violations > 0 ? RED       : BLACK;
-      doc.rect(x, STAT_Y, STAT_W, STAT_H).fillAndStroke(bg, brd);
-      doc.fillColor(fg).fontSize(26).font('Helvetica-Bold')
-         .text(stat.value, x, STAT_Y + 8, { width: STAT_W, align: 'center' });
-      doc.fillColor(GRAY2).fontSize(8).font('Helvetica')
-         .text(stat.label, x, STAT_Y + 38, { width: STAT_W, align: 'center' });
+      const x  = ML + i * STAT_W;
+      const sw = i === 2 ? STAT_W3 : STAT_W;
+      const isRed = stat.accent && violations > 0;
+      doc.rect(x, STAT_Y, sw, STAT_H).fillAndStroke(isRed ? '#fff2f2' : GRAY4, isRed ? RED : BORDER);
+      doc.fillColor(isRed ? RED : BLACK).font('Helvetica-Bold').fontSize(28)
+         .text(stat.value, x, STAT_Y + 10, { width: sw, align: 'center', lineBreak: false });
+      doc.fillColor(GRAY2).font('Helvetica').fontSize(8)
+         .text(stat.label, x, STAT_Y + 42, { width: sw, align: 'center', lineBreak: false });
     });
 
     // ── 4. Audit Log table ────────────────────────────────────────────
@@ -290,7 +312,7 @@ function generatePdf(
     ];
 
     let rowY = drawTableHeader(doc, SECTION_Y + 22, cols);
-    const ROW_H   = 20;
+    const ROW_H   = 24;   // tall enough for 2-line timestamp
     const CELL_FS = 7.5;
     const BOTTOM_MARGIN = 60;  // leave space for footer
 
@@ -310,38 +332,38 @@ function generatePdf(
       const rowBdr  = hasFlag ? '#f5c6c6' : BORDER;
       doc.rect(ML, rowY, CW, ROW_H).fillAndStroke(rowBg, rowBdr);
 
-      // Timestamp — date and time on two lines to avoid overlap
+      // Timestamp — date and time on two lines, vertically centred in ROW_H
       const ts = log.createdAt.toISOString();
       doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(ts.slice(0, 10), cols[0].x + 4, rowY + 3, { width: cols[0].w - 8, lineBreak: false });
+         .text(ts.slice(0, 10), cols[0].x + 4, rowY + 5, { width: cols[0].w - 8, lineBreak: false });
       doc.fillColor(GRAY2).fontSize(6.5).font('Helvetica')
-         .text(ts.slice(11, 19) + ' UTC', cols[0].x + 4, rowY + 11, { width: cols[0].w - 8, lineBreak: false });
+         .text(ts.slice(11, 19) + ' UTC', cols[0].x + 4, rowY + 14, { width: cols[0].w - 8, lineBreak: false });
 
       // Action
       doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(log.action, cols[1].x + 4, rowY + 6, { width: cols[1].w - 8, lineBreak: false, ellipsis: true });
+         .text(log.action, cols[1].x + 4, rowY + 8, { width: cols[1].w - 8, lineBreak: false, ellipsis: true });
 
       // Agent
       const agentLabel = log.agent?.name ?? (log.agentId ? trunc(log.agentId, 10) : '—');
       doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(agentLabel, cols[2].x + 4, rowY + 6, { width: cols[2].w - 8, lineBreak: false, ellipsis: true });
+         .text(agentLabel, cols[2].x + 4, rowY + 8, { width: cols[2].w - 8, lineBreak: false, ellipsis: true });
 
       // Flags
       if (hasFlag) {
         doc.fillColor(RED).fontSize(CELL_FS).font('Helvetica-Bold')
-           .text(String(log.complianceFlags.length), cols[3].x + 4, rowY + 6, { width: cols[3].w - 8, align: 'center', lineBreak: false });
+           .text(String(log.complianceFlags.length), cols[3].x + 4, rowY + 8, { width: cols[3].w - 8, align: 'center', lineBreak: false });
       } else {
         doc.fillColor(GRAY2).fontSize(CELL_FS).font('Helvetica')
-           .text('—', cols[3].x + 4, rowY + 6, { width: cols[3].w - 8, align: 'center', lineBreak: false });
+           .text('—', cols[3].x + 4, rowY + 8, { width: cols[3].w - 8, align: 'center', lineBreak: false });
       }
 
       // Prompt preview
       doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(trunc(log.prompt, 38), cols[4].x + 4, rowY + 6, { width: cols[4].w - 8, lineBreak: false, ellipsis: true });
+         .text(trunc(log.prompt, 38), cols[4].x + 4, rowY + 8, { width: cols[4].w - 8, lineBreak: false, ellipsis: true });
 
       // Response preview
       doc.fillColor(GRAY1).fontSize(CELL_FS).font('Helvetica')
-         .text(trunc(log.response, 38), cols[5].x + 4, rowY + 6, { width: cols[5].w - 8, lineBreak: false, ellipsis: true });
+         .text(trunc(log.response, 38), cols[5].x + 4, rowY + 8, { width: cols[5].w - 8, lineBreak: false, ellipsis: true });
 
       rowY += ROW_H;
     });
