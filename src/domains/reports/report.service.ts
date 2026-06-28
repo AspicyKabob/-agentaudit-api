@@ -181,10 +181,10 @@ function drawTableHeader(
   const ROW_H = 18;
   doc.rect(ML, y, doc.page.width - ML - MR, ROW_H).fill(GRAY3);
   cols.forEach(({ label, x, w }) => {
-    doc.save();
+    // Force cursor to the correct y before each cell
+    doc.y = y + 5;
     doc.fillColor(BLACK).fontSize(7.5).font('Helvetica-Bold')
        .text(label, x + 4, y + 5, { width: w - 8, lineBreak: false, ellipsis: true });
-    doc.restore();
   });
   return y + ROW_H;
 }
@@ -214,14 +214,19 @@ function generatePdf(
     // Logo — measure "A" width at the correct font/size so placement is exact
     doc.font('Helvetica-Bold').fontSize(24);
     const aWidth = doc.widthOfString('A');
-    doc.fillColor(RED).text('A', ML + 20, HDR_Y + 16);
+    const logoY = HDR_Y + 16;
+    doc.y = logoY;
+    doc.fillColor(RED).text('A', ML + 20, logoY, { lineBreak: false });
+    doc.y = logoY;
     doc.fillColor('white').font('Helvetica').fontSize(24)
-       .text('gentAudit', ML + 20 + aWidth + 1, HDR_Y + 16);
+       .text('gentAudit', ML + 20 + aWidth + 1, logoY, { lineBreak: false });
 
-    // Subtitle row — same Y, one left-aligned, one right-aligned
+    // Subtitle row — pinned to subY, one left, one right
     const subY = HDR_Y + 44;
+    doc.y = subY;
     doc.fillColor('#999999').font('Helvetica').fontSize(8)
        .text('Compliance Report', ML + 20, subY, { lineBreak: false });
+    doc.y = subY;
     doc.fillColor('#999999').font('Helvetica').fontSize(8)
        .text(`Generated: ${genDate}`, ML, subY, { width: CW, align: 'right', lineBreak: false });
 
@@ -232,8 +237,10 @@ function generatePdf(
     doc.rect(ML, META_Y, CW, META_H).fillAndStroke(GRAY4, BORDER);
 
     // Report name on its own row
+    const titleY = META_Y + 14;
+    doc.y = titleY;
     doc.fillColor(BLACK).font('Helvetica-Bold').fontSize(14)
-       .text(report.name, ML + 16, META_Y + 14, { width: CW - 32, lineBreak: false, ellipsis: true });
+       .text(report.name, ML + 16, titleY, { width: CW - 32, lineBreak: false, ellipsis: true });
 
     // Divider under title
     doc.moveTo(ML + 16, META_Y + 36).lineTo(ML + CW - 16, META_Y + 36)
@@ -250,25 +257,33 @@ function generatePdf(
     const R1_LABEL_Y = META_Y + 68;
     const R1_VAL_Y   = META_Y + 78;
 
-    // Row 0
+    // Row 0 — each call explicitly resets doc.y first
+    doc.y = R0_LABEL_Y;
     doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
        .text('REPORT ID', COL_L, R0_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.y = R0_VAL_Y;
     doc.fillColor(BLACK).font('Helvetica').fontSize(8)
        .text(report.id, COL_L, R0_VAL_Y, { width: HALF, lineBreak: false, ellipsis: true });
 
+    doc.y = R0_LABEL_Y;
     doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
        .text('DATE RANGE', COL_R, R0_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.y = R0_VAL_Y;
     doc.fillColor(BLACK).font('Helvetica').fontSize(8)
        .text(`${dateFrom}  –  ${dateTo}`, COL_R, R0_VAL_Y, { width: HALF, lineBreak: false });
 
     // Row 1
+    doc.y = R1_LABEL_Y;
     doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
        .text('TOTAL EVENTS', COL_L, R1_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.y = R1_VAL_Y;
     doc.fillColor(BLACK).font('Helvetica-Bold').fontSize(8)
        .text(String(logs.length), COL_L, R1_VAL_Y, { width: HALF, lineBreak: false });
 
+    doc.y = R1_LABEL_Y;
     doc.fillColor(GRAY2).font('Helvetica').fontSize(7)
        .text('VIOLATIONS', COL_R, R1_LABEL_Y, { width: HALF, lineBreak: false });
+    doc.y = R1_VAL_Y;
     doc.fillColor(violations > 0 ? RED : BLACK).font('Helvetica-Bold').fontSize(8)
        .text(String(violations), COL_R, R1_VAL_Y, { width: HALF, lineBreak: false });
 
@@ -290,16 +305,19 @@ function generatePdf(
       const sw = i === 2 ? STAT_W3 : STAT_W;
       const isRed = stat.accent && violations > 0;
       doc.rect(x, STAT_Y, sw, STAT_H).fillAndStroke(isRed ? '#fff2f2' : GRAY4, isRed ? RED : BORDER);
+      doc.y = STAT_Y + 10;
       doc.fillColor(isRed ? RED : BLACK).font('Helvetica-Bold').fontSize(28)
          .text(stat.value, x, STAT_Y + 10, { width: sw, align: 'center', lineBreak: false });
+      doc.y = STAT_Y + 42;
       doc.fillColor(GRAY2).font('Helvetica').fontSize(8)
          .text(stat.label, x, STAT_Y + 42, { width: sw, align: 'center', lineBreak: false });
     });
 
     // ── 4. Audit Log table ────────────────────────────────────────────
     const SECTION_Y = STAT_Y + STAT_H + 20;
+    doc.y = SECTION_Y;
     doc.fillColor(BLACK).fontSize(11).font('Helvetica-Bold')
-       .text('Audit Log', ML, SECTION_Y);
+       .text('Audit Log', ML, SECTION_Y, { lineBreak: false });
     hRule(doc, SECTION_Y + 16);
 
     // Column definitions — widths must sum to CW exactly
@@ -318,9 +336,9 @@ function generatePdf(
     const CELL_FS      = 7.5;
     const BOTTOM_MARGIN = 60;
 
-    // Helper: draw one text cell without advancing the PDFKit cursor.
-    // We save/restore the graphics state (which includes the text position)
-    // around every cell so that cursor drift cannot propagate between columns.
+    // Helper: draw one text cell at an exact position.
+    // Directly assigns doc.y before rendering so PDFKit always honours the
+    // requested y coordinate, regardless of where the cursor currently sits.
     function cell(
       color: string,
       size: number,
@@ -331,10 +349,9 @@ function generatePdf(
       w: number,
       align: 'left' | 'center' = 'left',
     ): void {
-      doc.save();
+      doc.y = y;
       doc.fillColor(color).fontSize(size).font(fontName)
          .text(value, x, y, { width: w, lineBreak: false, ellipsis: true, align });
-      doc.restore();
     }
 
     logs.forEach((log, idx) => {
