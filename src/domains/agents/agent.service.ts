@@ -1,6 +1,7 @@
 import { prisma } from '../../db/prisma';
 import { Prisma } from '@prisma/client';
 import { CreateAgentBody, UpdateAgentBody } from './agent.types';
+import { getAgentLimitForPlan } from '../billing/plans';
 
 export const agentService = {
   async list(organizationId: string) {
@@ -11,6 +12,23 @@ export const agentService = {
   },
 
   async create(organizationId: string, data: CreateAgentBody) {
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { plan: true },
+    });
+
+    const limit = getAgentLimitForPlan(org?.plan ?? 'free');
+
+    if (limit !== -1) {
+      const count = await prisma.agent.count({ where: { organizationId } });
+      if (count >= limit) {
+        throw Object.assign(
+          new Error(`Agent limit reached. Your ${org?.plan ?? 'free'} plan allows up to ${limit} agents. Upgrade to add more.`),
+          { statusCode: 403 }
+        );
+      }
+    }
+
     return prisma.agent.create({
       data: {
         organizationId,

@@ -94,7 +94,7 @@
         <p>Guardrails against malicious input and ReDoS attacks.</p>
         <ul>
           <li>Regex patterns limited to 500 characters (ReDoS protection)</li>
-          <li>Custom validators sandboxed with vm.runInNewContext</li>
+          <li>Custom validators run in an isolated V8 sandbox (isolated-vm, no Node.js access)</li>
           <li>100ms timeout on all custom validator executions</li>
           <li>Zod schema validation on all incoming requests</li>
         </ul>

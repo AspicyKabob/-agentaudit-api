@@ -11,6 +11,18 @@ export const PLAN_QUOTAS: Record<PlanTier, number> = {
   enterprise: 999999999,
 };
 
+/** Maximum number of agents per plan. -1 = unlimited. */
+export const AGENT_LIMITS: Record<PlanTier, number> = {
+  free: 3,
+  pro: 25,
+  business: -1,
+  enterprise: -1,
+};
+
+export function getAgentLimitForPlan(plan: string): number {
+  return AGENT_LIMITS[plan as PlanTier] ?? AGENT_LIMITS.free;
+}
+
 export function getQuotaForPlan(plan: string): number {
   return PLAN_QUOTAS[plan as PlanTier] ?? PLAN_QUOTAS.free;
 }
