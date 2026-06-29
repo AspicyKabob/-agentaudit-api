@@ -334,7 +334,10 @@ function generatePdf(
     let rowY = drawTableHeader(doc, SECTION_Y + 22, cols);
     const ROW_H        = 24;   // tall enough for 2-line timestamp
     const CELL_FS      = 7.5;
-    const BOTTOM_MARGIN = 60;
+    // Stop adding rows when we'd invade footer territory.
+    // Footer sits at page.height - margins.bottom(48) - 16 = ~778pt.
+    // Leave 40pt above footer for the rule + breathing room → limit = 778 - 40 = 738.
+    const BOTTOM_MARGIN = doc.page.margins.bottom + 56;
 
     // Helper: draw one text cell at an exact position.
     // Directly assigns doc.y before rendering so PDFKit always honours the
@@ -356,9 +359,7 @@ function generatePdf(
 
     logs.forEach((log, idx) => {
       // Page overflow
-      const pageBreakTrigger = rowY + ROW_H > doc.page.height - BOTTOM_MARGIN;
-      console.log(`[PDF] row=${idx} rowY=${rowY.toFixed(1)} pageH=${doc.page.height} limit=${(doc.page.height - BOTTOM_MARGIN).toFixed(1)} trigger=${pageBreakTrigger}`);
-      if (pageBreakTrigger) {
+      if (rowY + ROW_H > doc.page.height - BOTTOM_MARGIN) {
         drawFooter(doc, CW, report.id);
         doc.addPage();
         rowY = ML;
@@ -404,10 +405,14 @@ function generatePdf(
 }
 
 function drawFooter(doc: PDFKit.PDFDocument, CW: number, reportId: string): void {
-  const footerY = doc.page.height - 36;
+  // Must stay within doc.page.height - page.margins.bottom (48pt) - lineHeight (~9pt)
+  // = 841.89 - 48 - 9 = ~784pt. Use 776 to be safe and leave room for the rule above.
+  const footerY = doc.page.height - doc.page.margins.bottom - 16;
   hRule(doc, footerY - 8);
+  doc.y = footerY;
   doc.fillColor(GRAY2).fontSize(7).font('Helvetica')
      .text('AgentAudit  —  agentaudit.online', ML, footerY, { width: CW / 2, lineBreak: false });
+  doc.y = footerY;
   doc.fillColor(GRAY2).fontSize(7).font('Helvetica')
      .text(`Report ID: ${reportId}`, ML, footerY, { width: CW, align: 'right', lineBreak: false });
 }
