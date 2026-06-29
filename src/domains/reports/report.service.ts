@@ -228,7 +228,7 @@ function generatePdf(
        .text('Compliance Report', ML + 20, subY, { lineBreak: false });
     doc.y = subY;
     doc.fillColor('#999999').font('Helvetica').fontSize(8)
-       .text(`Generated: ${genDate}`, ML, subY, { width: CW, align: 'right', lineBreak: false });
+       .text(`Generated: ${genDate}`, ML, subY, { width: CW - 20, align: 'right', lineBreak: false });
 
     // ── 2. Report title + meta block ──────────────────────────────────
     // Layout: title row (24pt) + 2 label rows × 20pt each + padding = 96pt total
