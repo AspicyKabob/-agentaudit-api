@@ -44,6 +44,7 @@ jest.mock('../../src/db/prisma', () => ({
       update: jest.fn(),
       delete: jest.fn(),
       deleteMany: jest.fn(),
+      count: jest.fn(),
     },
     apiKey: {
       findUnique: jest.fn(),
@@ -337,6 +338,7 @@ describe('AgentAudit API Full Integration', () => {
 
     it('POST /api/v1/agents → 201', async () => {
       const token = getAuthToken();
+      mockedPrisma.agent.count.mockResolvedValue(0);
       mockedPrisma.agent.create.mockResolvedValue({
         id: 'agent-1',
         name: 'Support Bot',
