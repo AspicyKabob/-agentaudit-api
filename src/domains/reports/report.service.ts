@@ -356,7 +356,9 @@ function generatePdf(
 
     logs.forEach((log, idx) => {
       // Page overflow
-      if (rowY + ROW_H > doc.page.height - BOTTOM_MARGIN) {
+      const pageBreakTrigger = rowY + ROW_H > doc.page.height - BOTTOM_MARGIN;
+      console.log(`[PDF] row=${idx} rowY=${rowY.toFixed(1)} pageH=${doc.page.height} limit=${(doc.page.height - BOTTOM_MARGIN).toFixed(1)} trigger=${pageBreakTrigger}`);
+      if (pageBreakTrigger) {
         drawFooter(doc, CW, report.id);
         doc.addPage();
         rowY = ML;
@@ -382,8 +384,8 @@ function generatePdf(
       cell(GRAY1, CELL_FS, 'Helvetica',      log.agent?.name ?? (log.agentId ? trunc(log.agentId, 10) : '—'), cols[2].x + 4, mid, cols[2].w - 8);
       cell(hasFlag ? RED : GRAY2, CELL_FS, hasFlag ? 'Helvetica-Bold' : 'Helvetica',
            hasFlag ? String(log.complianceFlags.length) : '—',    cols[3].x + 4, mid, cols[3].w - 8, 'center');
-      cell(GRAY1, CELL_FS, 'Helvetica',      trunc(log.prompt,   30),                        cols[4].x + 4, mid, cols[4].w - 8);
-      cell(GRAY1, CELL_FS, 'Helvetica',      trunc(log.response, 30),                        cols[5].x + 4, mid, cols[5].w - 8);
+      cell(GRAY1, CELL_FS, 'Helvetica',      trunc(log.prompt,   20),                        cols[4].x + 4, mid, cols[4].w - 8);
+      cell(GRAY1, CELL_FS, 'Helvetica',      trunc(log.response, 20),                        cols[5].x + 4, mid, cols[5].w - 8);
 
       rowY += ROW_H;
     });
