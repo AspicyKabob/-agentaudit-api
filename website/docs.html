@@ -469,6 +469,7 @@
             <a href="#agents">Agents</a>
             <a href="#policies">Policies</a>
             <a href="#reports">Reports</a>
+            <a href="#billing">Billing</a>
           </div>
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Reference</span>
@@ -1007,9 +1008,53 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
           </div>
 
+          <!-- ── Billing ────────────────────────────────────────────── -->
+          <div class="docs-section" id="billing">
+            <span class="docs-section-badge">11 — Billing</span>
+            <h2>Billing</h2>
+            <p>Billing is managed through Stripe. Use the checkout endpoint to start a paid subscription and the portal endpoint to let users manage or cancel it.</p>
+
+            <h3>Get available plan prices</h3>
+            <p>Public endpoint — no authentication required. Returns the Stripe price IDs currently configured for each paid plan. Use these IDs when creating a checkout session.</p>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/billing/prices</span></div>
+            <div class="code-block">
+              <pre>// Response
+{
+  "pro":      "price_...",
+  "business": "price_..."
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <h3>Create a checkout session</h3>
+            <p>Requires JWT authentication. Redirects the user to Stripe Checkout to subscribe to the chosen plan.</p>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/billing/checkout-session</span></div>
+            <div class="code-block">
+              <pre>// Request
+{
+  "priceId": "price_..."
+}
+
+// Response
+{
+  "sessionId": "cs_...",
+  "url": "https://checkout.stripe.com/..."
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
+            <h3>Get subscription status</h3>
+            <p>Requires JWT authentication. Returns the current plan and subscription details for your organisation.</p>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/billing/subscription</span></div>
+
+            <h3>Open the billing portal</h3>
+            <p>Requires JWT authentication. Returns a short-lived Stripe Customer Portal URL where the user can update payment methods, change plans, or cancel.</p>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/billing/portal-session</span></div>
+          </div>
+
           <!-- ── All endpoints ───────────────────────────────────────── -->
           <div class="docs-section" id="endpoints">
-            <span class="docs-section-badge">11 — Reference</span>
+            <span class="docs-section-badge">12 — Reference</span>
             <h2>All Endpoints</h2>
 
             <h3>Auth</h3>
@@ -1025,6 +1070,7 @@ Authorization: Bearer &lt;jwt&gt;
             <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/audit-logs</span></div>
             <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/audit-logs/batch</span></div>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/export</span><span class="desc">Export logs as CSV or JSON</span></div>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/:id</span></div>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/trace/:traceId</span></div>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/audit-logs/:id/chain</span></div>
@@ -1032,12 +1078,17 @@ Authorization: Bearer &lt;jwt&gt;
             <h3>Compliance</h3>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/compliance-rules</span></div>
             <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/compliance-rules</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/compliance-rules/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/compliance-rules/:id</span></div>
             <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/compliance-rules/:id</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/compliance-rules/packs</span><span class="desc">List available packs</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/compliance-rules/packs/installed</span><span class="desc">List installed packs</span></div>
             <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/compliance-rules/packs</span></div>
             <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/compliance-rules/packs/:packId</span></div>
 
             <h3>Alerts</h3>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/alerts</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/alerts/:id</span></div>
             <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/alerts/:id/resolve</span></div>
 
             <h3>Agents</h3>
@@ -1070,6 +1121,13 @@ Authorization: Bearer &lt;jwt&gt;
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/reports/:id/download</span></div>
             <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/reports/:id</span></div>
 
+            <h3>Billing</h3>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/billing/prices</span><span class="desc">Public — returns configured plan price IDs</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/billing/checkout-session</span><span class="desc">Create a Stripe checkout session</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/billing/subscription</span><span class="desc">Get current subscription status &amp; plan</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/billing/portal-session</span><span class="desc">Create a Stripe customer portal session</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/billing/webhook</span><span class="desc">Stripe webhook receiver (Stripe signature required)</span></div>
+
             <div class="docs-cta">
               <a href="/docs" target="_blank" class="btn btn-primary">Open Swagger UI →</a>
               <a href="integrations.html" class="btn btn-glass">Integration Guides</a>
@@ -1078,7 +1136,7 @@ Authorization: Bearer &lt;jwt&gt;
 
           <!-- ── Errors ─────────────────────────────────────────────── -->
           <div class="docs-section" id="errors">
-            <span class="docs-section-badge">12 — Errors</span>
+            <span class="docs-section-badge">13 — Errors</span>
             <h2>Errors</h2>
             <p>All errors return JSON with a consistent shape:</p>
             <div class="code-block">

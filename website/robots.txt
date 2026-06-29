@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Keep authenticated/app pages out of search index
+Disallow: /dashboard.html
+
+Sitemap: https://agentaudit.online/sitemap.xml

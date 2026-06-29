@@ -44,15 +44,20 @@ See [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) for detailed Railway-specific instruc
 6. Add PostgreSQL database
 7. Deploy!
 
-### Option 4: Vercel (Frontend + Serverless API)
+### Option 4: Vercel (Static Website Only)
+
+Vercel can host the **static website** (`website/` folder), but **not** the Node.js API backend — Vercel's serverless model does not support persistent TCP connections to PostgreSQL required by Prisma. Deploy the API on Railway, Render, or Docker and point the website's `API_BASE` to that URL.
 
 1. Push code to GitHub
 2. Go to [vercel.com](https://vercel.com)
 3. Import project
 4. Set framework preset to "Other"
-5. Set build command: `npm run build`
-6. Set output directory: `dist`
-7. Deploy!
+5. Set root directory to `website`
+6. Set build command: *(none — static files)*
+7. Set output directory: `website`
+8. Deploy!
+
+**Important:** You still need a separate backend deployment (Railway/Render/Docker) for the API.
 
 ## Environment Variables Required
 
@@ -63,7 +68,8 @@ See [RAILWAY_DEPLOY.md](RAILWAY_DEPLOY.md) for detailed Railway-specific instruc
 | `API_KEY_SALT` | Yes | Random salt for API key hashing |
 | `NODE_ENV` | Yes | `production` |
 | `PORT` | No | Defaults to 8080 |
-| `REDIS_URL` | No | For background jobs |
+| `FRONTEND_URL` | Yes (prod) | Public frontend origin — required for CORS |
+| `REDIS_URL` | No | Enables distributed rate limiting across multiple API instances |
 
 See `.env.example` for the complete list including optional Stripe billing variables.
 

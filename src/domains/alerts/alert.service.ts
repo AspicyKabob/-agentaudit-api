@@ -3,6 +3,40 @@ import { logger } from '../../utils/logger';
 import { safePostJson, validateWebhookUrl } from '../../utils/ssrf';
 import { captureException } from '../../utils/observability';
 
+// ── Alert-email rate limiter ──────────────────────────────────────────────────
+// Prevents inbox flooding when a noisy rule fires on every log in a burst.
+// In-process sliding-window: max MAX_ALERT_EMAILS emails per org per window.
+// This is intentionally lightweight (no Redis dependency) and resets on restart,
+// which is acceptable — the goal is burst protection, not absolute enforcement.
+
+const MAX_ALERT_EMAILS = 10;
+const ALERT_EMAIL_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+/** Timestamps of recent alert emails, keyed by organizationId. */
+const alertEmailBuckets = new Map<string, number[]>();
+
+/**
+ * Returns true if the organization is allowed to send another alert email
+ * and records the send. Returns false if the rate limit is exceeded.
+ */
+export function tryConsumeAlertEmailQuota(organizationId: string): boolean {
+  const now = Date.now();
+  const cutoff = now - ALERT_EMAIL_WINDOW_MS;
+
+  const timestamps = (alertEmailBuckets.get(organizationId) ?? []).filter(ts => ts > cutoff);
+  if (timestamps.length >= MAX_ALERT_EMAILS) {
+    logger.warn(
+      { organizationId, count: timestamps.length, windowMs: ALERT_EMAIL_WINDOW_MS },
+      'Alert email rate limit reached — suppressing this alert email'
+    );
+    return false;
+  }
+
+  timestamps.push(now);
+  alertEmailBuckets.set(organizationId, timestamps);
+  return true;
+}
+
 interface ListFilters {
   isResolved?: boolean;
   severity?: 'warning' | 'critical';

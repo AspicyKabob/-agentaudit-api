@@ -39,6 +39,7 @@ In Railway Dashboard → Settings → Variables, add the required application va
 |----------|-------|---------------|
 | `JWT_SECRET` | 64-char hex | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `API_KEY_SALT` | 32-char random | `node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"` |
+| `FRONTEND_URL` | `https://agentaudit.online` | The exact public origin of your frontend — **required** for CORS. If unset, all cross-origin requests from the frontend are blocked. |
 | `STRIPE_SECRET_KEY` | `sk_live_...` | [Stripe Dashboard](https://dashboard.stripe.com/apikeys) |
 | `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | Stripe Dashboard |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Stripe CLI or Dashboard |
@@ -67,6 +68,8 @@ Railway auto-deploys on every git push. First deploy:
 curl https://YOUR_RAILWAY_URL/health
 curl https://YOUR_RAILWAY_URL/mcp/v1/schema
 ```
+
+Confirm `FRONTEND_URL` is set to your public frontend origin (e.g. `https://agentaudit.online`). The server starts without it, but every cross-origin request from the frontend will be rejected by CORS until it is set correctly.
 
 ## Custom Domain
 

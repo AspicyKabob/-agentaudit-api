@@ -233,6 +233,26 @@ loginForm?.addEventListener('submit', async e => {
   }
 });
 
+// ─── Load price IDs from backend ─────────────────────────────────
+// Stripe price IDs are configured via env vars on the server.
+// We fetch them once on load so they're never hardcoded in HTML.
+(async function loadPriceIds() {
+  try {
+    const res = await fetch(api('/api/v1/billing/prices'));
+    if (!res.ok) return;
+    const prices = await res.json(); // { pro: 'price_xxx', business: 'price_yyy' }
+    document.querySelectorAll('[data-plan]').forEach(btn => {
+      const plan = btn.dataset.plan;
+      if (plan && prices[plan]) {
+        btn.dataset.price = prices[plan];
+      }
+    });
+  } catch (_) {
+    // Billing not configured — buttons remain without data-price;
+    // the click handler will show a graceful error via the API response.
+  }
+}());
+
 document.querySelectorAll('[data-plan]').forEach(btn => {
   btn.addEventListener('click', async () => {
     if (!isLoggedIn()) {
@@ -246,6 +266,11 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
     }
     if (plan === 'enterprise') {
       showEnterpriseModal();
+      return;
+    }
+
+    if (!btn.dataset.price) {
+      showToast('Billing is not available right now. Please try again later.', 'error');
       return;
     }
 

@@ -6,7 +6,7 @@ import { logger } from '../../utils/logger';
 import { evaluateSentiment } from './sentiment-evaluator';
 import { evaluateCustomValidator } from './custom-validator';
 import { detectPII } from './pii-detector';
-import { alertService } from '../alerts/alert.service';
+import { alertService, tryConsumeAlertEmailQuota } from '../alerts/alert.service';
 import { emailService } from '../../services/email.service';
 import { getQuotaForPlan } from '../billing/plans';
 
@@ -147,7 +147,7 @@ export const auditService = {
         });
       }
 
-      if (org?.notifyEmail && shouldNotify && org?.email) {
+      if (org?.notifyEmail && shouldNotify && org?.email && tryConsumeAlertEmailQuota(organizationId)) {
         emailService.sendAlert(org.email, {
           severity,
           message: `Compliance flag triggered: ${flag}`,
@@ -675,7 +675,7 @@ async function createBatchAlerts(
           logger.warn({ organizationId, alertId: alert.id, error: err }, 'Webhook delivery failed');
         });
       }
-      if (org.notifyEmail && shouldNotify && org.email) {
+      if (org.notifyEmail && shouldNotify && org.email && tryConsumeAlertEmailQuota(organizationId)) {
         emailService.sendAlert(org.email, {
           severity,
           message: `Compliance flag triggered: ${flag}`,

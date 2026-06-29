@@ -221,9 +221,9 @@ audit.log(
       <span class="section-badge">02 — Guardrails</span>
       <h2>Real-Time <span class="gradient-text">Guardrails</span></h2>
       <p>Most compliance tools work like a security camera: they record the violation <em>after</em> it happens. AgentAudit works like a security guard: it stops the violation <em>before</em> it reaches the user.</p>
-      <p>When an agent generates output, you send it through the guardrail endpoint. In under 50ms, AgentAudit checks it against your compliance rules — PII detection, forbidden keywords, regex patterns, sentiment thresholds, custom validators. If a violation is found, the output is blocked and you get a detailed report of what was caught and why.</p>
+      <p>When an agent generates output, you send it through the guardrail endpoint. AgentAudit checks it against your compliance rules — PII detection, forbidden keywords, regex patterns, sentiment thresholds, custom validators. If a violation is found, the output is blocked and you get a detailed report of what was caught and why.</p>
       <ul>
-        <li>Sub-50ms latency on every guardrail check</li>
+        <li>Low-latency guardrail checks with a &lt;50ms target</li>
         <li>PII detection for SSN, email, phone, credit cards</li>
         <li>Custom keyword and regex rule matching</li>
         <li>Sentiment analysis with AFINN-165 dictionary</li>
