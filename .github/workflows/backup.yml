@@ -1,0 +1,81 @@
+name: Database Backup
+
+on:
+  schedule:
+    # Daily at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual backup'
+        required: false
+        default: 'manual'
+
+jobs:
+  backup:
+    name: pg_dump → S3
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client
+
+      - name: Dump database
+        env:
+          DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          FILENAME="agentaudit-backup-${TIMESTAMP}.sql.gz"
+          echo "FILENAME=${FILENAME}" >> $GITHUB_ENV
+          pg_dump "$DATABASE_URL" \
+            --no-password \
+            --format=plain \
+            --no-owner \
+            --no-privileges \
+            | gzip > "/tmp/${FILENAME}"
+          echo "Backup size: $(du -sh /tmp/${FILENAME} | cut -f1)"
+
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BACKUP_AWS_REGION }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+        run: |
+          aws s3 cp "/tmp/${FILENAME}" "s3://${S3_BUCKET}/postgres/${FILENAME}" \
+            --storage-class STANDARD_IA
+          echo "Uploaded to s3://${S3_BUCKET}/postgres/${FILENAME}"
+
+      - name: Verify upload
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BACKUP_AWS_REGION }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+        run: |
+          aws s3 ls "s3://${S3_BUCKET}/postgres/${FILENAME}"
+          echo "Backup verified successfully"
+
+      - name: Prune backups older than 30 days
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BACKUP_AWS_REGION }}
+          S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+        run: |
+          CUTOFF=$(date -u -d "30 days ago" +"%Y-%m-%dT%H-%M-%SZ" 2>/dev/null || date -u -v-30d +"%Y-%m-%dT%H-%M-%SZ")
+          echo "Pruning backups older than: ${CUTOFF}"
+          aws s3 ls "s3://${S3_BUCKET}/postgres/" \
+            | awk '{print $4}' \
+            | while read key; do
+                # Extract timestamp from filename (agentaudit-backup-TIMESTAMP.sql.gz)
+                FILE_TS=$(echo "$key" | sed 's/agentaudit-backup-//' | sed 's/\.sql\.gz//')
+                if [[ "$FILE_TS" < "$CUTOFF" ]]; then
+                  echo "Deleting old backup: $key"
+                  aws s3 rm "s3://${S3_BUCKET}/postgres/$key"
+                fi
+              done
+          echo "Pruning complete"
