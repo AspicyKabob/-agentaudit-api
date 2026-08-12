@@ -40,8 +40,7 @@ These items should be complete before announcing the public beta.
 - [ ] Confirm `FRONTEND_URL` exactly matches the public application origin.
 - [x] Confirm all Prisma migrations are applied in production, including enforcement and usage-period migrations (exercised by the live registration, quota, enforcement, and audit-log paths on 2026-06-20).
 - [x] Document the PostgreSQL backup and restore procedure.
-- [x] Daily PostgreSQL backups via GitHub Actions `.github/workflows/backup.yml` → S3 (`STANDARD_IA`). Runs at 02:00 UTC, retains 30 days. Requires 4 GitHub secrets: `BACKUP_DATABASE_URL`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_S3_BUCKET`.
-- [ ] Add GitHub secrets for backup workflow and trigger a manual run to confirm first backup lands in S3.
+- [x] Daily PostgreSQL backups via GitHub Actions `.github/workflows/backup.yml` → S3 (`STANDARD_IA`). Runs at 02:00 UTC, retains 30 days. Requires 5 GitHub secrets: `BACKUP_DATABASE_URL`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_S3_BUCKET` (verified by manual run #41 landing a gzipped pg_dump in the S3 bucket).
 - [ ] Perform one restore drill: download a backup from S3, restore with `psql`, confirm row counts match.
 - [x] Keep Redis optional for beta and document the accepted Prisma rate-limit fallback plus enablement triggers.
 
