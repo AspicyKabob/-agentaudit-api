@@ -52,7 +52,7 @@ These items should be complete before announcing the public beta.
 - [x] API keys are stored as keyed hashes and raw values are shown only once.
 - [x] Unexpected 5xx responses hide internal details and include a request ID.
 - [x] Request IDs are emitted in logs and response headers.
-- [x] High- and critical-severity npm audit findings are cleared.
+- [x] High- and critical-severity npm audit findings are cleared (root and `sdk/typescript` audited clean; Dependabot alerts resolved 2026-08-12).
 - [x] Perform an endpoint-by-endpoint tenant-isolation/IDOR review using two organizations.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
