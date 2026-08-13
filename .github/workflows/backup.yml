@@ -27,16 +27,32 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
         run: |
+          set -euo pipefail
           TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
           FILENAME="agentaudit-backup-${TIMESTAMP}.sql.gz"
           echo "FILENAME=${FILENAME}" >> $GITHUB_ENV
+
+          # Print the target host (without credentials) for debugging.
+          BACKUP_HOST=$(echo "$DATABASE_URL" | sed -E 's|.*@([^/]+)/.*|\1|')
+          echo "Dumping from host: $BACKUP_HOST"
+
           pg_dump "$DATABASE_URL" \
             --no-password \
             --format=plain \
             --no-owner \
             --no-privileges \
+            --verbose \
+            2>/tmp/pg_dump.log \
             | gzip > "/tmp/${FILENAME}"
-          echo "Backup size: $(du -sh /tmp/${FILENAME} | cut -f1)"
+
+          BACKUP_SIZE=$(stat -c%s "/tmp/${FILENAME}" 2>/dev/null || stat -f%z "/tmp/${FILENAME}")
+          echo "Backup size: ${BACKUP_SIZE} bytes"
+
+          if [ "$BACKUP_SIZE" -lt 1024 ]; then
+            echo "ERROR: Backup is suspiciously small (${BACKUP_SIZE} bytes). pg_dump log:"
+            cat /tmp/pg_dump.log
+            exit 1
+          fi
 
       - name: Upload to S3
         env:
