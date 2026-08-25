@@ -9,7 +9,7 @@
  * The script:
  *   1. Connects to the Postgres server using DATABASE_URL
  *   2. Creates a temporary database named restore_drill_<timestamp>
- *   3. Restores the gzipped SQL dump into it
+ *   3. Restores the gzipped SQL dump into it (one statement at a time)
  *   4. Prints row counts for core tables
  *   5. Drops the temporary database
  */
@@ -30,6 +30,31 @@ if (!BACKUP_FILE || !DATABASE_URL) {
 if (!fs.existsSync(BACKUP_FILE)) {
   console.error(`Backup file not found: ${BACKUP_FILE}`);
   process.exit(1);
+}
+
+function stripPsqlMetaCommands(sql) {
+  return sql.split('\n')
+    .filter(line => !/^\\[a-zA-Z]/.test(line))
+    .join('\n');
+}
+
+function stripComments(sql) {
+  // Remove /* ... */ block comments.
+  sql = sql.replace(/\/\*[\s\S]*?\*\//g, '');
+  // Remove -- line comments.
+  sql = sql.replace(/^\s*--.*$/gm, '');
+  return sql;
+}
+
+function splitStatements(sql) {
+  sql = stripComments(sql);
+  // Split on semicolons followed by line endings (or EOF). pg_dump emits
+  // one statement terminator per line, and statements themselves do not
+  // contain ';' at end of a line except the terminator.
+  const parts = sql.split(/;(?:\r?\n|\r|$)/);
+  return parts
+    .map(s => s.trim())
+    .filter(s => s.length > 0);
 }
 
 async function main() {
@@ -56,29 +81,45 @@ async function main() {
 
   console.log('Decompressing backup...');
   const compressed = fs.readFileSync(BACKUP_FILE);
-  const sql = zlib.gunzipSync(compressed).toString('utf8');
+  let sql = zlib.gunzipSync(compressed).toString('utf8');
   console.log(`Decompressed size: ${(sql.length / 1024 / 1024).toFixed(2)} MB`);
 
-  console.log('Restoring... (this may take a minute for larger dumps)');
-  try {
-    await restoreClient.query(sql);
-    console.log('Restore complete.');
-  } catch (err) {
-    console.error('Restore failed:', err.message);
-    await restoreClient.end();
-    await cleanup(baseConfig, tempDbName);
-    process.exit(1);
+  sql = stripPsqlMetaCommands(sql);
+
+  const statements = splitStatements(sql);
+  const BATCH_SIZE = 200;
+  console.log(`Restoring ${statements.length} SQL statements in batches of ${BATCH_SIZE}...`);
+
+  for (let i = 0; i < statements.length; i += BATCH_SIZE) {
+    const batch = statements.slice(i, i + BATCH_SIZE).map(s => s + ';').join('\n');
+    try {
+      await restoreClient.query(batch);
+    } catch (err) {
+      console.error(`Restore failed at batch starting at statement ${i + 1}:`);
+      console.error(err.message);
+      console.error('Batch start:', batch.slice(0, 200));
+      await restoreClient.end();
+      await cleanup(baseConfig, tempDbName);
+      process.exit(1);
+    }
+    if (i + BATCH_SIZE <= statements.length) {
+      console.log(`  ${Math.min(i + BATCH_SIZE, statements.length)}/${statements.length} statements restored`);
+    }
   }
+  console.log('Restore complete.');
 
   // Step 3: Row counts on core tables
+  const dbCheck = await restoreClient.query('SELECT current_database() AS db');
+  console.log('\nConnected to database:', dbCheck.rows[0].db);
+
   const tables = ['Organization', 'ApiKey', 'AuditLog', 'ComplianceRule', 'Alert', 'Agent', 'ComplianceReport'];
-  console.log('\nRow counts:');
+  console.log('Row counts:');
   for (const table of tables) {
     try {
-      const res = await restoreClient.query(`SELECT COUNT(*) FROM "${table}"`);
-      console.log(`  ${table}: ${res.rows[0].count}`);
-    } catch {
-      // Table might not exist in a partial or filtered dump; skip silently.
+      const res = await restoreClient.query(`SELECT COUNT(*) FROM public."${table}"`);
+      console.log(`  ${table}: ${String(res.rows[0].count)}`);
+    } catch (err) {
+      console.log(`  ${table}: error - ${err.message}`);
     }
   }
 
@@ -98,7 +139,7 @@ async function cleanup(baseConfig, dbName) {
   await dropClient.end();
 }
 
-main().catch(async (err) => {
+main().catch((err) => {
   console.error('Unexpected error:', err.message);
   process.exit(1);
 });
