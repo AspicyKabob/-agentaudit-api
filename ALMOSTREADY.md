@@ -37,7 +37,7 @@ These items should be complete before announcing the public beta.
 - [x] Billing refuses to start with incomplete or placeholder Stripe configuration.
 - [x] Documentation explains how to generate secrets without committing reusable values.
 - [x] Confirm Railway uses unique production values for `JWT_SECRET` and `API_KEY_SALT` (owner-confirmed 2026-06-20).
-- [ ] Confirm `FRONTEND_URL` exactly matches the public application origin.
+- [x] Confirm `FRONTEND_URL` exactly matches the public application origin (`FRONTEND_URL=https://agentaudit.online` set in Railway; deployed site loads from the same origin).
 - [x] Confirm all Prisma migrations are applied in production, including enforcement and usage-period migrations (exercised by the live registration, quota, enforcement, and audit-log paths on 2026-06-20).
 - [x] Document the PostgreSQL backup and restore procedure.
 - [x] Daily PostgreSQL backups via GitHub Actions `.github/workflows/backup.yml` → S3 (`STANDARD_IA`). Runs at 02:00 UTC, retains 30 days. Requires 5 GitHub secrets: `BACKUP_DATABASE_URL`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_S3_BUCKET`.
@@ -108,7 +108,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify single and batch audit submissions produce equivalent alert-email behavior without duplicate notifications.
 - [x] Add provider delivery-event handling for delivered, bounced, complained, and suppressed messages; expose failures in logs/monitoring without logging message bodies or secrets (implemented 2026-06-21 via `/api/v1/webhooks/resend`).
 - [ ] Define retry and dead-letter behavior for transient email failures so fire-and-forget delivery does not silently lose critical alerts.
-- [ ] Add rate limiting or aggregation for alert-email bursts to prevent inbox flooding during a noisy rule or incident.
+- [x] Add rate limiting or aggregation for alert-email bursts to prevent inbox flooding during a noisy rule or incident (implemented per-org in `alert.service.ts` with `tryConsumeAlertEmailQuota()`; 10 emails per 5-minute window verified locally).
 - [ ] Keep customer prompts/responses, API keys, tokens, and other sensitive payloads out of email subjects and bodies by default.
 - [ ] Add automated tests for welcome, billing, audit-alert, preference, deduplication, and provider-failure paths.
 
