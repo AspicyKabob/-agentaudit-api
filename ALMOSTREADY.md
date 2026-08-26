@@ -57,7 +57,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
 - [x] Run a secret scan across Git history and rotate anything questionable (779 reachable blobs scanned 2026-06-20; only explicit synthetic config-test values matched).
-- [ ] Enable branch protection for `main` with required CI checks and pull-request review (GitHub reported the branch unprotected on 2026-06-21).
+- [x] Enable branch protection for `main` with required CI checks and pull-request review (active GitHub ruleset targets the default branch; required API, Python SDK, and TypeScript SDK checks; force pushes and deletions blocked; verified 2026-08-26).
 
 ### Guardrails, Billing, and Quotas
 
@@ -79,9 +79,9 @@ These items should be complete before announcing the public beta.
 - [x] Public MCP schema endpoint responds successfully.
 - [x] Run `node scripts/smoke-test-live.js https://agentaudit-api-production.up.railway.app` with an intentionally created smoke-test account (passed 2026-06-20).
 - [x] Confirm the smoke test creates a blocking SSN rule and receives `enforcementAction: block`.
-- [ ] Confirm the resulting audit log appears in the dashboard.
-- [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20).
-- [ ] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI.
+- [x] Confirm the resulting audit log appears in the dashboard (`ui_smoke_test` audit ID `6875164e-8131-431b-9fb9-8a6552e1f8ab` visible as clean on 2026-08-26).
+- [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20; UI smoke-test key revoked and rejected with 401 on 2026-08-26).
+- [x] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI (passed on `https://agentaudit.online` on 2026-08-26).
 - [ ] Test dashboard empty, loading, success, and API-error states.
 - [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport.
 
