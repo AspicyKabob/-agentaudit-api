@@ -37,7 +37,7 @@ These items should be complete before announcing the public beta.
 - [x] Billing refuses to start with incomplete or placeholder Stripe configuration.
 - [x] Documentation explains how to generate secrets without committing reusable values.
 - [x] Confirm Railway uses unique production values for `JWT_SECRET` and `API_KEY_SALT` (owner-confirmed 2026-06-20).
-- [x] Confirm `FRONTEND_URL` exactly matches the public application origin (`FRONTEND_URL=https://agentaudit.online` set in Railway; deployed site loads from the same origin).
+- [x] Confirm `FRONTEND_URL` exactly matches the public application origin (`FRONTEND_URL=https://agentaudit.online` in Railway; verified by welcome-email dashboard and features links on 2026-08-26).
 - [x] Confirm all Prisma migrations are applied in production, including enforcement and usage-period migrations (exercised by the live registration, quota, enforcement, and audit-log paths on 2026-06-20).
 - [x] Document the PostgreSQL backup and restore procedure.
 - [x] Daily PostgreSQL backups via GitHub Actions `.github/workflows/backup.yml` → S3 (`STANDARD_IA`). Runs at 02:00 UTC, retains 30 days. Requires 5 GitHub secrets: `BACKUP_DATABASE_URL`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_S3_BUCKET`.
@@ -57,7 +57,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
 - [x] Run a secret scan across Git history and rotate anything questionable (779 reachable blobs scanned 2026-06-20; only explicit synthetic config-test values matched).
-- [ ] Enable branch protection for `main` with required CI checks and pull-request review (GitHub reported the branch unprotected on 2026-06-21).
+- [x] Enable branch protection for `main` with required CI checks and pull-request review (active GitHub ruleset targets the default branch; required API, Python SDK, and TypeScript SDK checks; force pushes and deletions blocked; verified 2026-08-26).
 
 ### Guardrails, Billing, and Quotas
 
@@ -79,11 +79,11 @@ These items should be complete before announcing the public beta.
 - [x] Public MCP schema endpoint responds successfully.
 - [x] Run `node scripts/smoke-test-live.js https://agentaudit-api-production.up.railway.app` with an intentionally created smoke-test account (passed 2026-06-20).
 - [x] Confirm the smoke test creates a blocking SSN rule and receives `enforcementAction: block`.
-- [ ] Confirm the resulting audit log appears in the dashboard.
-- [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20).
-- [ ] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI.
+- [x] Confirm the resulting audit log appears in the dashboard (`ui_smoke_test` audit ID `6875164e-8131-431b-9fb9-8a6552e1f8ab` visible as clean on 2026-08-26).
+- [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20; UI smoke-test key revoked and rejected with 401 on 2026-08-26).
+- [x] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI (passed on `https://agentaudit.online` on 2026-08-26).
 - [ ] Test dashboard empty, loading, success, and API-error states.
-- [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport.
+- [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport (Chrome desktop and agent-browser mobile user-agent attempted on 2026-08-26; Firefox/Safari/mobile viewport touch targets still to verify manually).
 
 ### Legal, Trust, and Customer Expectations
 
@@ -101,7 +101,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify the sending domain in Resend and publish valid SPF, DKIM, and DMARC records (domain `agentaudit.online` verified in Resend after adding Hostinger DNS records).
 - [x] Configure production `RESEND_API_KEY` and `RESEND_FROM_EMAIL` with a verified sender domain; keep credentials only in Railway (verified locally with `RESEND_FROM_EMAIL=AgentAudit <noreply@agentaudit.online>`; must be set in Railway before next deploy).
 - [x] Set and verify a monitored reply-to/support address (`support@agentaudit.online` mailbox active and verified 2026-06-23).
-- [ ] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook.
+- [x] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook (delivered to `tyevans5@outlook.com` and `tyevansmain@gmail.com` on 2026-08-26; links verified to point to `https://agentaudit.online/dashboard.html` and `https://agentaudit.online/features.html`; plain-text fallback and reply behavior still to confirm).
 - [x] Add and test billing emails for subscription activation, plan change, cancellation, successful renewal, failed payment, and recovery after a failed payment (implemented 2026-06-21; dedupe keys prevent retries from duplicating messages).
 - [x] Ensure Stripe webhook retries cannot create duplicate billing emails and every message reflects the committed database state (dedupe keys on `EmailDelivery` + webhook reads committed DB state).
 - [x] Send immediate high/critical audit-alert emails only when the organization's email preference and minimum severity allow them (preferences exist in `Organization` and are toggled from the dashboard; severity threshold is now compared correctly).
