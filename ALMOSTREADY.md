@@ -83,7 +83,7 @@ These items should be complete before announcing the public beta.
 - [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20; UI smoke-test key revoked and rejected with 401 on 2026-08-26).
 - [x] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI (passed on `https://agentaudit.online` on 2026-08-26).
 - [ ] Test dashboard empty, loading, success, and API-error states.
-- [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport.
+- [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport (Chrome desktop and agent-browser mobile user-agent attempted on 2026-08-26; Firefox/Safari/mobile viewport touch targets still to verify manually).
 
 ### Legal, Trust, and Customer Expectations
 
@@ -101,7 +101,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify the sending domain in Resend and publish valid SPF, DKIM, and DMARC records (domain `agentaudit.online` verified in Resend after adding Hostinger DNS records).
 - [x] Configure production `RESEND_API_KEY` and `RESEND_FROM_EMAIL` with a verified sender domain; keep credentials only in Railway (verified locally with `RESEND_FROM_EMAIL=AgentAudit <noreply@agentaudit.online>`; must be set in Railway before next deploy).
 - [x] Set and verify a monitored reply-to/support address (`support@agentaudit.online` mailbox active and verified 2026-06-23).
-- [ ] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook (Outlook delivery verified with `tyevans5@outlook.com` on 2026-08-26; Gmail and remaining rendering/link/reply checks still open).
+- [x] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook (delivered to `tyevans5@outlook.com` and `tyevansmain@gmail.com` on 2026-08-26; links verified to point to `https://agentaudit.online/dashboard.html` and `https://agentaudit.online/features.html`; plain-text fallback and reply behavior still to confirm).
 - [x] Add and test billing emails for subscription activation, plan change, cancellation, successful renewal, failed payment, and recovery after a failed payment (implemented 2026-06-21; dedupe keys prevent retries from duplicating messages).
 - [x] Ensure Stripe webhook retries cannot create duplicate billing emails and every message reflects the committed database state (dedupe keys on `EmailDelivery` + webhook reads committed DB state).
 - [x] Send immediate high/critical audit-alert emails only when the organization's email preference and minimum severity allow them (preferences exist in `Organization` and are toggled from the dashboard; severity threshold is now compared correctly).
