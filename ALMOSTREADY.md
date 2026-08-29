@@ -37,7 +37,7 @@ These items should be complete before announcing the public beta.
 - [x] Billing refuses to start with incomplete or placeholder Stripe configuration.
 - [x] Documentation explains how to generate secrets without committing reusable values.
 - [x] Confirm Railway uses unique production values for `JWT_SECRET` and `API_KEY_SALT` (owner-confirmed 2026-06-20).
-- [ ] Confirm `FRONTEND_URL` exactly matches the public application origin (welcome email generated on 2026-08-26 linked to the Railway domain, indicating the deployed value still needs correction to `https://agentaudit.online`; redeploy and retest).
+- [x] Confirm `FRONTEND_URL` exactly matches the public application origin (`FRONTEND_URL=https://agentaudit.online` in Railway; verified by welcome-email dashboard and features links on 2026-08-26).
 - [x] Confirm all Prisma migrations are applied in production, including enforcement and usage-period migrations (exercised by the live registration, quota, enforcement, and audit-log paths on 2026-06-20).
 - [x] Document the PostgreSQL backup and restore procedure.
 - [x] Daily PostgreSQL backups via GitHub Actions `.github/workflows/backup.yml` → S3 (`STANDARD_IA`). Runs at 02:00 UTC, retains 30 days. Requires 5 GitHub secrets: `BACKUP_DATABASE_URL`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_S3_BUCKET`.
