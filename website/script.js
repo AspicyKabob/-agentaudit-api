@@ -93,27 +93,113 @@ async function apiCall(method, path, body, auth = false, signal = null) {
   return data;
 }
 
+function closeMobileNav() {
+  const mobileNav = document.getElementById('mobile-nav');
+  const toggle = document.getElementById('nav-toggle');
+  if (mobileNav) mobileNav.classList.remove('is-open');
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+}
+
+function initMobileNav() {
+  const nav = document.querySelector('.nav');
+  const navInner = nav?.querySelector('.nav-inner');
+  const navLinks = nav?.querySelector('.nav-links');
+  if (!nav || !navInner) return;
+
+  // Create hamburger toggle
+  const toggle = document.createElement('button');
+  toggle.className = 'nav-toggle';
+  toggle.id = 'nav-toggle';
+  toggle.setAttribute('aria-label', 'Toggle menu');
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>`;
+
+  const navAuth = navInner.querySelector('.nav-auth');
+  if (navAuth) {
+    navInner.insertBefore(toggle, navAuth);
+  } else {
+    navInner.appendChild(toggle);
+  }
+
+  // Create mobile nav drawer
+  const mobileNav = document.createElement('div');
+  mobileNav.className = 'mobile-nav';
+  mobileNav.id = 'mobile-nav';
+  mobileNav.setAttribute('role', 'dialog');
+  mobileNav.setAttribute('aria-label', 'Mobile menu');
+  mobileNav.innerHTML = `<div class="mobile-links" id="mobile-links"></div><div class="mobile-auth" id="mobile-auth"></div>`;
+  nav.appendChild(mobileNav);
+
+  // Populate links from desktop nav
+  const mobileLinks = document.getElementById('mobile-links');
+  if (navLinks && mobileLinks) {
+    mobileLinks.innerHTML = navLinks.innerHTML;
+    mobileLinks.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (!a.getAttribute('href')?.startsWith('#')) {
+          closeMobileNav();
+        }
+      });
+    });
+  }
+
+  toggle.addEventListener('click', () => {
+    const open = mobileNav.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target)) closeMobileNav();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMobileNav();
+  });
+}
+
 function updateNav() {
   const navAuth = document.getElementById('nav-auth');
-  if (!navAuth) return;
+  const mobileAuth = document.getElementById('mobile-auth');
 
-  if (isLoggedIn()) {
-    navAuth.innerHTML = `
-      <a href="/dashboard.html" class="btn btn-glass btn-sm">Dashboard</a>
-      <button class="btn btn-secondary btn-sm" id="nav-logout">Log Out</button>
-    `;
-    document.getElementById('nav-logout')?.addEventListener('click', () => {
-      clearToken();
-      showToast('Logged out', 'info');
-      updateNav();
-    });
-  } else {
-    navAuth.innerHTML = `
-      <a href="#login" class="btn btn-glass btn-sm" id="nav-login">Log In</a>
-      <a href="#signup" class="btn btn-primary btn-sm" id="nav-signup">Get Started</a>
-    `;
-    bindAuthLinks();
+  if (navAuth) {
+    if (isLoggedIn()) {
+      navAuth.innerHTML = `
+        <a href="/dashboard.html" class="btn btn-glass btn-sm">Dashboard</a>
+        <button class="btn btn-secondary btn-sm" id="nav-logout">Log Out</button>
+      `;
+      document.getElementById('nav-logout')?.addEventListener('click', () => {
+        clearToken();
+        showToast('Logged out', 'info');
+        updateNav();
+      });
+    } else {
+      navAuth.innerHTML = `
+        <a href="#login" class="btn btn-glass btn-sm" id="nav-login">Log In</a>
+        <a href="#signup" class="btn btn-primary btn-sm" id="nav-signup">Get Started</a>
+      `;
+    }
   }
+
+  if (mobileAuth) {
+    if (isLoggedIn()) {
+      mobileAuth.innerHTML = `
+        <a href="/dashboard.html" class="btn btn-glass btn-sm">Dashboard</a>
+        <button class="btn btn-secondary btn-sm" id="mobile-logout">Log Out</button>
+      `;
+      document.getElementById('mobile-logout')?.addEventListener('click', () => {
+        clearToken();
+        showToast('Logged out', 'info');
+        updateNav();
+      });
+    } else {
+      mobileAuth.innerHTML = `
+        <a href="#login" class="btn btn-glass btn-sm" id="mobile-login">Log In</a>
+        <a href="#signup" class="btn btn-primary btn-sm" id="mobile-signup">Get Started</a>
+      `;
+    }
+  }
+
+  bindAuthLinks();
 }
 
 const modal = document.getElementById('auth-modal');
@@ -144,15 +230,17 @@ function switchTab(tab) {
 }
 
 function bindAuthLinks() {
-  document.querySelectorAll('#nav-login, a[href="#login"]').forEach(el => {
+  document.querySelectorAll('#nav-login, #mobile-login, a[href="#login"]').forEach(el => {
     el.addEventListener('click', e => {
       e.preventDefault();
+      closeMobileNav();
       openModal('login');
     });
   });
-  document.querySelectorAll('#nav-signup, a[href="#signup"], #cta-signup').forEach(el => {
+  document.querySelectorAll('#nav-signup, #mobile-signup, #cta-signup, a[href="#signup"]').forEach(el => {
     el.addEventListener('click', e => {
       e.preventDefault();
+      closeMobileNav();
       if (isLoggedIn()) {
         window.location.href = '/dashboard.html';
       } else {
@@ -317,6 +405,7 @@ document.querySelectorAll('[data-plan]').forEach(btn => {
     }
   });
 
+  initMobileNav();
   updateNav();
   bindAuthLinks();
 
