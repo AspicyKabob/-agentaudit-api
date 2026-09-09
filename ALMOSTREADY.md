@@ -178,7 +178,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] Define an interim incident owner and a simple public incident communication process.
 - [x] Resolve Dependabot alerts #1 and #2 by eliminating `js-yaml <= 4.1.1` from both `package-lock.json` and `sdk/typescript/package-lock.json` (development scope; patched in `4.2.0`).
 - [x] Verify the `js-yaml` override/upgrade does not regress ESLint, Jest, Istanbul coverage tooling, API tests, or TypeScript SDK tests (verified 2026-06-21; `npm run verify` and SDK audit both clean).
-- [ ] Re-run root and TypeScript SDK dependency audits and confirm GitHub closes both Dependabot alerts without dismissing them as ignored risk.
+- [x] Re-run root and TypeScript SDK dependency audits and confirm GitHub closes both Dependabot alerts without dismissing them as ignored risk (root `npm audit` and `sdk/typescript npm audit` both report 0 vulnerabilities; Dependabot alert #1 and #2 are no longer open; 2026-09-09).
 - [ ] Review any remaining moderate Jest/Istanbul development-only advisories when upstream publishes a non-regressive fix.
 
 ### Repository and Release Hygiene
