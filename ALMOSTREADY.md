@@ -93,7 +93,7 @@ These items should be complete before announcing the public beta.
 - [x] Publish an Acceptable Use Policy covering abusive and unlawful agent activity (added `acceptable-use.html` 2026-06-23).
 - [x] Document what customer data is stored, where it is stored, and the current retention/deletion behavior (added `data-retention.html` 2026-06-23).
 - [x] Provide a customer data-deletion/request process (self-serve `DELETE /api/v1/auth/organization` with password confirmation plus Data Retention & Privacy page instructions; PR #36).
-- [ ] Review the website's “enterprise security” language against actual controls and certifications.
+- [x] Review the website's "enterprise security" language against actual controls and certifications; reworded `website/security.html` to remove "compliance certifications," "automatic security patches," and "no third-party data sharing"; clarified that compliance packs are detection rules, not guarantees; fixed OG URL to `agentaudit.online` (2026-09-09).
 - [ ] Verify `support@agentaudit.online` and `sales@agentaudit.online` receive mail and have an owner.
 
 ### Transactional Email and Critical Alerts
