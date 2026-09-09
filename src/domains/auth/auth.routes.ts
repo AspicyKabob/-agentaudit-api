@@ -8,6 +8,7 @@ import {
   createApiKeySchema,
   revokeApiKeySchema,
   updateProfileSchema,
+  deleteOrganizationSchema,
 } from './auth.types';
 
 const router = Router();
@@ -19,5 +20,6 @@ router.patch('/me', authenticate, validate(updateProfileSchema), authController.
 router.post('/api-keys', authenticate, validate(createApiKeySchema), authController.createApiKey);
 router.get('/api-keys', authenticate, authController.listApiKeys);
 router.delete('/api-keys/:id', authenticate, validate(revokeApiKeySchema), authController.revokeApiKey);
+router.delete('/organization', authenticate, validate(deleteOrganizationSchema), authController.deleteOrganization);
 
 export default router;

@@ -9,7 +9,8 @@ export type EmailType =
   | 'billing-renewal'
   | 'billing-payment-failed'
   | 'billing-payment-recovered'
-  | 'billing-cancelled';
+  | 'billing-cancelled'
+  | 'data-deletion';
 
 export type EmailStatus =
   | 'pending'

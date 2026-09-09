@@ -32,6 +32,12 @@ export type RegisterBody = z.infer<typeof registerSchema>['body'];
 export type LoginBody = z.infer<typeof loginSchema>['body'];
 export type CreateApiKeyBody = z.infer<typeof createApiKeySchema>['body'];
 
+export const deleteOrganizationSchema = z.object({
+  body: z.object({
+    password: z.string().min(1),
+  }),
+});
+
 export const updateProfileSchema = z.object({
   body: z.object({
     webhookUrl: z
@@ -49,3 +55,4 @@ export const updateProfileSchema = z.object({
 });
 
 export type UpdateProfileBody = z.infer<typeof updateProfileSchema>['body'];
+export type DeleteOrganizationBody = z.infer<typeof deleteOrganizationSchema>['body'];

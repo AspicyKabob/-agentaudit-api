@@ -22,6 +22,7 @@ jest.mock('../../src/db/prisma', () => ({
       create: jest.fn(),
       update: jest.fn(),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      delete: jest.fn(),
       deleteMany: jest.fn(),
     },
     agent: {
@@ -72,6 +73,7 @@ jest.mock('../../src/db/prisma', () => ({
       findFirst: jest.fn(),
       update: jest.fn(),
       findMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
   },
 }));
@@ -91,6 +93,7 @@ const mockedPrisma = prisma as unknown as {
   complianceRule: any;
   complianceReport: any;
   alert: any;
+  emailDelivery: any;
 };
 
 describe('Auth Integration', () => {
@@ -170,5 +173,61 @@ describe('Auth Integration', () => {
       name: '',
     });
     expect(res.status).toBe(400);
+  });
+
+  it('should delete the authenticated organization with a valid password', async () => {
+    mockedPrisma.organization.findUnique.mockResolvedValue({
+      id: 'org-1',
+      name: testUser.name,
+      email: testUser.email,
+      password: '$2a$10$mockhash',
+      stripeSubscriptionId: null,
+      stripeCustomerId: null,
+    });
+    mockedPrisma.emailDelivery.deleteMany.mockResolvedValue({ count: 0 });
+    mockedPrisma.organization.delete.mockResolvedValue({ id: 'org-1' });
+
+    const login = await request(app).post('/api/v1/auth/login').send({
+      email: testUser.email,
+      password: testUser.password,
+    });
+    const token = login.body.accessToken;
+    expect(token).toBeDefined();
+
+    const res = await request(app)
+      .delete('/api/v1/auth/organization')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ password: testUser.password });
+
+    expect(res.status).toBe(204);
+    expect(mockedPrisma.emailDelivery.deleteMany).toHaveBeenCalledWith({ where: { organizationId: 'org-1' } });
+    expect(mockedPrisma.organization.delete).toHaveBeenCalledWith({ where: { id: 'org-1' } });
+  });
+
+  it('should reject organization deletion with an invalid password', async () => {
+    const bcryptMock = jest.requireMock('bcryptjs');
+    bcryptMock.compare.mockResolvedValueOnce(false);
+
+    mockedPrisma.organization.findUnique.mockResolvedValue({
+      id: 'org-1',
+      name: testUser.name,
+      email: testUser.email,
+      password: '$2a$10$mockhash',
+      stripeSubscriptionId: null,
+      stripeCustomerId: null,
+    });
+
+    const login = await request(app).post('/api/v1/auth/login').send({
+      email: testUser.email,
+      password: testUser.password,
+    });
+    const token = login.body.accessToken;
+
+    const res = await request(app)
+      .delete('/api/v1/auth/organization')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ password: 'WrongPassword123' });
+
+    expect(res.status).toBe(401);
   });
 });
