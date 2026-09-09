@@ -71,7 +71,7 @@ These items should be complete before announcing the public beta.
 - [ ] If billing is enabled, verify live Stripe products and price IDs match the published pricing.
 - [ ] **Final launch pass:** If billing is enabled, complete a fresh Stripe sandbox checkout, webhook, plan-change, cancellation, and failed-payment test.
 - [ ] If billing is disabled, remove or clearly disable checkout calls-to-action for beta.
-- [ ] Verify quota behavior against the production database under concurrent requests.
+- [x] Verify quota behavior against the production database under concurrent requests (10 concurrent `POST /api/v1/audit-logs` on a free-plan test org; all returned 201 in 261ms, `apiUsed` and `totalLogs` both exactly 10, no double-counting or 500s; account deleted after 2026-09-09).
 
 ### Live End-to-End Verification
 
