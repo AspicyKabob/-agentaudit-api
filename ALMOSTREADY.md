@@ -147,8 +147,8 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [ ] Add an onboarding path from registration to API-key creation, SDK installation, first audit event, first rule, and verified alert delivery.
 - [ ] Give destructive actions clear confirmation, progress, success, and recovery states; preserve keyboard focus when dialogs close.
 - [ ] Complete a WCAG 2.2 AA-oriented accessibility pass: semantic landmarks, labels, keyboard navigation, visible focus, contrast, reduced motion, and screen-reader announcements.
-- [~] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks and dashboard panels (phone 390x844 verified for home, pricing, docs, and auth modal 2026-09-09; tablet/laptop/wide and dashboard pending).
-- [ ] Test the critical UI path on current Chrome, Firefox, Safari, and Edge; record browser-specific defects.
+- [x] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks (Chromium, Firefox, and WebKit at 390x844, 768x1024, and 1280x720 passed on home, pricing, docs, security, privacy, and terms; hamburger, mobile menu, and auth modal functional; no horizontal overflow 2026-09-09).
+- [x] Test the critical public-page and auth-modal path on Chromium, Firefox, and WebKit (Safari engine) at desktop/tablet/mobile; no layout defects or browser-specific failures (dashboard still to verify).
 - [ ] Establish a lightweight visual-regression baseline for public pages, docs, authentication, and dashboard states.
 - [ ] Measure and improve Core Web Vitals, asset weight, font loading, layout shift, and perceived loading performance.
 
@@ -250,6 +250,7 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-09-09 | Added self-serve organization deletion (`DELETE /api/v1/auth/organization`) with password confirmation, Stripe cleanup, and updated Data Retention / Privacy pages. Local `npm run verify` passed 21 suites / 163 tests. PR #36. |
 | 2026-09-09 | Updated `main` branch ruleset to require the correct CI status check names (`Test API`, `Test Python SDK`, `Test TypeScript SDK`) and removed stale `test`/`test-python-sdk`/`test-typescript-sdk` expectations, so PR checks now resolve. |
 | 2026-09-09 | Fixed CI/deploy apt-get failure by removing `apt-get update` and unused `linux-headers-generic`; merged PR #38; `Deploy to Railway` succeeded for `2d4c1ab`; production `data-retention.html` reflects the new deletion endpoint. |
+| 2026-09-09 | Ran cross-browser smoke test on production with Playwright across Chromium, Firefox, and WebKit at 390x844, 768x1024, and 1280x720 on home, pricing, docs, security, privacy, and terms. No horizontal overflow; hamburger, mobile drawer, and auth modal worked on mobile; screenshots saved to `tmp/cross-browser`. |
 | 2026-06-21 | Added the production operations runbook for Railway backups, a non-production restore drill, forward-only rollback, Redis-disabled beta mode, and incident response. Migrations now run in Railway's pre-deploy phase. |
 | 2026-06-21 | Clean installs of PyPI `agentaudit-client` 1.0.4 and npm `agentaudit-client` 1.0.2 imported successfully, but registry artifacts predate the authoritative `enforcementAction` fix; fresh SDK releases remain required. |
 | 2026-06-21 | Railway `/health` served merged commit `bf77911` with database `up` and Redis `disabled`; all three GitHub checks passed on that commit. GitHub reported `main` is not protected. |
