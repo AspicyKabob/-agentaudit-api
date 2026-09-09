@@ -110,7 +110,7 @@ These items should be complete before announcing the public beta.
 - [ ] Define retry and dead-letter behavior for transient email failures so fire-and-forget delivery does not silently lose critical alerts.
 - [x] Add rate limiting or aggregation for alert-email bursts to prevent inbox flooding during a noisy rule or incident (implemented per-org in `alert.service.ts` with `tryConsumeAlertEmailQuota()`; 10 emails per 5-minute window verified locally).
 - [ ] Keep customer prompts/responses, API keys, tokens, and other sensitive payloads out of email subjects and bodies by default.
-- [ ] Add automated tests for welcome, billing, audit-alert, preference, deduplication, and provider-failure paths.
+- [x] Add automated tests for welcome, billing, audit-alert, preference, deduplication, and provider-failure paths (unit tests added for welcome, alert, billing activation, duplicate suppression, Resend error handling, and skipped-sending path; `npm run verify` passes 22 suites / 166 tests; PR #37).
 
 ## P1: Beta Polish and Developer Experience
 
@@ -247,6 +247,7 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-20 | Redacted Git-history scan covered 779 reachable blobs; the only secret-pattern matches were explicit synthetic JWT/salt fixtures in `tests/unit/config.test.ts`. |
 | 2026-06-20 | Public-link audit replaced a dead Railway template and unresolved docs domain with working guides, removed an invalid Discord invite, and fixed the final GitHub clone placeholder. |
 | 2026-06-20 | Added an Unreleased changelog entry for launch hardening, tenant isolation, security regressions, and public documentation cleanup. |
+| 2026-09-09 | Added email service unit tests covering welcome, alert, billing activation, duplicate suppression, Resend errors, and skipped sending. Local `npm run verify` passed 22 suites / 166 tests. PR #37. |
 | 2026-06-21 | Added the production operations runbook for Railway backups, a non-production restore drill, forward-only rollback, Redis-disabled beta mode, and incident response. Migrations now run in Railway's pre-deploy phase. |
 | 2026-06-21 | Clean installs of PyPI `agentaudit-client` 1.0.4 and npm `agentaudit-client` 1.0.2 imported successfully, but registry artifacts predate the authoritative `enforcementAction` fix; fresh SDK releases remain required. |
 | 2026-06-21 | Railway `/health` served merged commit `bf77911` with database `up` and Redis `disabled`; all three GitHub checks passed on that commit. GitHub reported `main` is not protected. |
