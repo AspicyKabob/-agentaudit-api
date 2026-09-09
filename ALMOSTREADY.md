@@ -52,7 +52,7 @@ These items should be complete before announcing the public beta.
 - [x] API keys are stored as keyed hashes and raw values are shown only once.
 - [x] Unexpected 5xx responses hide internal details and include a request ID.
 - [x] Request IDs are emitted in logs and response headers.
-- [x] High- and critical-severity npm audit findings are cleared (root and `sdk/typescript` audited clean; Dependabot alerts resolved 2026-08-12).
+- [-] High- and critical-severity npm audit findings are cleared (root and `sdk/typescript` audited clean 2026-08-12; GitHub reported 4 Dependabot alerts (2 high, 2 moderate) on default branch on 2026-09-09 — investigating).
 - [x] Perform an endpoint-by-endpoint tenant-isolation/IDOR review using two organizations.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
@@ -83,7 +83,7 @@ These items should be complete before announcing the public beta.
 - [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20; UI smoke-test key revoked and rejected with 401 on 2026-08-26).
 - [x] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI (passed on `https://agentaudit.online` on 2026-08-26).
 - [ ] Test dashboard empty, loading, success, and API-error states.
-- [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport (Chrome desktop and agent-browser mobile user-agent attempted on 2026-08-26; Firefox/Safari/mobile viewport touch targets still to verify manually).
+- [x] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport (Chrome desktop and agent-browser mobile viewport 390x844 passed 2026-09-09; hamburger nav, auth modal, home, pricing, and docs all fit without horizontal overflow; Firefox/Safari still to verify).
 
 ### Legal, Trust, and Customer Expectations
 
@@ -147,7 +147,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [ ] Add an onboarding path from registration to API-key creation, SDK installation, first audit event, first rule, and verified alert delivery.
 - [ ] Give destructive actions clear confirmation, progress, success, and recovery states; preserve keyboard focus when dialogs close.
 - [ ] Complete a WCAG 2.2 AA-oriented accessibility pass: semantic landmarks, labels, keyboard navigation, visible focus, contrast, reduced motion, and screen-reader announcements.
-- [ ] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks and dashboard panels.
+- [~] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks and dashboard panels (phone 390x844 verified for home, pricing, docs, and auth modal 2026-09-09; tablet/laptop/wide and dashboard pending).
 - [ ] Test the critical UI path on current Chrome, Firefox, Safari, and Edge; record browser-specific defects.
 - [ ] Establish a lightweight visual-regression baseline for public pages, docs, authentication, and dashboard states.
 - [ ] Measure and improve Core Web Vitals, asset weight, font loading, layout shift, and perceived loading performance.
@@ -259,3 +259,5 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-21 | Resend domain `agentaudit.online` verified in Hostinger DNS; local smoke test with `RESEND_API_KEY` confirmed welcome and audit-alert emails are accepted by Resend and tracked as `sent` in the `EmailDelivery` table. |
 | 2026-06-23 | Production body-parser fix merged; login, dashboard notification toggles, and Resend alert delivery verified against the live deployment. Support mailbox `support@agentaudit.online` confirmed working. |
 | 2026-06-23 | Added legal pages (`privacy.html`, `terms.html`, `acceptable-use.html`, `data-retention.html`) and linked them from the footer of every public page. Updated billing mode to paid beta and release tag to `beta`. |
+|| 2026-09-09 | Mobile/responsive pass with agent-browser at 390x844: fixed `.nav-toggle` cascade so the hamburger appears, hid the empty GitHub icon link from the mobile menu, tightened hero title/subtitle wrapping, and added a docs mobile breakpoint for the sidebar, code blocks, endpoint rows, and tables. Home, pricing, docs, and auth modal no longer overflow horizontally. |
+|| 2026-09-09 | GitHub reported 4 Dependabot alerts (2 high, 2 moderate) on `main` after push; investigating and addressing before launch. |
