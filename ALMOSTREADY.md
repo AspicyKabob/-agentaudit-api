@@ -82,7 +82,7 @@ These items should be complete before announcing the public beta.
 - [x] Confirm the resulting audit log appears in the dashboard (`ui_smoke_test` audit ID `6875164e-8131-431b-9fb9-8a6552e1f8ab` visible as clean on 2026-08-26).
 - [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20; UI smoke-test key revoked and rejected with 401 on 2026-08-26).
 - [x] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI (passed on `https://agentaudit.online` on 2026-08-26).
-- [ ] Test dashboard empty, loading, success, and API-error states.
+- [x] Test dashboard empty, loading, success, and API-error states (Playwright smoke test on Chromium 1280x720; created a throwaway org, captured loading, empty, API-error with `/api/v1/auth/me` blocked, and success with one API key; screenshots saved to `tmp/dashboard-*.png`; account deleted after test 2026-09-09).
 - [x] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport (Chrome desktop and agent-browser mobile viewport 390x844 passed 2026-09-09; hamburger nav, auth modal, home, pricing, and docs all fit without horizontal overflow; Firefox/Safari still to verify).
 
 ### Legal, Trust, and Customer Expectations
