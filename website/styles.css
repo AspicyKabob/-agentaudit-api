@@ -279,6 +279,8 @@ body::after {
   letter-spacing: -0.02em;
   margin-bottom: 32px;
   color: var(--text);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .gradient-text {
@@ -293,6 +295,7 @@ body::after {
   color: var(--text-secondary);
   max-width: 520px;
   margin-bottom: 48px;
+  overflow-wrap: break-word;
 }
 
 .hero-cta {
@@ -1761,6 +1764,10 @@ body::after {
   }
 }
 
+.nav-toggle {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .nav-toggle {
     display: flex;
@@ -1824,6 +1831,20 @@ body::after {
   pre, code {
     white-space: pre-wrap;
     word-break: break-word;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: clamp(2rem, 9vw, 2.5rem);
+    letter-spacing: -0.01em;
+  }
+  .hero-subtitle {
+    font-size: 13px;
+    max-width: none;
+  }
+  .hero {
+    padding: 100px 0 40px;
   }
 }
 
@@ -1962,7 +1983,6 @@ body::after {
 
 /* ─── Mobile Navigation ─────────────────────────────────────────── */
 .nav-toggle {
-  display: none;
   background: none;
   border: none;
   color: var(--text);
@@ -2017,4 +2037,8 @@ body::after {
 .mobile-nav .mobile-auth .btn {
   width: 100%;
   justify-content: center;
+}
+
+.mobile-nav .nav-icon {
+  display: none !important;
 }
