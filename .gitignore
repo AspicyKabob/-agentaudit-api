@@ -23,6 +23,9 @@ Thumbs.db
 log*.json
 seed*.json
 seed-key.json
+*.sql.gz
+backups/
+tmp/
 
 # Python
 __pycache__/
