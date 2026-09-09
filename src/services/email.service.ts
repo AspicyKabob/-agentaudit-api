@@ -266,6 +266,29 @@ export const emailService = {
     });
   },
 
+  async sendDeletionConfirmation(to: string, name: string, organizationId?: string): Promise<{ id?: string; error?: string; deliveryId?: string }> {
+    return this.send({
+      to,
+      type: 'data-deletion',
+      organizationId,
+      subject: 'Your AgentAudit account and data have been deleted',
+      html: `
+        <div style="font-family:Inter,system-ui,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
+          <div style="background:#0c0c0c;color:#fafaf9;padding:32px 24px;text-align:center;border-radius:8px 8px 0 0">
+            <h1 style="margin:0;font-size:24px;font-weight:800">Account Deleted</h1>
+          </div>
+          <div style="border:1px solid #e5e5e5;border-top:none;padding:32px 24px;border-radius:0 0 8px 8px">
+            <p>Hi ${name},</p>
+            <p>Your AgentAudit account and all associated data have been permanently deleted as requested. This includes audit logs, API keys, policies, rules, reports, and alerts.</p>
+            <p style="margin:24px 0 0">If you did not request this deletion, contact <a href="mailto:${getSupportEmailAddress()}">${getSupportEmailAddress()}</a> immediately.</p>
+            <p style="margin:12px 0 0;font-size:12px;color:#78716c">Need help? Contact <a href="mailto:${getSupportEmailAddress()}">${getSupportEmailAddress()}</a>.</p>
+          </div>
+        </div>
+      `,
+      text: `Hi ${name},\n\nYour AgentAudit account and all associated data have been permanently deleted as requested. This includes audit logs, API keys, policies, rules, reports, and alerts.\n\nIf you did not request this deletion, contact ${getSupportEmailAddress()} immediately.`,
+    });
+  },
+
   _billingHtml(title: string, body: string, dashboardUrl: string): string {
     return `
       <div style="font-family:Inter,system-ui,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">

@@ -4,6 +4,7 @@ import { signAccessToken, signRefreshToken } from '../../utils/token';
 import { generateApiKey, hashApiKey } from '../../utils/apiKey';
 import { emailService } from '../../services/email.service';
 import { logger } from '../../utils/logger';
+import { stripe } from '../../utils/stripe';
 
 export const authService = {
   async register(name: string, email: string, password: string) {
@@ -132,5 +133,46 @@ export const authService = {
         notifyMinSeverity: true,
       },
     });
+  },
+
+  async deleteOrganization(organizationId: string, password: string) {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new Error('Organization not found');
+    }
+
+    const valid = await comparePassword(password, organization.password);
+    if (!valid) {
+      throw new Error('Invalid password');
+    }
+
+    const { email, name, stripeSubscriptionId, stripeCustomerId } = organization;
+
+    try {
+      if (stripeSubscriptionId && stripe) {
+        await stripe.subscriptions.cancel(stripeSubscriptionId);
+        logger.info({ organizationId, stripeSubscriptionId }, 'Stripe subscription canceled');
+      }
+      if (stripeCustomerId && stripe) {
+        await stripe.customers.del(stripeCustomerId);
+        logger.info({ organizationId, stripeCustomerId }, 'Stripe customer deleted');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.warn({ organizationId, error: message }, 'Stripe cleanup failed during account deletion');
+    }
+
+    await prisma.emailDelivery.deleteMany({ where: { organizationId } });
+
+    await prisma.organization.delete({ where: { id: organizationId } });
+
+    emailService.sendDeletionConfirmation(email, name, organizationId).catch((err) => {
+      logger.warn({ organizationId, error: err?.message || String(err) }, 'Deletion confirmation email failed');
+    });
+
+    return { deleted: true };
   },
 };

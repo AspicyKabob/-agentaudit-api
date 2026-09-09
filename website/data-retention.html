@@ -78,8 +78,16 @@
       <p>PostgreSQL backups are retained for up to 30 days. If your account is deleted, your data may remain in backups for the remainder of that backup window.</p>
 
       <h2 id="deletion">How to request deletion</h2>
-      <p>To delete your account and all associated data, email us at <a href="mailto:support@agentaudit.online">support@agentaudit.online</a> from the email address associated with your account. Include your organization name and the email address you registered with.</p>
-      <p>We will confirm the request, delete the data within 30 days, and notify you when deletion is complete. Deletion removes your organization, audit logs, alerts, compliance rules, API keys, and billing records from the active database.</p>
+      <h3>Self-serve deletion</h3>
+      <p>You can delete your account and all associated data at any time from the <a href="/dashboard.html">dashboard</a> (look for <strong>Delete Account</strong> in your organization settings) or by calling the API directly:</p>
+      <pre><code>DELETE /api/v1/auth/organization
+Authorization: Bearer &lt;your-jwt&gt;
+Content-Type: application/json
+
+{ "password": "your-account-password" }</code></pre>
+      <p>This permanently removes your organization, API keys, agents, audit logs, policies, compliance rules, reports, alerts, and email delivery records from the active database. Any active Stripe subscription is canceled and the Stripe customer record is removed when billing is configured.</p>
+      <h3>Email request</h3>
+      <p>You can also request deletion by emailing us at <a href="mailto:support@agentaudit.online">support@agentaudit.online</a> from the email address associated with your account. We will confirm the request, delete the data within 30 days, and notify you when deletion is complete.</p>
 
       <h2 id="exceptions">Exceptions</h2>
       <p>We may retain data beyond the standard periods if:</p>

@@ -74,4 +74,12 @@ export const authController = {
     logger.info({ organizationId, apiKeyId: id }, 'API key revoked');
     res.status(204).send();
   }),
+
+  deleteOrganization: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { password } = req.body;
+    await authService.deleteOrganization(organizationId, password);
+    logger.info({ organizationId }, 'Organization deleted');
+    res.status(204).send();
+  }),
 };

@@ -253,6 +253,33 @@ export const swaggerSpec = {
         },
       },
     },
+    '/auth/organization': {
+      delete: {
+        tags: ['Auth'],
+        summary: 'Delete the organization and all its data',
+        description: 'Permanently deletes the authenticated organization, its API keys, agents, audit logs, policies, rules, reports, and alerts. Requires the account password. Any active Stripe subscription is canceled and the customer record is removed when billing is configured.',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['password'],
+                properties: {
+                  password: { type: 'string', description: 'Current account password', example: 'correct-horse-battery-staple' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '204': { description: 'Organization and data deleted' },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Unauthorized or invalid password' },
+        },
+      },
+    },
 
     // ── Agents ─────────────────────────────────────────────────────────
     '/agents': {
