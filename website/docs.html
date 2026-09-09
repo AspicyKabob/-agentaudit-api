@@ -402,6 +402,33 @@
       .docs-sidebar-group { margin-bottom: 16px; min-width: 140px; }
       .docs-content { padding: 32px 0 80px; }
     }
+
+    @media (max-width: 768px) {
+      .docs-hero { padding: 40px 0 24px; }
+      .docs-hero h1 { font-size: clamp(2rem, 9vw, 2.75rem); }
+      .docs-hero p { font-size: 13px; }
+      .docs-hero-meta { flex-direction: column; gap: 6px; align-items: flex-start; }
+
+      .docs-layout { grid-template-columns: minmax(0, 1fr); }
+      .docs-sidebar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; padding: 16px 0; min-width: 0; }
+      .docs-sidebar-group { min-width: 0; margin-bottom: 0; }
+      .docs-sidebar a,
+      .docs-sidebar-label { padding-left: 0; margin-left: 0; border-left: none; word-break: break-word; overflow-wrap: anywhere; }
+
+      .docs-content { padding: 20px 0 60px; max-width: 100%; min-width: 0; }
+      .docs-section h2 { font-size: clamp(1.5rem, 6vw, 2rem); }
+
+      .code-block pre,
+      .tab-panel pre { white-space: pre-wrap; word-break: break-word; }
+      .tab-bar { flex-wrap: wrap; }
+
+      .endpoint-row { flex-wrap: wrap; gap: 4px; }
+      .endpoint-row .desc { margin-left: 0; width: 100%; }
+
+      .param-table { table-layout: fixed; width: 100%; }
+      .param-table th,
+      .param-table td { word-break: break-word; overflow-wrap: anywhere; }
+    }
   </style>
 </head>
 <body>

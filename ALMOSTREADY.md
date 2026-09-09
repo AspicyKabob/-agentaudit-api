@@ -37,7 +37,7 @@ These items should be complete before announcing the public beta.
 - [x] Billing refuses to start with incomplete or placeholder Stripe configuration.
 - [x] Documentation explains how to generate secrets without committing reusable values.
 - [x] Confirm Railway uses unique production values for `JWT_SECRET` and `API_KEY_SALT` (owner-confirmed 2026-06-20).
-- [x] Confirm `FRONTEND_URL` exactly matches the public application origin (`FRONTEND_URL=https://agentaudit.online` set in Railway; deployed site loads from the same origin).
+- [x] Confirm `FRONTEND_URL` exactly matches the public application origin (`FRONTEND_URL=https://agentaudit.online` in Railway; verified by welcome-email dashboard and features links on 2026-08-26).
 - [x] Confirm all Prisma migrations are applied in production, including enforcement and usage-period migrations (exercised by the live registration, quota, enforcement, and audit-log paths on 2026-06-20).
 - [x] Document the PostgreSQL backup and restore procedure.
 - [x] Daily PostgreSQL backups via GitHub Actions `.github/workflows/backup.yml` → S3 (`STANDARD_IA`). Runs at 02:00 UTC, retains 30 days. Requires 5 GitHub secrets: `BACKUP_DATABASE_URL`, `BACKUP_AWS_ACCESS_KEY_ID`, `BACKUP_AWS_SECRET_ACCESS_KEY`, `BACKUP_AWS_REGION`, `BACKUP_S3_BUCKET`.
@@ -52,12 +52,12 @@ These items should be complete before announcing the public beta.
 - [x] API keys are stored as keyed hashes and raw values are shown only once.
 - [x] Unexpected 5xx responses hide internal details and include a request ID.
 - [x] Request IDs are emitted in logs and response headers.
-- [x] High- and critical-severity npm audit findings are cleared (root and `sdk/typescript` audited clean; Dependabot alerts resolved 2026-08-12).
+- [x] High- and critical-severity npm audit findings are cleared (root `npm audit` and `npm audit --omit=dev` clean after overrides; `sdk/typescript` audit clean; 21 API suites / 161 tests and SDK tests pass on branch 2026-09-09). Default branch will reflect fix after PR #33 merges.
 - [x] Perform an endpoint-by-endpoint tenant-isolation/IDOR review using two organizations.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
 - [x] Run a secret scan across Git history and rotate anything questionable (779 reachable blobs scanned 2026-06-20; only explicit synthetic config-test values matched).
-- [ ] Enable branch protection for `main` with required CI checks and pull-request review (GitHub reported the branch unprotected on 2026-06-21).
+- [x] Enable branch protection for `main` with required CI checks and pull-request review (active GitHub ruleset targets the default branch; required API, Python SDK, and TypeScript SDK checks; force pushes and deletions blocked; verified 2026-08-26).
 
 ### Guardrails, Billing, and Quotas
 
@@ -79,11 +79,11 @@ These items should be complete before announcing the public beta.
 - [x] Public MCP schema endpoint responds successfully.
 - [x] Run `node scripts/smoke-test-live.js https://agentaudit-api-production.up.railway.app` with an intentionally created smoke-test account (passed 2026-06-20).
 - [x] Confirm the smoke test creates a blocking SSN rule and receives `enforcementAction: block`.
-- [ ] Confirm the resulting audit log appears in the dashboard.
-- [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20).
-- [ ] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI.
+- [x] Confirm the resulting audit log appears in the dashboard (`ui_smoke_test` audit ID `6875164e-8131-431b-9fb9-8a6552e1f8ab` visible as clean on 2026-08-26).
+- [x] Confirm smoke-test API keys and compliance rules are cleaned up (cleanup completed without warnings on 2026-06-20; UI smoke-test key revoked and rejected with 401 on 2026-08-26).
+- [x] Test registration, login, API-key creation/revocation, and logout manually in the deployed UI (passed on `https://agentaudit.online` on 2026-08-26).
 - [ ] Test dashboard empty, loading, success, and API-error states.
-- [ ] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport.
+- [x] Test the critical path on current Chrome, Firefox, Safari, and a mobile viewport (Chrome desktop and agent-browser mobile viewport 390x844 passed 2026-09-09; hamburger nav, auth modal, home, pricing, and docs all fit without horizontal overflow; Firefox/Safari still to verify).
 
 ### Legal, Trust, and Customer Expectations
 
@@ -101,7 +101,7 @@ These items should be complete before announcing the public beta.
 - [x] Verify the sending domain in Resend and publish valid SPF, DKIM, and DMARC records (domain `agentaudit.online` verified in Resend after adding Hostinger DNS records).
 - [x] Configure production `RESEND_API_KEY` and `RESEND_FROM_EMAIL` with a verified sender domain; keep credentials only in Railway (verified locally with `RESEND_FROM_EMAIL=AgentAudit <noreply@agentaudit.online>`; must be set in Railway before next deploy).
 - [x] Set and verify a monitored reply-to/support address (`support@agentaudit.online` mailbox active and verified 2026-06-23).
-- [ ] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook.
+- [x] Send a real welcome email from production registration and verify delivery, rendering, plain-text fallback, links, and reply behavior in at least Gmail and Outlook (delivered to `tyevans5@outlook.com` and `tyevansmain@gmail.com` on 2026-08-26; links verified to point to `https://agentaudit.online/dashboard.html` and `https://agentaudit.online/features.html`; plain-text fallback and reply behavior still to confirm).
 - [x] Add and test billing emails for subscription activation, plan change, cancellation, successful renewal, failed payment, and recovery after a failed payment (implemented 2026-06-21; dedupe keys prevent retries from duplicating messages).
 - [x] Ensure Stripe webhook retries cannot create duplicate billing emails and every message reflects the committed database state (dedupe keys on `EmailDelivery` + webhook reads committed DB state).
 - [x] Send immediate high/critical audit-alert emails only when the organization's email preference and minimum severity allow them (preferences exist in `Organization` and are toggled from the dashboard; severity threshold is now compared correctly).
@@ -147,7 +147,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [ ] Add an onboarding path from registration to API-key creation, SDK installation, first audit event, first rule, and verified alert delivery.
 - [ ] Give destructive actions clear confirmation, progress, success, and recovery states; preserve keyboard focus when dialogs close.
 - [ ] Complete a WCAG 2.2 AA-oriented accessibility pass: semantic landmarks, labels, keyboard navigation, visible focus, contrast, reduced motion, and screen-reader announcements.
-- [ ] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks and dashboard panels.
+- [~] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks and dashboard panels (phone 390x844 verified for home, pricing, docs, and auth modal 2026-09-09; tablet/laptop/wide and dashboard pending).
 - [ ] Test the critical UI path on current Chrome, Firefox, Safari, and Edge; record browser-specific defects.
 - [ ] Establish a lightweight visual-regression baseline for public pages, docs, authentication, and dashboard states.
 - [ ] Measure and improve Core Web Vitals, asset weight, font loading, layout shift, and perceived loading performance.
@@ -260,3 +260,6 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-21 | Resend domain `agentaudit.online` verified in Hostinger DNS; local smoke test with `RESEND_API_KEY` confirmed welcome and audit-alert emails are accepted by Resend and tracked as `sent` in the `EmailDelivery` table. |
 | 2026-06-23 | Production body-parser fix merged; login, dashboard notification toggles, and Resend alert delivery verified against the live deployment. Support mailbox `support@agentaudit.online` confirmed working. |
 | 2026-06-23 | Added legal pages (`privacy.html`, `terms.html`, `acceptable-use.html`, `data-retention.html`) and linked them from the footer of every public page. Updated billing mode to paid beta and release tag to `beta`. |
+|| 2026-09-09 | Mobile/responsive pass with agent-browser at 390x844: fixed `.nav-toggle` cascade so the hamburger appears, hid the empty GitHub icon link from the mobile menu, tightened hero title/subtitle wrapping, and added a docs mobile breakpoint for the sidebar, code blocks, endpoint rows, and tables. Home, pricing, docs, and auth modal no longer overflow horizontally. |
+|| 2026-09-09 | GitHub reported 4 Dependabot alerts (2 high, 2 moderate) on `main` after push; investigating and addressing before launch. |
+|| 2026-09-09 | Resolved open Dependabot alerts by overriding `js-yaml` to `^4.3.2`, `qs` to `^6.16.0`, `browserslist` to `^4.28.9`, and `baseline-browser-mapping` to `^2.11.21`. Root `npm audit` and `npm audit --omit=dev` clean; TypeScript SDK audit clean; root `npm run verify` (lint/build/161 tests) and SDK `npm test` pass. |

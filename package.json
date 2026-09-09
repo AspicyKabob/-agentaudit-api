@@ -58,7 +58,10 @@
     "zod": "^3.22.4"
   },
   "overrides": {
-    "js-yaml": "^4.2.0"
+    "js-yaml": "^4.3.2",
+    "qs": "^6.16.0",
+    "browserslist": "^4.28.9",
+    "baseline-browser-mapping": "^2.11.21"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.4.5",
