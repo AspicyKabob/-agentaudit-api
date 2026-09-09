@@ -52,7 +52,7 @@ These items should be complete before announcing the public beta.
 - [x] API keys are stored as keyed hashes and raw values are shown only once.
 - [x] Unexpected 5xx responses hide internal details and include a request ID.
 - [x] Request IDs are emitted in logs and response headers.
-- [-] High- and critical-severity npm audit findings are cleared (root and `sdk/typescript` audited clean 2026-08-12; GitHub reported 4 Dependabot alerts (2 high, 2 moderate) on default branch on 2026-09-09 — investigating).
+- [x] High- and critical-severity npm audit findings are cleared (root `npm audit` and `npm audit --omit=dev` clean after overrides; `sdk/typescript` audit clean; 21 API suites / 161 tests and SDK tests pass on branch 2026-09-09). Default branch will reflect fix after PR #33 merges.
 - [x] Perform an endpoint-by-endpoint tenant-isolation/IDOR review using two organizations.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
@@ -261,3 +261,4 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-23 | Added legal pages (`privacy.html`, `terms.html`, `acceptable-use.html`, `data-retention.html`) and linked them from the footer of every public page. Updated billing mode to paid beta and release tag to `beta`. |
 || 2026-09-09 | Mobile/responsive pass with agent-browser at 390x844: fixed `.nav-toggle` cascade so the hamburger appears, hid the empty GitHub icon link from the mobile menu, tightened hero title/subtitle wrapping, and added a docs mobile breakpoint for the sidebar, code blocks, endpoint rows, and tables. Home, pricing, docs, and auth modal no longer overflow horizontally. |
 || 2026-09-09 | GitHub reported 4 Dependabot alerts (2 high, 2 moderate) on `main` after push; investigating and addressing before launch. |
+|| 2026-09-09 | Resolved open Dependabot alerts by overriding `js-yaml` to `^4.3.2`, `qs` to `^6.16.0`, `browserslist` to `^4.28.9`, and `baseline-browser-mapping` to `^2.11.21`. Root `npm audit` and `npm audit --omit=dev` clean; TypeScript SDK audit clean; root `npm run verify` (lint/build/161 tests) and SDK `npm test` pass. |
