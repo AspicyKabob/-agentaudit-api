@@ -19,7 +19,7 @@ This is the living source of truth for launching AgentAudit as a public develope
 
 ## Current Snapshot
 
-- [x] Public API is deployed from current `main` commit `dc22142` (verified 2026-06-23).
+- [x] Public API is deployed from current `main` commit `2d4c1ab` (verified 2026-09-09; production `data-retention.html` contains the new self-serve deletion snippet).
 - [x] `/health` reports `status: ok` and database `up` (verified 2026-06-21).
 - [x] `/mcp/v1/schema` responds successfully (verified 2026-06-20).
 - [x] API, Python SDK, and TypeScript SDK CI jobs pass on `main`.
@@ -223,7 +223,7 @@ These are important, but they do not block a carefully labeled developer beta.
 | Field | Value |
 |---|---|
 | Release tag | `beta` |
-| Deployed commit | `dc22142` (verified 2026-06-23) |
+| Deployed commit | `2d4c1ab` (deployed 2026-09-09; Railway `/health` active but `commit` reads `unknown` because `RAILWAY_GIT_COMMIT_SHA` is not set by the GitHub Actions deploy) |
 | Launch date/time | Not set |
 | Launch operator | Not set |
 | Billing mode | Paid beta — Stripe enabled |
@@ -248,7 +248,8 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-06-20 | Public-link audit replaced a dead Railway template and unresolved docs domain with working guides, removed an invalid Discord invite, and fixed the final GitHub clone placeholder. |
 | 2026-06-20 | Added an Unreleased changelog entry for launch hardening, tenant isolation, security regressions, and public documentation cleanup. |
 | 2026-09-09 | Added self-serve organization deletion (`DELETE /api/v1/auth/organization`) with password confirmation, Stripe cleanup, and updated Data Retention / Privacy pages. Local `npm run verify` passed 21 suites / 163 tests. PR #36. |
-| 2026-09-09 | Added email service unit tests covering welcome, alert, billing activation, duplicate suppression, Resend errors, and skipped sending. Local `npm run verify` passed 22 suites / 166 tests. PR #37. |
+| 2026-09-09 | Updated `main` branch ruleset to require the correct CI status check names (`Test API`, `Test Python SDK`, `Test TypeScript SDK`) and removed stale `test`/`test-python-sdk`/`test-typescript-sdk` expectations, so PR checks now resolve. |
+| 2026-09-09 | Fixed CI/deploy apt-get failure by removing `apt-get update` and unused `linux-headers-generic`; merged PR #38; `Deploy to Railway` succeeded for `2d4c1ab`; production `data-retention.html` reflects the new deletion endpoint. |
 | 2026-06-21 | Added the production operations runbook for Railway backups, a non-production restore drill, forward-only rollback, Redis-disabled beta mode, and incident response. Migrations now run in Railway's pre-deploy phase. |
 | 2026-06-21 | Clean installs of PyPI `agentaudit-client` 1.0.4 and npm `agentaudit-client` 1.0.2 imported successfully, but registry artifacts predate the authoritative `enforcementAction` fix; fresh SDK releases remain required. |
 | 2026-06-21 | Railway `/health` served merged commit `bf77911` with database `up` and Redis `disabled`; all three GitHub checks passed on that commit. GitHub reported `main` is not protected. |
