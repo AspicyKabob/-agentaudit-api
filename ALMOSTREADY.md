@@ -94,7 +94,7 @@ These items should be complete before announcing the public beta.
 - [x] Document what customer data is stored, where it is stored, and the current retention/deletion behavior (added `data-retention.html` 2026-06-23).
 - [x] Provide a customer data-deletion/request process (self-serve `DELETE /api/v1/auth/organization` with password confirmation plus Data Retention & Privacy page instructions; PR #36).
 - [x] Review the website's "enterprise security" language against actual controls and certifications; reworded `website/security.html` to remove "compliance certifications," "automatic security patches," and "no third-party data sharing"; clarified that compliance packs are detection rules, not guarantees; fixed OG URL to `agentaudit.online` (2026-09-09).
-- [ ] Verify `support@agentaudit.online` and `sales@agentaudit.online` receive mail and have an owner.
+- [x] Verify `support@agentaudit.online` and `sales@agentaudit.online` receive mail and have an owner (`support@` confirmed deliverable via Hostinger MX RCPT 250 on 2026-09-09; `sales@` does not exist, but the site already routes sales inquiries to `support@agentaudit.online` with `subject=Enterprise%20Inquiry`, so no separate mailbox is required).
 
 ### Transactional Email and Critical Alerts
 
@@ -252,7 +252,7 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-09-09 | Fixed CI/deploy apt-get failure by removing `apt-get update` and unused `linux-headers-generic`; merged PR #38; `Deploy to Railway` succeeded for `2d4c1ab`; production `data-retention.html` reflects the new deletion endpoint. |
 | 2026-09-09 | Ran cross-browser smoke test on production with Playwright across Chromium, Firefox, and WebKit at 390x844, 768x1024, and 1280x720 on home, pricing, docs, security, privacy, and terms. No horizontal overflow; hamburger, mobile drawer, and auth modal worked on mobile; screenshots saved to `tmp/cross-browser`. |
 | 2026-09-09 | `GET /api/v1/billing/prices` returns `pro` and `business` Stripe price IDs for the published paid plans. |
-| 2026-09-09 | DNS `MX` records for `agentaudit.online` exist (`mx1.hostinger.com` / `mx2.hostinger.com`), so `support@` and `sales@` can receive mail; receipt and owner coverage still need manual confirmation. |
+| 2026-09-09 | Hostinger `MX` and live SMTP RCPT check: `support@agentaudit.online` is deliverable (250 2.1.5); `sales@agentaudit.online` does not exist (550). The site routes sales inquiries to `support@` with `subject=Enterprise%20Inquiry`. |
 | 2026-06-21 | Added the production operations runbook for Railway backups, a non-production restore drill, forward-only rollback, Redis-disabled beta mode, and incident response. Migrations now run in Railway's pre-deploy phase. |
 | 2026-06-21 | Clean installs of PyPI `agentaudit-client` 1.0.4 and npm `agentaudit-client` 1.0.2 imported successfully, but registry artifacts predate the authoritative `enforcementAction` fix; fresh SDK releases remain required. |
 | 2026-06-21 | Railway `/health` served merged commit `bf77911` with database `up` and Redis `disabled`; all three GitHub checks passed on that commit. GitHub reported `main` is not protected. |
