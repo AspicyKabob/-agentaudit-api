@@ -78,7 +78,7 @@ export function createApp() {
       status: ok ? 'ok' : 'degraded',
       service: 'agentaudit-api',
       version: '1.1.0-trace',
-      commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || 'unknown',
+      commit: (process.env.APP_RELEASE || process.env.RAILWAY_GIT_COMMIT_SHA)?.slice(0, 7) || 'unknown',
       dependencies: { database, redis },
     });
   });

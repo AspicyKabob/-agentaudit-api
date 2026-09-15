@@ -72,6 +72,15 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Configure observability
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          APP_RELEASE: ${{ github.sha }}
+        run: |
+          printf '%s' "$SENTRY_DSN" | railway variable set SENTRY_DSN --stdin --skip-deploys --service="-agentaudit-api"
+          printf '%s' "$APP_RELEASE" | railway variable set APP_RELEASE --stdin --skip-deploys --service="-agentaudit-api"
+
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

@@ -15,7 +15,7 @@ export function initObservability(): void {
   Sentry.init({
     dsn,
     environment: config.get('env'),
-    release: process.env.RAILWAY_GIT_COMMIT_SHA || undefined,
+    release: process.env.APP_RELEASE || process.env.RAILWAY_GIT_COMMIT_SHA || undefined,
     tracesSampleRate: 0,
   });
   enabled = true;
