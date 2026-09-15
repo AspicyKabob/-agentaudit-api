@@ -241,10 +241,16 @@ body::after {
   pointer-events: none;
 }
 
+.hero > .container {
+  width: 100%;
+  min-width: 0;
+}
+
 .hero-content {
   position: relative;
   z-index: 1;
   max-width: 900px;
+  min-width: 0;
 }
 
 .hero-badge {
@@ -257,6 +263,11 @@ body::after {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
+  max-width: 100%;
+}
+
+.hero-badge .badge-text {
+  overflow-wrap: anywhere;
 }
 
 .badge-pulse {
@@ -1831,6 +1842,22 @@ body::after {
   pre, code {
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .terminal-line,
+  .terminal-line span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .framework-tabs-header {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fw-tab {
+    min-width: 0;
+    padding: 12px 8px;
   }
 }
 
