@@ -171,7 +171,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] Structured logging and request correlation are implemented.
 - [x] CI runs lint, build, API tests, Python SDK tests, and TypeScript SDK tests.
 - [x] Configure the production `SENTRY_DSN` and confirm a test exception arrives with release and request context (Sentry issue `NODE-EXPRESS-2`, production environment, release `5e1cf83bd207...`, and `requestId`, `path`, and `method` tags verified 2026-09-15).
-- [ ] Configure an external uptime monitor for `/health` and an alert destination.
+- [x] Configure an external uptime monitor for `/health` and an alert destination (UptimeRobot HTTP monitor active at a 5-minute interval, reporting Up / 100% uptime; account and notifications use `support@agentaudit.online`; owner dashboard confirmation 2026-09-16).
 - [ ] Add alerting for repeated 5xx responses, database failures, and webhook delivery failures.
 - [x] Document the deploy rollback procedure and database compatibility boundary.
 - [x] Record current last-known-good production commit `4261b7c` (authenticated smoke test passed 2026-06-21; re-confirm during the launch-day runbook).
@@ -254,6 +254,7 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-09-09 | `GET /api/v1/billing/prices` returns `pro` and `business` Stripe price IDs for the published paid plans. |
 | 2026-09-09 | Hostinger `MX` and live SMTP RCPT check: `support@agentaudit.online` is deliverable (250 2.1.5); `sales@agentaudit.online` does not exist (550). The site routes sales inquiries to `support@` with `subject=Enterprise%20Inquiry`. |
 | 2026-09-15 | Production Sentry configured through GitHub Secrets and Railway; deployment `5e1cf83` succeeded; `/health` reports the release; issue `NODE-EXPRESS-2` verified with production environment, release, request ID, path, and method context. |
+| 2026-09-16 | UptimeRobot HTTP monitor for `agentaudit.online/health` is active at a 5-minute interval and reports Up / 100% uptime; account and notifications use `support@agentaudit.online`. |
 | 2026-06-21 | Added the production operations runbook for Railway backups, a non-production restore drill, forward-only rollback, Redis-disabled beta mode, and incident response. Migrations now run in Railway's pre-deploy phase. |
 | 2026-06-21 | Clean installs of PyPI `agentaudit-client` 1.0.4 and npm `agentaudit-client` 1.0.2 imported successfully, but registry artifacts predate the authoritative `enforcementAction` fix; fresh SDK releases remain required. |
 | 2026-06-21 | Railway `/health` served merged commit `bf77911` with database `up` and Redis `disabled`; all three GitHub checks passed on that commit. GitHub reported `main` is not protected. |
