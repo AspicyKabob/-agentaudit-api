@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { emailDeliveryService, EmailType } from './email-delivery.service';
+import { captureException } from '../utils/observability';
 
 let resend: Resend | null = null;
 
@@ -58,8 +59,26 @@ export interface EmailPayload {
   dedupeKey?: string;
 }
 
+const RETRY_DELAYS_MS = process.env.NODE_ENV === 'test' ? [0, 0, 0] : [0, 500, 2000];
+
+function isTransientEmailError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return true;
+  const candidate = error as { statusCode?: number; status?: number; name?: string };
+  const status = candidate.statusCode ?? candidate.status;
+  if (status === 408 || status === 429 || (status !== undefined && status >= 500)) return true;
+  if (status !== undefined && status >= 400 && status < 500) return false;
+  return !['validation_error', 'missing_required_field', 'invalid_parameter', 'restricted_api_key'].includes(candidate.name || '');
+}
+
+function wait(ms: number): Promise<void> {
+  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
+
 export const emailService = {
   async send(payload: EmailPayload): Promise<{ id?: string; error?: string; deliveryId?: string }> {
+    let deliveryId: string | undefined;
+    const type = payload.type || 'alert';
+
     try {
       if (payload.dedupeKey && (await emailDeliveryService.isDuplicate(payload.dedupeKey))) {
         logger.info({ dedupeKey: payload.dedupeKey, to: payload.to }, 'Duplicate email skipped');
@@ -69,12 +88,11 @@ export const emailService = {
       const client = getResend();
       const from = payload.from || config.get('resendFromEmail');
       const replyTo = payload.replyTo || getReplyTo();
-      let deliveryId: string | undefined;
 
       try {
         const delivery = await emailDeliveryService.recordDelivery({
           organizationId: payload.organizationId,
-          type: payload.type || 'alert',
+          type,
           to: Array.isArray(payload.to) ? payload.to.join(', ') : payload.to,
           subject: payload.subject,
           eventId: payload.eventId,
@@ -92,68 +110,110 @@ export const emailService = {
         return { error: 'Resend not configured', deliveryId };
       }
 
-      const { data, error } = await client.emails.send({
-        from,
-        to: payload.to,
-        subject: payload.subject,
-        html: payload.html,
-        text: payload.text,
-        replyTo,
-        headers: replyTo ? { 'Reply-To': replyTo } : undefined,
-      });
+      for (let attempt = 1; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+        await wait(RETRY_DELAYS_MS[attempt - 1]);
+        let data: { id?: string } | null = null;
+        let sendError: unknown;
 
-      if (error) {
-        if (deliveryId) {
-          await emailDeliveryService.updateStatusById(deliveryId, 'failed', { error: error.message }).catch(() => {});
+        try {
+          const result = await client.emails.send({
+            from,
+            to: payload.to,
+            subject: payload.subject,
+            html: payload.html,
+            text: payload.text,
+            replyTo,
+            headers: replyTo ? { 'Reply-To': replyTo } : undefined,
+          });
+          data = result.data;
+          sendError = result.error;
+        } catch (err) {
+          sendError = err;
         }
-        logger.error({ error, to: payload.to }, 'Resend email error');
-        return { error: error.message, deliveryId };
+
+        if (!sendError) {
+          if (deliveryId) {
+            await emailDeliveryService.updateStatusById(deliveryId, 'sent', {
+              providerMessageId: data?.id,
+              attemptCount: attempt,
+              nextAttemptAt: null,
+            }).catch(() => {});
+          }
+          logger.info({ emailId: data?.id, to: payload.to, attempt }, 'Email sent');
+          return { id: data?.id, deliveryId };
+        }
+
+        const message = sendError instanceof Error
+          ? sendError.message
+          : String((sendError as { message?: string })?.message || sendError);
+        const willRetry = attempt < RETRY_DELAYS_MS.length && isTransientEmailError(sendError);
+
+        if (willRetry) {
+          const nextAttemptAt = new Date(Date.now() + RETRY_DELAYS_MS[attempt]);
+          if (deliveryId) {
+            await emailDeliveryService.updateStatusById(deliveryId, 'retrying', {
+              error: message,
+              attemptCount: attempt,
+              nextAttemptAt,
+            }).catch(() => {});
+          }
+          logger.warn({ emailDeliveryId: deliveryId, type, attempt }, 'Transient email failure; retry scheduled');
+          continue;
+        }
+
+        const status = isTransientEmailError(sendError) ? 'dead-lettered' : 'failed';
+        if (deliveryId) {
+          await emailDeliveryService.updateStatusById(deliveryId, status, {
+            error: message,
+            attemptCount: attempt,
+            nextAttemptAt: null,
+            ...(status === 'dead-lettered' && { deadLetteredAt: new Date() }),
+          }).catch(() => {});
+        }
+        logger.error({ emailDeliveryId: deliveryId, type, attempt, status }, 'Email delivery failed');
+        if (status === 'dead-lettered') {
+          captureException(new Error('Email delivery retries exhausted'), { deliveryId, emailType: type });
+        }
+        return { error: message, deliveryId };
       }
 
-      if (deliveryId) {
-        await emailDeliveryService.updateStatusById(deliveryId, 'sent', { providerMessageId: data?.id }).catch(() => {});
-      }
-      logger.info({ emailId: data?.id, to: payload.to }, 'Email sent');
-      return { id: data?.id, deliveryId };
+      return { error: 'Email delivery failed', deliveryId };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error({ error: message, to: payload.to }, 'Email send exception');
-      return { error: message };
+      logger.error({ error: message, emailDeliveryId: deliveryId, type }, 'Email send exception');
+      captureException(err, { deliveryId, emailType: type });
+      return { error: message, deliveryId };
     }
   },
 
   async sendAlert(to: string, alert: {
     severity: string;
-    message: string;
     action: string;
-    violations?: string[];
   }, organizationId?: string): Promise<{ id?: string; error?: string; deliveryId?: string }> {
-    const violationsList = alert.violations?.length
-      ? `<ul>${alert.violations.map(v => `<li>${v}</li>`).join('')}</ul>`
-      : '';
+    const severity = alert.severity === 'critical' ? 'critical' : 'warning';
+    const action = ['blocked', 'flagged', 'logged'].includes(alert.action) ? alert.action : 'review required';
 
     return this.send({
       to,
       type: 'alert',
       organizationId,
-      subject: `[AgentAudit] ${alert.severity.toUpperCase()} — ${alert.message}`,
+      subject: `[AgentAudit] ${severity.toUpperCase()} compliance alert`,
       html: `
         <div style="font-family:Inter,system-ui,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
           <div style="background:#dc2626;color:#fff;padding:16px 24px;border-radius:8px 8px 0 0">
             <h2 style="margin:0;font-size:18px">AgentAudit Alert</h2>
           </div>
           <div style="border:1px solid #e5e5e5;border-top:none;padding:24px;border-radius:0 0 8px 8px">
-            <p style="margin:0 0 12px"><strong>Severity:</strong> <span style="color:${alert.severity === 'critical' ? '#dc2626' : '#ca8a04'}">${alert.severity}</span></p>
-            <p style="margin:0 0 12px"><strong>Action:</strong> ${alert.action}</p>
-            <p style="margin:0 0 12px"><strong>Message:</strong> ${alert.message}</p>
-            ${violationsList ? `<p style="margin:0 0 8px"><strong>Violations:</strong></p>${violationsList}` : ''}
+            <p style="margin:0 0 12px"><strong>Severity:</strong> <span style="color:${severity === 'critical' ? '#dc2626' : '#ca8a04'}">${severity}</span></p>
+            <p style="margin:0 0 12px"><strong>Action:</strong> ${action}</p>
+            <p style="margin:0 0 12px">A compliance rule was triggered. Details are available only in your authenticated dashboard.</p>
             <p style="margin:24px 0 0;font-size:13px;color:#78716c">View in dashboard: <a href="${getDashboardUrl()}">AgentAudit Dashboard</a></p>
             <p style="margin:12px 0 0;font-size:12px;color:#78716c">Need help? Contact <a href="mailto:${getSupportEmailAddress()}">${getSupportEmailAddress()}</a>.</p>
             <p style="margin:12px 0 0;font-size:11px;color:#a8a29e">${getJunkHint()}</p>
           </div>
         </div>
       `,
-      text: `AgentAudit Alert\nSeverity: ${alert.severity}\nAction: ${alert.action}\nMessage: ${alert.message}\n${alert.violations ? 'Violations: ' + alert.violations.join(', ') : ''}\nDashboard: ${getDashboardUrl()}\n\nNeed help? Contact ${getSupportEmailAddress()}.\n${getJunkHint()}`,
+      text: `AgentAudit Alert\nSeverity: ${severity}\nAction: ${action}\nA compliance rule was triggered. Details are available only in your authenticated dashboard.\nDashboard: ${getDashboardUrl()}\n\nNeed help? Contact ${getSupportEmailAddress()}.\n${getJunkHint()}`,
     });
   },
 

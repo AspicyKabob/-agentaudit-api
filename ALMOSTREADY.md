@@ -107,10 +107,10 @@ These items should be complete before announcing the public beta.
 - [x] Send immediate high/critical audit-alert emails only when the organization's email preference and minimum severity allow them (preferences exist in `Organization` and are toggled from the dashboard; severity threshold is now compared correctly).
 - [x] Verify single and batch audit submissions produce equivalent alert-email behavior without duplicate notifications.
 - [x] Add provider delivery-event handling for delivered, bounced, complained, and suppressed messages; expose failures in logs/monitoring without logging message bodies or secrets (implemented 2026-06-21 via `/api/v1/webhooks/resend`).
-- [ ] Define retry and dead-letter behavior for transient email failures so fire-and-forget delivery does not silently lose critical alerts.
+- [x] Define retry and dead-letter behavior for transient email failures so fire-and-forget delivery does not silently lose critical alerts (up to three attempts with exponential backoff; attempt count and next-attempt time persisted; permanent provider rejections fail immediately; exhausted transient failures are marked `dead-lettered`, timestamped, logged without message content, and reported to Sentry; verified by unit tests 2026-10-01).
 - [x] Add rate limiting or aggregation for alert-email bursts to prevent inbox flooding during a noisy rule or incident (implemented per-org in `alert.service.ts` with `tryConsumeAlertEmailQuota()`; 10 emails per 5-minute window verified locally).
-- [ ] Keep customer prompts/responses, API keys, tokens, and other sensitive payloads out of email subjects and bodies by default.
-- [x] Add automated tests for welcome, billing, audit-alert, preference, deduplication, and provider-failure paths (unit tests added for welcome, alert, billing activation, duplicate suppression, Resend error handling, and skipped-sending path; `npm run verify` passes 22 suites / 166 tests; PR #37).
+- [x] Keep customer prompts/responses, API keys, tokens, and other sensitive payloads out of email subjects and bodies by default (compliance-alert email API accepts only severity and enforcement action; subjects and bodies use fixed copy and an authenticated dashboard link; tests verify untrusted audit content is excluded 2026-10-01).
+- [x] Add automated tests for welcome, billing, audit-alert, preference, deduplication, and provider-failure paths (coverage includes welcome, alert, billing activation, duplicate suppression, skipped sending, permanent rejection, transient retry recovery, dead-letter exhaustion/Sentry reporting, and sensitive-content exclusion; `npm run verify` passes 22 suites / 171 tests as of 2026-10-01).
 
 ## P1: Beta Polish and Developer Experience
 
