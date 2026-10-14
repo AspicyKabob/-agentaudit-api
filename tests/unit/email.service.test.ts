@@ -28,9 +28,14 @@ jest.mock('../../src/utils/logger', () => ({
   },
 }));
 
+jest.mock('../../src/utils/observability', () => ({
+  captureException: jest.fn(),
+}));
+
 import { config } from '../../src/config';
 import { emailDeliveryService } from '../../src/services/email-delivery.service';
 import { emailService } from '../../src/services/email.service';
+import { captureException } from '../../src/utils/observability';
 
 const mockedConfig = config as unknown as { get: jest.Mock };
 const mockedDelivery = emailDeliveryService as unknown as {
@@ -82,7 +87,11 @@ describe('Email Service', () => {
         subject: expect.stringContaining('Welcome'),
       })
     );
-    expect(mockedDelivery.updateStatusById).toHaveBeenCalledWith('delivery-1', 'sent', { providerMessageId: 'msg-1' });
+    expect(mockedDelivery.updateStatusById).toHaveBeenCalledWith('delivery-1', 'sent', {
+      providerMessageId: 'msg-1',
+      attemptCount: 1,
+      nextAttemptAt: null,
+    });
   });
 
   it('skips duplicate emails when dedupe key matches', async () => {
@@ -99,17 +108,77 @@ describe('Email Service', () => {
     expect(mockSend).not.toHaveBeenCalled();
   });
 
-  it('records a failed status when Resend returns an error', async () => {
-    mockSend.mockResolvedValue({ data: null, error: { message: 'Bounced' } });
+  it('records a permanent provider rejection without retrying', async () => {
+    mockSend.mockResolvedValue({ data: null, error: { message: 'Invalid recipient', statusCode: 400 } });
 
     const result = await emailService.sendAlert('user@example.com', {
       severity: 'critical',
-      message: 'PII detected',
       action: 'blocked',
     }, 'org-1');
 
-    expect(result.error).toBe('Bounced');
-    expect(mockedDelivery.updateStatusById).toHaveBeenCalledWith('delivery-1', 'failed', { error: 'Bounced' });
+    expect(result.error).toBe('Invalid recipient');
+    expect(mockSend).toHaveBeenCalledTimes(1);
+    expect(mockedDelivery.updateStatusById).toHaveBeenCalledWith('delivery-1', 'failed', {
+      error: 'Invalid recipient',
+      attemptCount: 1,
+      nextAttemptAt: null,
+    });
+  });
+
+  it('retries a transient provider failure and records the successful attempt', async () => {
+    mockSend
+      .mockResolvedValueOnce({ data: null, error: { message: 'Rate limited', statusCode: 429 } })
+      .mockResolvedValueOnce({ data: { id: 'msg-retry' }, error: null });
+
+    const result = await emailService.sendWelcome('user@example.com', 'Test Org', 'org-1');
+
+    expect(result.id).toBe('msg-retry');
+    expect(mockSend).toHaveBeenCalledTimes(2);
+    expect(mockedDelivery.updateStatusById).toHaveBeenNthCalledWith(1, 'delivery-1', 'retrying', expect.objectContaining({
+      error: 'Rate limited',
+      attemptCount: 1,
+      nextAttemptAt: expect.any(Date),
+    }));
+    expect(mockedDelivery.updateStatusById).toHaveBeenNthCalledWith(2, 'delivery-1', 'sent', {
+      providerMessageId: 'msg-retry',
+      attemptCount: 2,
+      nextAttemptAt: null,
+    });
+  });
+
+  it('dead-letters exhausted transient failures and reports them to Sentry', async () => {
+    mockSend.mockRejectedValue(new Error('Network unavailable'));
+
+    const result = await emailService.sendWelcome('user@example.com', 'Test Org', 'org-1');
+
+    expect(result.error).toBe('Network unavailable');
+    expect(mockSend).toHaveBeenCalledTimes(3);
+    expect(mockedDelivery.updateStatusById).toHaveBeenLastCalledWith('delivery-1', 'dead-lettered', expect.objectContaining({
+      error: 'Network unavailable',
+      attemptCount: 3,
+      nextAttemptAt: null,
+      deadLetteredAt: expect.any(Date),
+    }));
+    expect(captureException).toHaveBeenCalledWith(expect.any(Error), {
+      deliveryId: 'delivery-1',
+      emailType: 'welcome',
+    });
+  });
+
+  it('keeps customer-provided audit content out of alert subjects and bodies', async () => {
+    mockSend.mockResolvedValue({ data: { id: 'msg-safe' }, error: null });
+    const sensitive = 'secret prompt sk_live_123';
+
+    await emailService.sendAlert('user@example.com', {
+      severity: 'critical',
+      action: sensitive,
+    }, 'org-1');
+
+    const sent = mockSend.mock.calls[0][0];
+    expect(sent.subject).not.toContain(sensitive);
+    expect(sent.html).not.toContain(sensitive);
+    expect(sent.text).not.toContain(sensitive);
+    expect(sent.subject).toBe('[AgentAudit] CRITICAL compliance alert');
   });
 
   it('sends a billing subscription activation email', async () => {

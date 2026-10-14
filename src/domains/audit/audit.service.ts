@@ -150,7 +150,6 @@ export const auditService = {
       if (org?.notifyEmail && shouldNotify && org?.email && tryConsumeAlertEmailQuota(organizationId)) {
         emailService.sendAlert(org.email, {
           severity,
-          message: `Compliance flag triggered: ${flag}`,
           action: data.action,
         }, organizationId).catch((err) => {
           logger.warn({ organizationId, alertId: alert.id, error: err?.message || String(err) }, 'Alert email delivery failed');
@@ -678,7 +677,6 @@ async function createBatchAlerts(
       if (org.notifyEmail && shouldNotify && org.email && tryConsumeAlertEmailQuota(organizationId)) {
         emailService.sendAlert(org.email, {
           severity,
-          message: `Compliance flag triggered: ${flag}`,
           action: result.action,
         }, organizationId).catch((err) => {
           logger.warn({ organizationId, alertId: alert.id, error: err?.message || String(err) }, 'Alert email delivery failed');
