@@ -20,6 +20,8 @@ export type EmailStatus =
   | 'complained'
   | 'suppressed'
   | 'failed'
+  | 'retrying'
+  | 'dead-lettered'
   | 'skipped';
 
 interface RecordDeliveryInput {
@@ -71,7 +73,13 @@ export const emailDeliveryService = {
   async updateStatusById(
     id: string,
     status: EmailStatus,
-    updates?: { providerMessageId?: string; error?: string }
+    updates?: {
+      providerMessageId?: string;
+      error?: string;
+      attemptCount?: number;
+      nextAttemptAt?: Date | null;
+      deadLetteredAt?: Date;
+    }
   ) {
     const updated = await prisma.emailDelivery.update({
       where: { id },
@@ -79,6 +87,9 @@ export const emailDeliveryService = {
         status,
         ...(updates?.providerMessageId && { providerMessageId: updates.providerMessageId }),
         ...(updates?.error && { error: updates.error }),
+        ...(updates?.attemptCount !== undefined && { attemptCount: updates.attemptCount }),
+        ...(updates?.nextAttemptAt !== undefined && { nextAttemptAt: updates.nextAttemptAt }),
+        ...(updates?.deadLetteredAt && { deadLetteredAt: updates.deadLetteredAt }),
         updatedAt: new Date(),
       },
     });
@@ -116,7 +127,7 @@ export const emailDeliveryService = {
   async listRecentFailures(limit: number = 50) {
     return prisma.emailDelivery.findMany({
       where: {
-        status: { in: ['bounced', 'complained', 'suppressed', 'failed'] },
+        status: { in: ['bounced', 'complained', 'suppressed', 'failed', 'dead-lettered'] },
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
