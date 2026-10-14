@@ -223,10 +223,14 @@ model EmailDelivery {
   providerMessageId  String?
   status             String   @default("pending")
   error              String?
+  attemptCount       Int      @default(0)
+  nextAttemptAt      DateTime?
+  deadLetteredAt     DateTime?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   @@index([organizationId, type])
   @@index([providerMessageId])
   @@index([status, createdAt])
+  @@index([status, nextAttemptAt])
 }
