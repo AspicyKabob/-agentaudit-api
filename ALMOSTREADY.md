@@ -128,7 +128,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] Update `ROADMAP.md`: LangChain and Postman are implemented, not planned.
 - [x] Replace remaining repository `YOUR_USERNAME` placeholders with the public GitHub URL.
 - [x] Align deployment, self-hosting, roadmap, and website pricing language at Pro `$29` / Business `$79`.
-- [ ] Re-verify every public documentation and social/community link; remove remaining `href="#"` placeholders and references to missing social/metadata assets.
+- [x] Re-verify every public documentation and social/community link; remove remaining `href="#"` placeholders and references to missing social/metadata assets. Removed placeholder Twitter and Discord icons from all website footers (kept GitHub), fixed production API examples to use `https://agentaudit.online`, and updated Swagger production server URL (2026-10-18).
 - [x] Replace README's deleted `BEFORELAUNCH.md` link with this checklist.
 
 ### UI and Documentation Experience
@@ -139,8 +139,9 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [ ] Add copy buttons and verified request/response examples for every critical endpoint in curl, Python, and TypeScript.
 - [ ] Document error bodies, request IDs, pagination, rate-limit headers, quota errors, idempotency expectations, and webhook retry behavior.
 - [ ] Ensure documentation examples match the published SDK versions and the production API rather than workspace-only behavior.
-- [ ] Replace missing Open Graph/social preview assets and verify page titles, descriptions, canonical URLs, and share previews on every public page.
-- [ ] Remove placeholder Twitter/Discord controls or connect them to destinations owned by AgentAudit.
+- [x] Verify page titles, descriptions, canonical URLs, and Open Graph/Twitter metadata on every public page. Added to all 12 public pages and fixed remaining Railway URLs to `https://agentaudit.online` (2026-10-18).
+- [ ] Create and reference a production Open Graph/social preview image asset (`og:image`).
+- [x] Remove placeholder Twitter/Discord controls or connect them to destinations owned by AgentAudit. Placeholder icons removed from footers; only the real GitHub link remains (2026-10-18).
 - [ ] Make navigation, pricing, calls-to-action, and authentication state consistent across home, features, integrations, pricing, security, docs, and dashboard pages.
 - [ ] Replace dashboard messages such as “check console (F12)” with actionable in-product errors, retry controls, and support/request-ID context.
 - [ ] Polish dashboard empty, loading, success, partial-failure, offline, expired-session, and permission-denied states.
@@ -274,3 +275,4 @@ These are important, but they do not block a carefully labeled developer beta.
 | 2026-10-14 | Triaged open Dependabot PRs #51 (`undici`), #52 (`ip-address`), and #54 (`axios` in `sdk/typescript`) — all CI green, all merged. Ran `npm audit fix` to resolve `proxy-addr`, `handlebars`, and `brace-expansion` alerts. Production dependency trees now report zero vulnerabilities (`npm audit --omit=dev` clean for root and SDK). Full `npm run verify:ci` passes 22 suites / 171 tests. Remaining `npm audit` warnings are dev-only Jest toolchain items not flagged by GitHub.
 || 2026-10-18 | Moved `pino-pretty` from `dependencies` to `devDependencies` because it is only loaded when `NODE_ENV=development` (see `src/utils/logger.ts`). This removes the transitive `fast-copy@3.1.0` package from the production graph and closes the remaining production-relevant GitHub alert without a risky major-version upgrade. Verified `npm audit --omit=dev` remains 0 and `npm run verify:ci` still passes 22 suites / 171 tests.
 || 2026-10-18 | Upgraded `jest` to `^30.5.2` and `@types/jest` to `^30.0.0` in root and `sdk/typescript` to clear the remaining 29 high-severity dev-only advisories in the Jest 29 / `braces` / `micromatch` toolchain. Kept `ts-jest` at `^29.1.x` (peer range supports Jest 30). Verified root `npm audit` = 0, SDK `npm audit` = 0, `npm run verify:ci` passes 22 suites / 171 tests, and SDK `npm test` passes 1 suite / 9 tests.
+|| 2026-10-18 | Public website cleanup: removed placeholder Twitter/Discord footer icons from 7 pages (kept GitHub), fixed Swagger production server URL and all public-page API examples to `https://agentaudit.online`, added `<link rel="canonical">` and Open Graph/Twitter metadata to all 12 public pages. Verified `npm run verify:ci` still passes.

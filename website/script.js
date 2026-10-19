@@ -689,7 +689,7 @@ function renderResult(violations) {
     createdAt: new Date().toISOString(),
   };
 
-  const curlCmd = `curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \\
+  const curlCmd = `curl -X POST https://agentaudit.online/api/v1/audit-logs \\
   -H "X-API-Key: aa_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"action":"prompt_submitted","prompt":"${demoText.value.substring(0, 50).replace(/'/g, "\\'")}..."}'`;
