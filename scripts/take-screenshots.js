@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
 
-const BASE_URL = process.env.BASE_URL || 'https://agentaudit-api-production.up.railway.app';
+const BASE_URL = process.env.BASE_URL || 'https://agentaudit.online';
 const OUT_DIR = path.join(__dirname, '..', 'docs', 'assets');
 
 (async () => {

@@ -169,7 +169,7 @@ class AgentAuditCallbackHandler(BaseCallbackHandler, _BaseHandlerMixin):
         self,
         api_key: str,
         agent_id: Optional[str] = None,
-        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        base_url: str = "https://agentaudit.online/api/v1",
         guard: bool = True,
         fail_open: bool = True,
     ):
@@ -407,7 +407,7 @@ class AgentAuditAsyncCallbackHandler(AsyncCallbackHandler, _BaseHandlerMixin):
         self,
         api_key: str,
         agent_id: Optional[str] = None,
-        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        base_url: str = "https://agentaudit.online/api/v1",
         guard: bool = True,
         fail_open: bool = True,
     ):

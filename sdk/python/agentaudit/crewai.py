@@ -66,7 +66,7 @@ class AgentAuditObserver:
         self,
         api_key: str,
         crew_name: Optional[str] = None,
-        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        base_url: str = "https://agentaudit.online/api/v1",
         guard: bool = True,
         fail_open: bool = True,
     ):

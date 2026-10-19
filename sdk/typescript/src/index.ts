@@ -169,7 +169,7 @@ export class AgentAudit {
   constructor(config: AgentAuditConfig) {
     this.agentId = config.agentId;
     this.client = axios.create({
-      baseURL: (config.baseUrl || 'https://agentaudit-api-production.up.railway.app/api/v1').replace(/\/$/, ''),
+      baseURL: (config.baseUrl || 'https://agentaudit.online/api/v1').replace(/\/$/, ''),
       headers: {
         'X-API-Key': config.apiKey,
         'Content-Type': 'application/json',

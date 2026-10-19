@@ -4,10 +4,10 @@
 
 **Real-time guardrails for AI agents. Block PII, policy violations, and risky outputs before they reach users.**
 
-[<img src="https://img.shields.io/badge/version-1.1.0--trace-blue?style=flat-square">](https://agentaudit-api-production.up.railway.app/health)
+[<img src="https://img.shields.io/badge/version-1.1.0--trace-blue?style=flat-square">](https://agentaudit.online/health)
 [<img src="https://img.shields.io/badge/license-MIT-green?style=flat-square">](LICENSE)
 [<img src="https://img.shields.io/badge/deploy-Railway-purple?style=flat-square">](RAILWAY_DEPLOY.md)
-[<img src="https://img.shields.io/badge/status-online-brightgreen?style=flat-square">](https://agentaudit-api-production.up.railway.app/health)
+[<img src="https://img.shields.io/badge/status-online-brightgreen?style=flat-square">](https://agentaudit.online/health)
 
 [<img src="https://img.shields.io/badge/Python_SDK-pip%20install%20agentaudit--client-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://pypi.org/project/agentaudit-client/)
 [<img src="https://img.shields.io/badge/TypeScript_SDK-npm%20i%20agentaudit--client-3178C6?style=for-the-badge&logo=npm&logoColor=white">](https://www.npmjs.com/package/agentaudit-client)
@@ -36,11 +36,11 @@ Most AI compliance tools **log violations after they happen**. AgentAudit **bloc
 
 ## Live Demo
 
-**API Base URL:** `https://agentaudit-api-production.up.railway.app`
+**API Base URL:** `https://agentaudit.online`
 
-**Landing Page:** [agentaudit-api-production.up.railway.app](https://agentaudit-api-production.up.railway.app/)
+**Landing Page:** [agentaudit.online](https://agentaudit.online/)
 
-**Trace Visualizer:** [agentaudit-api-production.up.railway.app/trace-visualizer.html](https://agentaudit-api-production.up.railway.app/trace-visualizer.html)
+**Trace Visualizer:** [agentaudit.online/trace-visualizer.html](https://agentaudit.online/trace-visualizer.html)
 
 Try the interactive demo — paste some text with a fake SSN and watch it get flagged instantly.
 
@@ -58,7 +58,7 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 
 </div>
 
-> **Tip:** Try the live demo at [agentaudit-api-production.up.railway.app](https://agentaudit-api-production.up.railway.app/)
+> **Tip:** Try the live demo at [agentaudit.online](https://agentaudit.online/)
 
 - [Features](#-features)
 - [Architecture](#%EF%B8%8F-architecture)
@@ -296,7 +296,7 @@ Both SDKs support submitting up to 100 audit log entries in a single request via
 | TypeScript | `audit.logBatch([...])` | 100 | `{ data, processed, errors }` |
 
 ```bash
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+curl -X POST https://agentaudit.online/api/v1/audit-logs/batch \
   -H "X-API-Key: aa_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '[
@@ -624,7 +624,7 @@ audit.restore_policy_version(policy_id, versions[0].id)
 ### Example: Submit with Trace
 
 ```bash
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+curl -X POST https://agentaudit.online/api/v1/audit-logs \
   -H "X-API-Key: aa_your_api_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -643,14 +643,14 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs 
 ### Example: Query Trace
 
 ```bash
-curl -X GET "https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/trace/trace-abc-123" \
+curl -X GET "https://agentaudit.online/api/v1/audit-logs/trace/trace-abc-123" \
   -H "Authorization: Bearer your_jwt_token_here"
 ```
 
 ### Example: Reconstruct Chain
 
 ```bash
-curl -X GET "https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/log-parent-456/chain" \
+curl -X GET "https://agentaudit.online/api/v1/audit-logs/log-parent-456/chain" \
   -H "Authorization: Bearer your_jwt_token_here"
 ```
 
@@ -801,7 +801,7 @@ MIT © [AgentAudit](https://github.com/AspicyKabob/-agentaudit-api)
 
 <div align="center">
 
-**[Website](https://agentaudit-api-production.up.railway.app/) · [Docs](https://agentaudit-api-production.up.railway.app/docs) · [Twitter](https://twitter.com/agentaudit)**
+**[Website](https://agentaudit.online/) · [Docs](https://agentaudit.online/docs) · [Twitter](https://twitter.com/agentaudit)**
 
 Built for the AI agent community
 
