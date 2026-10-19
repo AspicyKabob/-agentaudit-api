@@ -10,7 +10,7 @@ export const swaggerSpec = {
     license: { name: 'MIT', url: 'https://opensource.org/licenses/MIT' },
   },
   servers: [
-    { url: 'https://agentaudit-api-production.up.railway.app/api/v1', description: 'Production' },
+    { url: 'https://agentaudit.online/api/v1', description: 'Production' },
     { url: 'http://localhost:8080/api/v1', description: 'Local development' },
   ],
   components: {

@@ -6,7 +6,8 @@
   <title>Integrations — AgentAudit</title>
   <meta name="description" content="Drop-in integrations for CrewAI, LangChain, AutoGPT, and OpenAI. Real-time guardrails + distributed tracing in one line of code.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://agentaudit-api-production.up.railway.app/integrations.html">
+  <meta property="og:url" content="https://agentaudit.online/integrations.html">
+  <link rel="canonical" href="https://agentaudit.online/integrations.html">
   <meta property="og:title" content="Integrations — AgentAudit">
   <meta property="og:description" content="Drop-in integrations for CrewAI, LangChain, AutoGPT, and OpenAI. Real-time guardrails + distributed tracing in one line of code.">
   <meta name="twitter:card" content="summary">
@@ -436,7 +437,7 @@ logger = AgentAuditAutoGPT(
             </div>
             <div class="integration-code active" data-tab-content="rest-curl">
               <pre><code><span class="code-comment"># Log a single agent action</span>
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+curl -X POST https://agentaudit.online/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_your_key_here"</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d <span class="code-str">'{
@@ -449,7 +450,7 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs 
   }'</span>
 
 <span class="code-comment"># Batch endpoint — up to 50 logs in one request</span>
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/batch \
+curl -X POST https://agentaudit.online/api/v1/audit-logs/batch \
   -H <span class="code-str">"X-API-Key: aa_your_key_here"</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d <span class="code-str">'{ "logs": [ { "action": "tool_use", ... }, { "action": "llm_call", ... } ] }'</span></code></pre>
@@ -457,7 +458,7 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs/
             <div class="integration-code" data-tab-content="rest-python">
               <pre><code><span class="code-kw">import</span> requests
 
-AGENTAUDIT_URL = <span class="code-str">"https://agentaudit-api-production.up.railway.app/api/v1/audit-logs"</span>
+AGENTAUDIT_URL = <span class="code-str">"https://agentaudit.online/api/v1/audit-logs"</span>
 HEADERS = {
     <span class="code-str">"X-API-Key"</span>: <span class="code-str">"aa_your_key_here"</span>,
     <span class="code-str">"Content-Type"</span>: <span class="code-str">"application/json"</span>,
@@ -490,7 +491,7 @@ HEADERS = {
   metadata?: Record&lt;string, unknown&gt;;
 }) {
   <span class="code-kw">const</span> res = <span class="code-kw">await</span> fetch(
-    <span class="code-str">'https://agentaudit-api-production.up.railway.app/api/v1/audit-logs'</span>,
+    <span class="code-str">'https://agentaudit.online/api/v1/audit-logs'</span>,
     {
       method: <span class="code-str">'POST'</span>,
       headers: {
@@ -577,7 +578,7 @@ client = AgentAuditOpenAI(
             </div>
             <div class="integration-code" data-tab-content="curl">
               <pre><code><span class="code-comment"># Submit an audit log directly — no SDK needed</span>
-curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs \
+curl -X POST https://agentaudit.online/api/v1/audit-logs \
   -H <span class="code-str">"X-API-Key: aa_your_key_here"</span> \
   -H <span class="code-str">"Content-Type: application/json"</span> \
   -d <span class="code-str">'{
@@ -645,11 +646,7 @@ curl -X POST https://agentaudit-api-production.up.railway.app/api/v1/audit-logs 
             <span class="logo-text"><span class="logo-a">A</span>gentAudit</span>
           </div>
           <p>The audit layer AI agents desperately need. Built for the $47B agent economy.</p>
-          <div class="social-links">
-            <a href="#" aria-label="Twitter"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
-            <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>
-            <a href="#" aria-label="Discord"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028 14.09 14.09 0 001.226-1.994.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg></a>
-          </div>
+          <div class="social-links">            <a href="https://github.com/AspicyKabob/-agentaudit-api" target="_blank" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg></a>          </div>
         </div>
         <div class="footer-links">
           <h4>Product</h4>
