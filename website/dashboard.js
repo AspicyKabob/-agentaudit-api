@@ -895,6 +895,7 @@
       document.getElementById('webhook-url').value = me.webhookUrl || '';
       document.getElementById('toggle-webhook').checked = me.notifyWebhook === true;
       document.getElementById('toggle-email').checked = me.notifyEmail === true;
+      onboardState.hasNotifications = me.notifyEmail === true || me.notifyWebhook === true;
       var sevVal = me.notifyMinSeverity || 'warning';
       var sevDropdown = document.getElementById('sev-dropdown');
       sevDropdown.setAttribute('data-value', sevVal);
@@ -952,6 +953,7 @@
       var logs = await api('GET', '/api/v1/audit-logs?limit=1');
       var total = logs.pagination && logs.pagination.total != null ? logs.pagination.total : 0;
       document.getElementById('stat-logs').textContent = total.toLocaleString();
+      onboardState.hasLogs = total > 0;
     } catch(e) { document.getElementById('stat-logs').textContent = '0'; }
 
     // Unresolved alert count for stat
@@ -964,6 +966,7 @@
     try {
       var keys = await api('GET', '/api/v1/auth/api-keys');
       var keysList = document.getElementById('keys-list');
+      onboardState.hasKeys = keys.length > 0;
       if (keys.length) {
         keysList.innerHTML = keys.map(function(k) {
           return '<div class="key-row">' +
@@ -982,6 +985,8 @@
 
     // Compliance packs
     loadPacks();
+
+    renderOnboarding();
   }
 
   // ─── Load: Audit Logs (paginated + filtered) ──────────────────────
@@ -1231,6 +1236,8 @@
     try {
       var rules = await api('GET', '/api/v1/compliance-rules');
       var items = Array.isArray(rules) ? rules : (rules.data || []);
+      onboardState.hasRules = items.length > 0;
+      renderOnboarding();
       // Show only rules not installed by a pack (custom/user-created)
       var customRules = items.filter(function(r) { return !r.packId; });
       if (customRules.length) {
@@ -1376,6 +1383,58 @@
   }
 
   // ─── Main load ────────────────────────────────────────────────────
+  // ─── Onboarding checklist ───────────────────────────────────────
+  var onboardState = { hasKeys: false, hasLogs: false, hasRules: false, hasNotifications: false };
+
+  function renderOnboarding() {
+    var card = document.getElementById('onboarding-card');
+    var stepsEl = document.getElementById('onboarding-steps');
+    if (!card || !stepsEl) return;
+
+    var steps = [
+      { key: 'hasKeys', title: 'Create an API key', desc: 'Generate a key to authenticate your agents.', action: 'new-key', actionLabel: 'New Key' },
+      { key: 'hasLogs', title: 'Send your first audit event', desc: 'Use the SDK or API to log an agent action.', action: 'docs', actionLabel: 'View Quickstart' },
+      { key: 'hasRules', title: 'Create a compliance rule', desc: 'Block PII, keywords, or patterns before they reach users.', action: 'new-rule', actionLabel: 'New Rule' },
+      { key: 'hasNotifications', title: 'Turn on alert notifications', desc: 'Get emailed or webhooked when a violation fires.', action: 'settings', actionLabel: 'Open Settings' },
+    ];
+
+    var remaining = steps.filter(function(s) { return !onboardState[s.key]; });
+    if (!remaining.length) {
+      card.style.display = 'none';
+      return;
+    }
+
+    card.style.display = '';
+    stepsEl.innerHTML = steps.map(function(s) {
+      var done = onboardState[s.key];
+      return '<div class="onboarding-step' + (done ? ' done' : '') + '">' +
+        '<div class="onboarding-step-info">' +
+          '<span class="onboarding-check">✓</span>' +
+          '<div><div class="onboarding-step-title">' + s.title + '</div>' +
+          '<div class="onboarding-step-desc">' + s.desc + '</div></div>' +
+        '</div>' +
+        (done
+          ? ''
+          : '<button class="btn-dash" data-onboard-action="' + s.action + '">' + s.actionLabel + '</button>') +
+        '</div>';
+    }).join('');
+  }
+
+  document.getElementById('onboarding-steps').addEventListener('click', function(e) {
+    var btn = e.target.closest('button[data-onboard-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-onboard-action');
+    if (action === 'new-key') {
+      document.getElementById('btn-new-key').click();
+    } else if (action === 'new-rule') {
+      document.getElementById('btn-new-rule').click();
+    } else if (action === 'settings') {
+      showSection('settings');
+    } else if (action === 'docs') {
+      window.open('docs.html#quickstart', '_blank');
+    }
+  });
+
   function loadDashboard() {
     loadOverview();
   }

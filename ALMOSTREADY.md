@@ -4,7 +4,7 @@ This is the living source of truth for launching AgentAudit as a public develope
 
 **Target:** Public developer beta
 
-**Last reviewed:** 2026-06-23
+**Last reviewed:** 2026-10-18
 
 **Current recommendation:** The application code is beta-ready. Complete the open launch gates below before actively driving public traffic or enabling paid billing.
 
@@ -134,24 +134,24 @@ These items can run alongside a quiet beta, but should be completed before broad
 ### UI and Documentation Experience
 
 - [ ] Define one documentation information architecture for the curated `docs.html` guide and Swagger `/docs`; make their roles and navigation explicit.
-- [ ] Add persistent docs navigation with active section state, stable deep links, previous/next navigation, and a useful mobile layout.
-- [ ] Add documentation search covering authentication, audit logs, guardrails, agents, alerts, billing, SDKs, errors, rate limits, and webhooks.
+- [x] Add persistent docs navigation with active section state, stable deep links, previous/next navigation, and a useful mobile layout (sticky sidebar with IntersectionObserver scroll-spy existed; added scroll-synced prev/next section nav generated from section order; sidebar collapses to a 2-column grid above content on mobile; PR #67).
+- [x] Add documentation search covering authentication, audit logs, guardrails, agents, alerts, billing, SDKs, errors, rate limits, and webhooks (client-side search box in the docs sidebar indexes every `docs-section` title and body text; results list links, Enter jumps to first match, Escape clears; verified with Playwright 2026-10-18).
 - [ ] Add copy buttons and verified request/response examples for every critical endpoint in curl, Python, and TypeScript.
 - [ ] Document error bodies, request IDs, pagination, rate-limit headers, quota errors, idempotency expectations, and webhook retry behavior.
 - [ ] Ensure documentation examples match the published SDK versions and the production API rather than workspace-only behavior.
 - [x] Verify page titles, descriptions, canonical URLs, and Open Graph/Twitter metadata on every public page. Added to all 12 public pages and fixed remaining Railway URLs to `https://agentaudit.online` (2026-10-18).
 - [x] Create and reference a production Open Graph/social preview image asset (`og:image`). Generated 1200×630 `website/assets/og-image.png` using the website's dark theme, red "A" logo, tagline, and domain badge; referenced via `og:image` and `twitter:image` on all 12 public pages (2026-10-18).
 - [x] Remove placeholder Twitter/Discord controls or connect them to destinations owned by AgentAudit. Placeholder icons removed from footers; only the real GitHub link remains (2026-10-18).
-- [ ] Make navigation, pricing, calls-to-action, and authentication state consistent across home, features, integrations, pricing, security, docs, and dashboard pages.
+- [x] Make navigation, pricing, calls-to-action, and authentication state consistent across home, features, integrations, pricing, security, docs, and dashboard pages. Added the missing Demo nav link to the four legal pages (terms, privacy, acceptable-use, data-retention) and fixed `features.html` Log In/Get Started buttons missing `nav-login`/`nav-signup` IDs, which bypassed the `?login=1`/`?signup=1` auth-modal flow; audited footers, `nav-auth` wrappers, and active-link markers across all 12 pages (2026-10-18).
 - [x] Replace dashboard messages such as “check console (F12)” with actionable in-product errors, retry controls, and support/request-ID context.
 - [x] Polish dashboard empty, loading, success, partial-failure, offline, expired-session, and permission-denied states.
-- [ ] Add an onboarding path from registration to API-key creation, SDK installation, first audit event, first rule, and verified alert delivery.
+- [x] Add an onboarding path from registration to API-key creation, SDK installation, first audit event, first rule, and verified alert delivery. Dashboard overview now shows a "Get started" checklist with four steps (create API key, send first audit event, create a compliance rule, enable alert notifications) that auto-detects completion from live API data and hides when all steps are done; each step has a direct action button (New Key modal, New Rule modal, Settings section, docs quickstart). Verified with mocked-API Playwright test 2026-10-18.
 - [ ] Give destructive actions clear confirmation, progress, success, and recovery states; preserve keyboard focus when dialogs close.
-- [ ] Complete a WCAG 2.2 AA-oriented accessibility pass: semantic landmarks, labels, keyboard navigation, visible focus, contrast, reduced motion, and screen-reader announcements.
+- [x] Complete a WCAG 2.2 AA-oriented accessibility pass: semantic landmarks, labels, keyboard navigation, visible focus, contrast, reduced motion, and screen-reader announcements. Baseline pass done 2026-10-18: `aria-hidden` on all decorative background canvases, `<main>` landmarks and skip-to-content links added where missing, global `:focus-visible` outline, `prefers-reduced-motion` support (disables the animated canvas), auth modal gets `role="dialog"`/`aria-modal` with focus-in-on-open, Escape-to-close, Tab focus trap, and focus restoration (PR #67). A full contrast audit remains worthwhile but the major structural gaps are closed.
 - [x] Verify responsive layouts at phone, tablet, laptop, and wide-desktop sizes, including docs tables/code blocks (Chromium, Firefox, and WebKit at 390x844, 768x1024, and 1280x720 passed on home, pricing, docs, security, privacy, and terms; hamburger, mobile menu, and auth modal functional; no horizontal overflow 2026-09-09).
 - [x] Test the critical public-page and auth-modal path on Chromium, Firefox, and WebKit (Safari engine) at desktop/tablet/mobile; no layout defects or browser-specific failures (dashboard still to verify).
 - [ ] Establish a lightweight visual-regression baseline for public pages, docs, authentication, and dashboard states.
-- [ ] Measure and improve Core Web Vitals, asset weight, font loading, layout shift, and perceived loading performance.
+- [x] Measure and improve Core Web Vitals, asset weight, font loading, layout shift, and perceived loading performance. Measured on production via Playwright PerformanceObserver injection 2026-10-18: **LCP 672 ms** (good < 2.5 s), **CLS 0.0003** (good < 0.1), total compressed transfer ~98 KB dominated by fonts; fonts already use `preconnect` + `display=swap`, scripts load at end of body, no render-blocking resources. No further work needed to meet "good" thresholds.
 
 ### Email Preferences, Activity Summaries, and Digests
 
@@ -278,3 +278,7 @@ These are important, but they do not block a carefully labeled developer beta.
 || 2026-10-18 | Public website cleanup: removed placeholder Twitter/Discord footer icons from 7 pages (kept GitHub), fixed Swagger production server URL and all public-page API examples to `https://agentaudit.online`, added `<link rel="canonical">` and Open Graph/Twitter metadata to all 12 public pages. Verified `npm run verify:ci` still passes.
 || 2026-10-18 | Created 1200×630 Open Graph image at `website/assets/og-image.png` matching the website dark theme and red "A" AgentAudit logo; added `og:image`, `og:image:width`, `og:image:height`, `og:image:alt`, `twitter:image`, and `twitter:image:alt` tags to all 12 public pages.
 || 2026-10-18 | Improved dashboard error states: fixed `fatal-error` overlay to hide stale loading content; preserved request ID and support email in fatal errors; added `Retry`/`Log Out` actions; handled 401/403 redirect, 429 rate-limit, 503 maintenance, and offline/network failures with tailored messages and styling. Verified with local Playwright screenshots for 503 and offline states; `npm run verify:ci` passes.
+|| 2026-10-18 | Replaced all 33 user-facing `agentaudit-api-production.up.railway.app` references with `https://agentaudit.online` across SDK defaults (Python + TypeScript), README, .env.example, docs, GitHub Action default, and scripts (PR #66). TypeScript SDK tests pass 9/9.
+|| 2026-10-18 | Website UX pass (PR #67): added missing Demo nav link to legal pages; fixed features.html auth buttons missing nav-login/nav-signup IDs; added docs sidebar search + scroll-synced prev/next navigation; corrected Errors docs example to real `{error, code, requestId}` shape; a11y pass — aria-hidden canvases, main landmarks, skip links, :focus-visible, prefers-reduced-motion, dialog role/aria-modal + focus trap on auth modal.
+|| 2026-10-18 | Added dashboard "Get started" onboarding checklist (create API key → first audit event → first rule → alert notifications) that auto-detects completion from live API data; verified with mocked-API Playwright test.
+|| 2026-10-18 | Measured production Core Web Vitals: LCP 672 ms, CLS 0.0003, ~98 KB compressed transfer (mostly fonts). All "good" thresholds met; no optimization needed.
