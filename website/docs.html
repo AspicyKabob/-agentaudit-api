@@ -114,6 +114,72 @@
     .docs-sidebar a:hover { color: var(--text-secondary); }
     .docs-sidebar a.active { color: var(--text); border-left-color: var(--accent); }
 
+    /* ── Docs search ──────────────────────────────────────────────── */
+    .docs-search { margin-bottom: 24px; }
+    .docs-search input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      outline: none;
+      border-radius: 4px;
+    }
+    .docs-search input:focus { border-color: var(--accent); }
+    .docs-search input::placeholder { color: var(--text-muted); }
+    .docs-search-empty {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 8px 0 0;
+      display: none;
+    }
+    .docs-sidebar.searching .docs-sidebar-group { display: none; }
+    .docs-sidebar.searching .docs-search-results { display: block; }
+    .docs-search-results { display: none; margin-bottom: 24px; }
+    .docs-search-results a {
+      display: flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono); font-size: 12px;
+      color: var(--text-secondary); text-decoration: none;
+      padding: 5px 0; border-left: 2px solid transparent; padding-left: 10px; margin-left: -12px;
+    }
+    .docs-search-results a:hover { color: var(--text); }
+    .docs-search-results .result-kind { font-size: 10px; color: var(--text-muted); }
+
+    /* ── Prev / next section navigation ──────────────────────────── */
+    .docs-pagenav {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .docs-pagenav a {
+      display: block;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      text-decoration: none;
+      transition: border-color 0.15s, background 0.15s;
+      min-width: 0;
+    }
+    .docs-pagenav a:hover { border-color: var(--border-strong); background: rgba(255,255,255,0.02); }
+    .docs-pagenav a.next { text-align: right; }
+    .docs-pagenav .pagenav-label {
+      font-family: var(--font-mono); font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--text-muted); display: block; margin-bottom: 6px;
+    }
+    .docs-pagenav .pagenav-title {
+      font-family: var(--font-mono); font-size: 13px; color: var(--text); display: block;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    @media (max-width: 600px) {
+      .docs-pagenav { grid-template-columns: 1fr; }
+      .docs-pagenav a.next { text-align: left; }
+    }
+
     /* ── Content ──────────────────────────────────────────────────── */
     .docs-content {
       padding: 48px 0 100px 56px;
@@ -484,7 +550,12 @@
       <div class="docs-layout">
 
         <!-- Sidebar -->
-        <aside class="docs-sidebar">
+        <aside class="docs-sidebar" id="docs-sidebar">
+          <div class="docs-search">
+            <input type="search" id="docs-search-input" placeholder="Search docs…" aria-label="Search documentation" autocomplete="off">
+            <div class="docs-search-empty" id="docs-search-empty">No matches.</div>
+          </div>
+          <div class="docs-search-results" id="docs-search-results"></div>
           <div class="docs-sidebar-group">
             <span class="docs-sidebar-label">Getting started</span>
             <a href="#quickstart" class="active">Quickstart</a>
@@ -1172,11 +1243,12 @@ Authorization: Bearer &lt;jwt&gt;
           <div class="docs-section" id="errors">
             <span class="docs-section-badge">13 — Errors</span>
             <h2>Errors</h2>
-            <p>All errors return JSON with a consistent shape:</p>
+            <p>All errors return JSON with a consistent shape. <code>requestId</code> is present on server errors — include it when contacting support:</p>
             <div class="code-block">
               <pre>{
   "error": "Human-readable message",
-  "status": 400
+  "code": "bad_request",
+  "requestId": "6c899479-c61a-4aee-bb0f-7279b10eaee2"
 }</pre>
               <button class="copy-btn">Copy</button>
             </div>
@@ -1191,6 +1263,8 @@ Authorization: Bearer &lt;jwt&gt;
               <tr><td>500</td><td>Server error — contact support if it persists</td></tr>
             </table>
           </div>
+
+          <nav class="docs-pagenav" id="docs-pagenav" aria-label="Section navigation"></nav>
 
         </div><!-- /docs-content -->
       </div><!-- /docs-layout -->
