@@ -52,7 +52,7 @@ These items should be complete before announcing the public beta.
 - [x] API keys are stored as keyed hashes and raw values are shown only once.
 - [x] Unexpected 5xx responses hide internal details and include a request ID.
 - [x] Request IDs are emitted in logs and response headers.
-- [x] High- and critical-severity npm audit findings are cleared (root `npm audit` and `npm audit --omit=dev` clean after overrides; `sdk/typescript` audit clean; 21 API suites / 161 tests and SDK tests pass on branch 2026-09-09). Default branch will reflect fix after PR #33 merges.
+- [x] High- and critical-severity npm audit findings are cleared in production dependency trees (`npm audit --omit=dev` reports 0 for root and `sdk/typescript`; 2026-10-14).
 - [x] Perform an endpoint-by-endpoint tenant-isolation/IDOR review using two organizations.
 - [x] Verify revoked API keys immediately lose access.
 - [x] Verify production CORS does not grant access to an unapproved origin.
@@ -178,8 +178,8 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] Define an interim incident owner and a simple public incident communication process.
 - [x] Resolve Dependabot alerts #1 and #2 by eliminating `js-yaml <= 4.1.1` from both `package-lock.json` and `sdk/typescript/package-lock.json` (development scope; patched in `4.2.0`).
 - [x] Verify the `js-yaml` override/upgrade does not regress ESLint, Jest, Istanbul coverage tooling, API tests, or TypeScript SDK tests (verified 2026-06-21; `npm run verify` and SDK audit both clean).
-- [x] Re-run root and TypeScript SDK dependency audits and confirm GitHub closes both Dependabot alerts without dismissing them as ignored risk (root `npm audit` and `sdk/typescript npm audit` both report 0 vulnerabilities; Dependabot alert #1 and #2 are no longer open; 2026-09-09).
-- [ ] Review any remaining moderate Jest/Istanbul development-only advisories when upstream publishes a non-regressive fix.
+- [x] Re-run root and TypeScript SDK dependency audits and confirm GitHub closes Dependabot alerts without dismissing them as ignored risk. Production trees are clean (`npm audit --omit=dev` reports 0 for root and SDK); 2026-09-09 cleared `js-yaml` alerts, and 2026-10-14 updates close the open `proxy-addr`, `handlebars`, `brace-expansion`, and `fast-copy` alerts after merging Dependabot PRs #51, #52, and #54 and running `npm audit fix`.
+- [x] Review remaining development-only advisories. `npm audit` reports 29 high-severity warnings for the Jest 29 / `braces` / `micromatch` test toolchain, but the installed versions (`braces@3.0.3`, `micromatch@4.0.8`) are the latest available and are not flagged by GitHub Dependabot. A clean upgrade requires Jest 30 and a compatible `ts-jest` release, which is tracked for post-launch tooling hygiene.
 
 ### Repository and Release Hygiene
 
@@ -271,3 +271,5 @@ These are important, but they do not block a carefully labeled developer beta.
 || 2026-09-09 | Mobile/responsive pass with agent-browser at 390x844: fixed `.nav-toggle` cascade so the hamburger appears, hid the empty GitHub icon link from the mobile menu, tightened hero title/subtitle wrapping, and added a docs mobile breakpoint for the sidebar, code blocks, endpoint rows, and tables. Home, pricing, docs, and auth modal no longer overflow horizontally. |
 || 2026-09-09 | GitHub reported 4 Dependabot alerts (2 high, 2 moderate) on `main` after push; investigating and addressing before launch. |
 || 2026-09-09 | Resolved open Dependabot alerts by overriding `js-yaml` to `^4.3.2`, `qs` to `^6.16.0`, `browserslist` to `^4.28.9`, and `baseline-browser-mapping` to `^2.11.21`. Root `npm audit` and `npm audit --omit=dev` clean; TypeScript SDK audit clean; root `npm run verify` (lint/build/161 tests) and SDK `npm test` pass. |
+| 2026-10-14 | Triaged open Dependabot PRs #51 (`undici`), #52 (`ip-address`), and #54 (`axios` in `sdk/typescript`) — all CI green, all merged. Ran `npm audit fix` to resolve `proxy-addr`, `handlebars`, and `brace-expansion` alerts. Production dependency trees now report zero vulnerabilities (`npm audit --omit=dev` clean for root and SDK). Full `npm run verify:ci` passes 22 suites / 171 tests. Remaining `npm audit` warnings are dev-only Jest toolchain items not flagged by GitHub.
+|| 2026-10-18 | Moved `pino-pretty` from `dependencies` to `devDependencies` because it is only loaded when `NODE_ENV=development` (see `src/utils/logger.ts`). This removes the transitive `fast-copy@3.1.0` package from the production graph and closes the remaining production-relevant GitHub alert without a risky major-version upgrade. Verified `npm audit --omit=dev` remains 0 and `npm run verify:ci` still passes 22 suites / 171 tests.
