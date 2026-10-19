@@ -25,7 +25,7 @@ jobs:
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `api-key` | ✅ | — | Your AgentAudit API key |
-| `base-url` | ❌ | `https://agentaudit-api-production.up.railway.app/api/v1` | API base URL |
+| `base-url` | ❌ | `https://agentaudit.online/api/v1` | API base URL |
 | `rules` | ❌ | `pii,keywords` | Rules to check (comma-separated) |
 | `fail-on-critical` | ❌ | `true` | Fail build on critical violations |
 | `file-pattern` | ❌ | `**/*.{md,txt,prompt}` | Files to scan |

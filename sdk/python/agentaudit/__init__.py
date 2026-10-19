@@ -258,7 +258,7 @@ class AgentAudit:
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        base_url: str = "https://agentaudit.online/api/v1",
         agent_id: Optional[str] = None,
         timeout: Optional[float] = None,
         max_retries: Optional[int] = None,
@@ -726,7 +726,7 @@ class AgentAuditAsync:
     def __init__(
         self,
         api_key: str,
-        base_url: str = "https://agentaudit-api-production.up.railway.app/api/v1",
+        base_url: str = "https://agentaudit.online/api/v1",
         agent_id: Optional[str] = None,
         timeout: Optional[float] = None,
         max_retries: Optional[int] = None,

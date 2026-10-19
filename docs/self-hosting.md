@@ -454,7 +454,7 @@ npx prisma migrate reset
 ## Community & Support
 
 - **GitHub Issues**: https://github.com/AspicyKabob/-agentaudit-api/issues
-- **Documentation**: https://agentaudit-api-production.up.railway.app/docs
+- **Documentation**: https://agentaudit.online/docs
 - **License**: MIT
 
 ---

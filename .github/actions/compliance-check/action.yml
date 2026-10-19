@@ -11,7 +11,7 @@ inputs:
   base-url:
     description: 'AgentAudit API base URL'
     required: false
-    default: 'https://agentaudit-api-production.up.railway.app/api/v1'
+    default: 'https://agentaudit.online/api/v1'
   rules:
     description: 'Comma-separated list of rules to check (pii,keywords,sentiment,regex,custom,rate_limit)'
     required: false
