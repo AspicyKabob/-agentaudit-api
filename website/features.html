@@ -164,7 +164,8 @@
   </style>
 </head>
 <body>
-  <canvas id="bg-canvas"></canvas>
+  <a href="#main-content" class="skip-link">Skip to content</a>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
   <nav class="nav">
     <div class="nav-glass">
@@ -184,14 +185,14 @@
           </a>
         </div>
         <div class="nav-auth">
-          <a href="/dashboard.html" class="btn btn-glass btn-sm">Log In</a>
-          <a href="index.html#signup" class="btn btn-primary btn-sm">Get Started</a>
+          <a href="/dashboard.html" class="btn btn-glass btn-sm" id="nav-login">Log In</a>
+          <a href="index.html#signup" class="btn btn-primary btn-sm" id="nav-signup">Get Started</a>
         </div>
       </div>
     </div>
   </nav>
 
-  <div class="features-page">
+  <main id="main-content" class="features-page">
     <div class="feature-hero">
       <span class="section-badge">Features</span>
       <h1>Everything you need for<br><span class="gradient-text">agent compliance</span></h1>
@@ -322,7 +323,7 @@ result = audit.guardrail(
         <a href="docs.html" class="btn-glass">API Reference</a>
       </div>
     </section>
-  </div>
+  </main>
 
   <footer class="footer">
     <div class="container">

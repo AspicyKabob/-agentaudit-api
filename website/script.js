@@ -206,19 +206,50 @@ const modal = document.getElementById('auth-modal');
 const signupForm = document.getElementById('signup-form');
 const loginForm = document.getElementById('login-form');
 
+let lastFocusedElement = null;
+
 function openModal(tab = 'signup') {
   if (!modal) {
     // No auth modal on this page — navigate to index with the right tab
     window.location.href = 'index.html?' + (tab === 'login' ? 'login=1' : 'signup=1');
     return;
   }
+  lastFocusedElement = document.activeElement;
   switchTab(tab);
   modal.classList.add('active');
+  // Move focus into the dialog for keyboard/screen-reader users
+  const activeForm = tab === 'login' ? loginForm : signupForm;
+  const firstInput = activeForm?.querySelector('input, button');
+  (firstInput || modal.querySelector('.modal-close'))?.focus();
 }
 
 function closeModal() {
   if (!modal) return;
   modal.classList.remove('active');
+  if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+    lastFocusedElement.focus();
+    lastFocusedElement = null;
+  }
+}
+
+// Escape closes the modal; Tab keeps focus inside it
+if (modal) {
+  document.addEventListener('keydown', e => {
+    if (!modal.classList.contains('active')) return;
+    if (e.key === 'Escape') { closeModal(); return; }
+    if (e.key !== 'Tab') return;
+    const focusables = modal.querySelectorAll('button, input, a[href], [tabindex]:not([tabindex="-1"])');
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  });
 }
 
 function switchTab(tab) {
