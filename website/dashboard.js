@@ -21,11 +21,21 @@
       signal: signal,
     };
     if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
-    var res = await fetch(API + path, opts);
+    var res;
+    try {
+      res = await fetch(API + path, opts);
+    } catch (e) {
+      var networkErr = new Error(e.message || 'Network error');
+      networkErr.status = 0;
+      networkErr.isNetwork = true;
+      throw networkErr;
+    }
     var data = await res.json().catch(function() { return {}; });
     if (!res.ok) {
       var err = new Error(data.error || data.message || 'HTTP ' + res.status);
       err.status = res.status;
+      err.code = data.code || null;
+      err.requestId = data.requestId || null;
       throw err;
     }
     return data;
@@ -35,15 +45,49 @@
   function showError(title, message, options) {
     options = options || {};
     var errorEl = document.getElementById('dashboard-error');
+    var layout = document.querySelector('.dashboard-layout');
+    var codeEl = document.getElementById('error-code');
+    var metaEl = document.getElementById('error-meta');
+    var requestIdEl = document.getElementById('error-request-id');
+
     document.getElementById('error-title').textContent = title || 'Dashboard unavailable';
     document.getElementById('error-message').textContent = message || 'Something went wrong. Please try again.';
-    document.getElementById('btn-retry').style.display = options.retryable === false ? 'none' : '';
-    errorEl.style.display = 'block';
+
+    // Retry / logout visibility
+    var retryBtn = document.getElementById('btn-retry');
+    retryBtn.style.display = options.retryable === false ? 'none' : '';
+    retryBtn.textContent = options.retryLabel || 'Retry';
     document.getElementById('btn-error-logout').style.display = options.hideLogout ? 'none' : '';
+
+    // Error code badge
+    if (options.code) {
+      codeEl.textContent = options.code;
+      codeEl.style.display = '';
+    } else {
+      codeEl.style.display = 'none';
+    }
+
+    // Request ID + support context
+    if (options.requestId) {
+      requestIdEl.textContent = options.requestId;
+      metaEl.style.display = '';
+    } else {
+      metaEl.style.display = 'none';
+    }
+
+    // Offline styling
+    errorEl.classList.toggle('error-offline', options.type === 'offline');
+
+    errorEl.style.display = 'block';
+    if (layout) layout.classList.add('fatal-error');
   }
 
   function clearError() {
-    document.getElementById('dashboard-error').style.display = 'none';
+    var errorEl = document.getElementById('dashboard-error');
+    var layout = document.querySelector('.dashboard-layout');
+    errorEl.style.display = 'none';
+    errorEl.classList.remove('error-offline');
+    if (layout) layout.classList.remove('fatal-error');
   }
 
   // ─── Toast ────────────────────────────────────────────────────────
@@ -125,7 +169,15 @@
   window.addEventListener('unhandledrejection', function(e) {
     console.error('[Dashboard] Unhandled rejection:', e.reason);
     if (e.reason && e.reason.status >= 500) {
-      showError('Server error', e.reason.message || 'The API returned an error.', { retryable: true });
+      showError('Server error', e.reason.message || 'The API returned an error. Try again in a moment.', { retryable: true, requestId: e.reason.requestId, code: e.reason.code });
+    }
+  });
+
+  window.addEventListener('online', function() {
+    if (document.querySelector('.dashboard-layout.fatal-error')) {
+      clearError();
+      loadDashboard();
+      toast('Connection restored', 'success');
     }
   });
 
@@ -867,10 +919,25 @@
       }
     } catch(err) {
       var status = err.status || 0; var msg = err.message || '';
-      if (status === 429 || msg.includes('429') || msg.includes('Too many')) { showError('Rate limited', 'Too many requests. Please wait 15 minutes.', { retryable: false }); return; }
-      if (status === 401 || status === 403 || msg.includes('Unauthorized')) { clearToken(); window.location.href = '/?session=expired'; return; }
-      if (status === 0 || msg.includes('fetch') || msg.includes('Failed to fetch')) { showError('Connection lost', 'Could not reach AgentAudit.', { retryable: true }); return; }
-      showError('Dashboard unavailable', 'Could not load your account.', { retryable: true });
+      var errorOptions = { requestId: err.requestId, code: err.code || ('HTTP_' + status), retryable: true };
+      if (status === 429 || msg.includes('429') || msg.includes('Too many')) {
+        showError('Rate limited', 'Too many requests. Please wait a moment before retrying.', Object.assign({}, errorOptions, { retryable: false }));
+        return;
+      }
+      if (status === 401 || status === 403 || msg.includes('Unauthorized') || msg.includes('Invalid or expired token')) {
+        clearToken();
+        window.location.href = '/?session=expired';
+        return;
+      }
+      if (status === 503) {
+        showError('Service temporarily unavailable', 'AgentAudit is under maintenance or a dependency is down. We\'ll retry automatically.', errorOptions);
+        return;
+      }
+      if (!navigator.onLine || status === 0 || err.isNetwork) {
+        showError('You\'re offline', 'Check your internet connection, then retry.', { type: 'offline', retryable: true });
+        return;
+      }
+      showError('Dashboard unavailable', 'Could not load your account. If this keeps happening, contact support with the Request ID below.', errorOptions);
       return;
     }
 
