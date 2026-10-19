@@ -190,7 +190,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] Add a public bug template that redirects security-sensitive reports away from GitHub issues.
 - [x] Add `SECURITY.md` with a private vulnerability-reporting channel.
 - [x] Confirm `CHANGELOG.md` reflects the launch build (Unreleased section updated 2026-06-20).
-- [ ] Choose the public beta version, create a signed tag/release, and record the deployed commit.
+- [x] Choose the public beta version, create a signed tag/release, and record the deployed commit. Created GitHub pre-release `v1.1.0-beta.1` (GitHub-signed annotated tag) targeting deployed commit `c8c478c` on 2026-10-18; release notes published at https://github.com/AspicyKabob/-agentaudit-api/releases/tag/v1.1.0-beta.1.
 
 ## P2: Post-Launch Hardening
 
