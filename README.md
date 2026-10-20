@@ -4,7 +4,7 @@
 
 **Real-time guardrails for AI agents. Block PII, policy violations, and risky outputs before they reach users.**
 
-[<img src="https://img.shields.io/badge/version-1.1.0--trace-blue?style=flat-square">](https://agentaudit.online/health)
+[<img src="https://img.shields.io/badge/version-1.1.0--beta.1-blue?style=flat-square">](https://github.com/AspicyKabob/-agentaudit-api/releases/tag/v1.1.0-beta.1)
 [<img src="https://img.shields.io/badge/license-MIT-green?style=flat-square">](LICENSE)
 [<img src="https://img.shields.io/badge/deploy-Railway-purple?style=flat-square">](RAILWAY_DEPLOY.md)
 [<img src="https://img.shields.io/badge/status-online-brightgreen?style=flat-square">](https://agentaudit.online/health)
@@ -789,7 +789,7 @@ git push origin feature/my-feature
   - `API_KEY_SALT`: Required — used to key the HMAC that hashes API keys. Rotating it invalidates all existing API keys.
 - **Rate Limiting**: Audit endpoints now use API-key-based limits (not IP-based).
 
-Report security issues privately to: security@agentaudit.dev
+Report security issues privately to: [support@agentaudit.online](mailto:support@agentaudit.online) with the subject `Security report` (see [SECURITY.md](SECURITY.md)).
 
 ---
 
