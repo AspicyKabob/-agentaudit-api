@@ -16,9 +16,10 @@ export const auditController = {
 
   query: asyncHandler(async (req: Request, res: Response) => {
     const organizationId = req.organization!.id;
-    const { action, agentId, startDate, endDate, page, limit } = req.query as {
+    const { action, agentId, traceId, startDate, endDate, page, limit } = req.query as {
       action?: string;
       agentId?: string;
+      traceId?: string;
       startDate?: string;
       endDate?: string;
       page?: string;
@@ -28,6 +29,7 @@ export const auditController = {
     const result = await auditService.query(organizationId, {
       action,
       agentId,
+      traceId,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       page: page ? parseInt(page, 10) : 1,
