@@ -122,7 +122,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] Python and TypeScript SDK examples are present.
 - [x] LangChain and CrewAI integrations have automated tests.
 - [x] A Postman collection is included.
-- [ ] Verify the README quickstart against the live deployment from a clean machine.
+- [x] Verify the README quickstart against the live deployment from a clean machine (replicated the exact documented flow against `https://agentaudit.online` 2026-10-18: register → login JWT → API key → blocking SSN rule → leaky submission returns `{"enforcementAction":"block","complianceFlags":["CRITICAL_pii_detect_Block SSNs"]}` exactly as documented; clean submission returns `allow`; test organization deleted afterward).
 - [x] Install both published SDK packages from clean environments and verify their primary imports (PyPI `1.0.4`, npm `1.0.2`; checked 2026-06-21).
 - [ ] Publish new Python and TypeScript SDK versions containing authoritative `enforcementAction` parsing, then re-verify the installed artifacts.
 - [x] Update `ROADMAP.md`: LangChain and Postman are implemented, not planned.
@@ -282,3 +282,5 @@ These are important, but they do not block a carefully labeled developer beta.
 || 2026-10-18 | Website UX pass (PR #67): added missing Demo nav link to legal pages; fixed features.html auth buttons missing nav-login/nav-signup IDs; added docs sidebar search + scroll-synced prev/next navigation; corrected Errors docs example to real `{error, code, requestId}` shape; a11y pass — aria-hidden canvases, main landmarks, skip links, :focus-visible, prefers-reduced-motion, dialog role/aria-modal + focus trap on auth modal.
 || 2026-10-18 | Added dashboard "Get started" onboarding checklist (create API key → first audit event → first rule → alert notifications) that auto-detects completion from live API data; verified with mocked-API Playwright test.
 || 2026-10-18 | Measured production Core Web Vitals: LCP 672 ms, CLS 0.0003, ~98 KB compressed transfer (mostly fonts). All "good" thresholds met; no optimization needed.
+|| 2026-10-18 | Created GitHub pre-release `v1.1.0-beta.1` targeting deployed commit `c8c478c`; updated repo homepage/description/topics; fixed README version badge and stale security@agentaudit.dev reporting address (PR #70).
+|| 2026-10-18 | Verified README quickstart end-to-end on production: register → JWT → API key → blocking SSN rule → leaky submission blocked with `CRITICAL_pii_detect_Block SSNs`; clean submission allowed; test org deleted.

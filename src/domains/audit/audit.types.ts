@@ -40,6 +40,7 @@ export const queryAuditSchema = z.object({
   query: z.object({
     action: z.string().optional(),
     agentId: z.string().uuid().optional(),
+    traceId: z.string().optional(),
     startDate: z.string().datetime().optional(),
     endDate: z.string().datetime().optional(),
     page: z.string().transform(Number).default('1'),

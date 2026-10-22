@@ -1009,8 +1009,7 @@
     } catch(e) { /* filter dropdown is optional */ }
 
     try {
-      var offset = (logsPage - 1) * logsPageSize;
-      var qs = 'limit=' + logsPageSize + '&offset=' + offset;
+      var qs = 'limit=' + logsPageSize + '&page=' + logsPage;
       if (logsFilter.action) qs += '&action=' + encodeURIComponent(logsFilter.action);
       if (logsFilter.agentId) qs += '&agentId=' + encodeURIComponent(logsFilter.agentId);
       if (logsFilter.startDate) qs += '&startDate=' + encodeURIComponent(new Date(logsFilter.startDate).toISOString());

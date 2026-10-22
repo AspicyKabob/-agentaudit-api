@@ -539,7 +539,7 @@
       <h1>AgentAudit <span class="gradient-text">Docs</span></h1>
       <p>Everything you need to integrate audit logging, guardrails, and compliance monitoring into your agent stack.</p>
       <div class="docs-hero-meta">
-        <span>Base URL: <code>/api/v1</code> (same origin) — or <a href="/api/v1" target="_blank">https://your-domain.com/api/v1</a></span>
+        <span>Base URL: <code>/api/v1</code> (same origin) — hosted: <a href="/api/v1" target="_blank">https://agentaudit.online/api/v1</a></span>
         <span>Version: <strong>v1</strong></span>
         <a href="/docs" target="_blank">Interactive Swagger UI ↗</a>
       </div>
@@ -615,7 +615,7 @@
                 <button class="tab-copy-btn">Copy</button>
               </div>
               <div class="tab-panel active" data-tab="curl">
-                <pre>curl -X POST https://your-domain.com/api/v1/audit-logs \
+                <pre>curl -X POST https://agentaudit.online/api/v1/audit-logs \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -735,7 +735,7 @@ Authorization: Bearer &lt;jwt&gt;
               <tr><td>action</td><td>string</td><td><span class="req">required</span></td><td>Event type, e.g. <code>llm_call</code>, <code>tool_use</code>, <code>guardrail_block</code></td></tr>
               <tr><td>prompt</td><td>string</td><td><span class="opt">optional</span></td><td>Input sent to the model or tool</td></tr>
               <tr><td>response</td><td>string</td><td><span class="opt">optional</span></td><td>Output from the model or tool</td></tr>
-              <tr><td>agentId</td><td>string</td><td><span class="opt">optional</span></td><td>Stable identifier for the agent</td></tr>
+              <tr><td>agentId</td><td>string</td><td><span class="opt">optional</span></td><td>UUID of an agent registered in your dashboard (Agents → New Agent)</td></tr>
               <tr><td>traceId</td><td>string</td><td><span class="opt">optional</span></td><td>Groups related events into a single trace</td></tr>
               <tr><td>parentSpanId</td><td>string</td><td><span class="opt">optional</span></td><td>ID of a parent log entry (for nested spans)</td></tr>
               <tr><td>metadata</td><td>object</td><td><span class="opt">optional</span></td><td>Any JSON — model name, token count, latency, etc.</td></tr>
@@ -763,16 +763,16 @@ Authorization: Bearer &lt;jwt&gt;
             <div class="endpoint-row">
               <span class="method-badge get">GET</span>
               <span class="path">/api/v1/audit-logs</span>
-              <span class="desc">Auth: JWT or API Key</span>
+              <span class="desc">Auth: JWT</span>
             </div>
-            <p>Supports query params: <code>limit</code>, <code>offset</code>, <code>agentId</code>, <code>action</code>, <code>traceId</code>.</p>
+            <p>Supports query params: <code>page</code>, <code>limit</code>, <code>action</code>, <code>agentId</code>, <code>traceId</code>, <code>startDate</code>, <code>endDate</code>. Responds with <code>{ data, pagination: { page, limit, total, totalPages } }</code>.</p>
           </div>
 
           <!-- ── Batch ───────────────────────────────────────────────── -->
           <div class="docs-section" id="batch">
             <span class="docs-section-badge">04 — Batch logging</span>
             <h2>Batch Logging</h2>
-            <p>Submit up to 50 log entries in a single request. Ideal for high-throughput agents or flushing a local buffer at the end of a run.</p>
+            <p>Submit up to 100 log entries in a single request. Ideal for high-throughput agents or flushing a local buffer at the end of a run.</p>
 
             <div class="endpoint-row">
               <span class="method-badge post">POST</span>
@@ -781,7 +781,7 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
 
             <div class="code-block">
-              <pre>curl -X POST https://your-domain.com/api/v1/audit-logs/batch \
+              <pre>curl -X POST https://agentaudit.online/api/v1/audit-logs/batch \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '[
@@ -808,7 +808,7 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
 
             <div class="callout">
-              The batch endpoint returns an array of created log IDs in the same order as the input. Use these IDs as <code>parentSpanId</code> values in subsequent requests to build a nested trace.
+              The batch endpoint responds <code>201</code> with <code>{ data, processed, errors }</code>. <code>data</code> is an array of created log entries — each with <code>id</code>, <code>action</code>, <code>complianceFlags</code>, <code>enforcementAction</code>, and <code>createdAt</code> — in input order. Use the returned <code>id</code> values as <code>parentSpanId</code> in subsequent requests to build a nested trace.
             </div>
           </div>
 
