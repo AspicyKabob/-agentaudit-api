@@ -18,7 +18,9 @@
     "test:prepare": "node scripts/prepare-test-sdk.js",
     "pretest": "npm run test:prepare",
     "verify": "npm run lint && npm run build && npm test -- --runInBand",
-    "verify:ci": "npm run lint && npm run build && npm test -- --runInBand --no-coverage --forceExit"
+    "verify:ci": "npm run lint && npm run build && npm test -- --runInBand --no-coverage --forceExit",
+    "visual:update": "node scripts/visual-regression.js --update",
+    "visual:check": "node scripts/visual-regression.js"
   },
   "keywords": [
     "api",
@@ -83,6 +85,9 @@
     "pg": "^8.23.0",
     "pglite-prisma-adapter": "^0.2.0",
     "pino-pretty": "^10.3.1",
+    "pixelmatch": "8.0.0",
+    "playwright": "1.56.1",
+    "pngjs": "7.0.0",
     "supertest": "^7.2.2",
     "ts-jest": "^29.1.2",
     "tsx": "^4.22.4",
