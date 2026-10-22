@@ -1257,11 +1257,32 @@ Authorization: Bearer &lt;jwt&gt;
               <tr><th>Code</th><th>Meaning</th></tr>
               <tr><td>400</td><td>Validation error — check your request body</td></tr>
               <tr><td>401</td><td>Missing or invalid API key / JWT</td></tr>
+              <tr><td>402</td><td><code>quota_exceeded</code> — monthly audit-log quota used up; upgrade your plan</td></tr>
               <tr><td>403</td><td>Valid credentials but not authorised for this resource</td></tr>
               <tr><td>404</td><td>Resource not found</td></tr>
               <tr><td>429</td><td>Rate limit exceeded — back off and retry</td></tr>
               <tr><td>500</td><td>Server error — contact support if it persists</td></tr>
             </table>
+
+            <h3>Rate limiting</h3>
+            <p>Every response carries <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, <code>RateLimit-Reset</code>, and <code>RateLimit-Policy</code> headers so you can back off before hitting the cap. Limits are per 15-minute window:</p>
+            <table class="param-table">
+              <tr><th>Scope</th><th>Limit</th></tr>
+              <tr><td>Auth (login/register)</td><td>5 failed attempts</td></tr>
+              <tr><td><code>POST /audit-logs</code></td><td>1000 per API key</td></tr>
+              <tr><td><code>POST /audit-logs/batch</code></td><td>500 per API key</td></tr>
+              <tr><td>Reads</td><td>200</td></tr>
+              <tr><td>Everything else</td><td>200</td></tr>
+            </table>
+
+            <h3>Monthly quota</h3>
+            <p>Audit-log writes count against your plan's monthly quota (<code>apiUsed</code>/<code>apiQuota</code> on your profile). When the quota is exhausted, writes fail with <code>402</code> and <code>quota_exceeded</code> until the next billing window or an upgrade.</p>
+
+            <h3>Idempotency</h3>
+            <p>Write endpoints are not idempotent — every <code>POST /audit-logs</code> creates a new row, so retry only on network errors or 5xx, never after a 2xx you may have missed. Use a stable <code>traceId</code> if you need to correlate retries in your own telemetry.</p>
+
+            <h3>Alert webhooks</h3>
+            <p>Webhook delivery is a single attempt with a 5&nbsp;second timeout. Failures are logged and reported to our error monitoring but are not retried — keep your endpoint lightweight and return 2xx quickly.</p>
           </div>
 
           <nav class="docs-pagenav" id="docs-pagenav" aria-label="Section navigation"></nav>

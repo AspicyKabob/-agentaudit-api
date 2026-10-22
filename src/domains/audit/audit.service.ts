@@ -9,6 +9,7 @@ import { detectPII } from './pii-detector';
 import { alertService, tryConsumeAlertEmailQuota } from '../alerts/alert.service';
 import { emailService } from '../../services/email.service';
 import { getQuotaForPlan } from '../billing/plans';
+import { AppError } from '../../utils/errors';
 
 interface QueryOptions {
   action?: string;
@@ -71,9 +72,9 @@ async function reserveQuota(organizationId: string, requestedCount: number) {
     const used = current?.apiUsed ?? quota;
     if (requestedCount > 1) {
       const remaining = Math.max(0, quota - used);
-      throw new Error(`Batch too large. Only ${remaining} logs remaining this month. Upgrade your plan to continue logging.`);
+      throw new AppError(`Batch too large. Only ${remaining} logs remaining this month. Upgrade your plan to continue logging.`, 402, { code: 'quota_exceeded' });
     }
-    throw new Error(`Monthly audit log quota exceeded (${used}/${quota}). Upgrade your plan to continue logging.`);
+    throw new AppError(`Monthly audit log quota exceeded (${used}/${quota}). Upgrade your plan to continue logging.`, 402, { code: 'quota_exceeded' });
   }
 }
 
