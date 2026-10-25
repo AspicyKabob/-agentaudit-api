@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { authenticate } from './auth.middleware';
 import { hashApiKey } from '../utils/apiKey';
 import { prisma } from '../db/prisma';
 import { logger } from '../utils/logger';
@@ -44,4 +45,15 @@ export async function authenticateApiKey(
     logger.warn({ error }, 'API key verification failed');
     res.status(401).json(errorBody(req, 'Invalid API key', 'unauthorized'));
   }
+}
+
+// Accepts either an X-API-Key header (agent/ingestion auth) or a Bearer JWT
+// (dashboard auth). Both resolve req.organization.
+export async function authenticateEither(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  if (req.headers['x-api-key']) return authenticateApiKey(req, res, next);
+  return authenticate(req, res, next);
 }

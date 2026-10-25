@@ -4,8 +4,8 @@ export const swaggerSpec = {
   openapi: '3.0.0',
   info: {
     title: 'AgentAudit API',
-    version: '1.1.0-trace',
-    description: 'Audit & Compliance API for AI Agents. Track every prompt, decision, and action with real-time compliance monitoring.',
+    version: '1.1.0-beta.1',
+    description: 'Audit & Compliance API for AI Agents. Track every prompt, decision, and action with real-time compliance monitoring. This is the interactive reference — for the curated integration guide and SDK examples see https://agentaudit.online/docs.html.',
     contact: { name: 'AgentAudit Support', email: 'support@agentaudit.online' },
     license: { name: 'MIT', url: 'https://opensource.org/licenses/MIT' },
   },
