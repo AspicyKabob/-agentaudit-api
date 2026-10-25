@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { config } from '../../config';
@@ -26,7 +27,7 @@ export const emailWebhookController = {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.warn({ error: message }, 'Invalid Resend webhook');
-      res.status(400).json({ error: 'Invalid webhook' });
+      res.status(400).json(errorBody(req, 'Invalid webhook', 'bad_request'));
       return;
     }
 

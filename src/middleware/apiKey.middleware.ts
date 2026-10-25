@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { hashApiKey } from '../utils/apiKey';
 import { prisma } from '../db/prisma';
 import { logger } from '../utils/logger';
+import { errorBody } from '../utils/errorBody';
 
 export async function authenticateApiKey(
   req: Request,
@@ -11,7 +12,7 @@ export async function authenticateApiKey(
   const apiKey = req.headers['x-api-key'] as string;
 
   if (!apiKey) {
-    res.status(401).json({ error: 'Missing API key' });
+    res.status(401).json(errorBody(req, 'Missing API key', 'unauthorized'));
     return;
   }
 
@@ -23,7 +24,7 @@ export async function authenticateApiKey(
     });
 
     if (!apiKeyRecord || apiKeyRecord.revokedAt) {
-      res.status(401).json({ error: 'Invalid or revoked API key' });
+      res.status(401).json(errorBody(req, 'Invalid or revoked API key', 'unauthorized'));
       return;
     }
 
@@ -41,6 +42,6 @@ export async function authenticateApiKey(
     next();
   } catch (error) {
     logger.warn({ error }, 'API key verification failed');
-    res.status(401).json({ error: 'Invalid API key' });
+    res.status(401).json(errorBody(req, 'Invalid API key', 'unauthorized'));
   }
 }

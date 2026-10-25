@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { subscriptionService } from './subscription.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -38,10 +39,9 @@ export const billingController = {
         { organizationId, priceId, error: err, message: err?.message, stack: err?.stack },
         'Stripe checkout session failed'
       );
-      res.status(400).json({
-        error: err?.message || 'Failed to create checkout session',
+      res.status(400).json(errorBody(req, err?.message || 'Failed to create checkout session', 'bad_request', {
         detail: err?.raw?.message || undefined,
-      });
+      }));
     }
   }),
 
@@ -66,7 +66,7 @@ export const billingController = {
       res.status(200).json({ url: session.url });
     } catch (err: any) {
       if (err.message === 'Billing is not configured') {
-        res.status(503).json({ error: 'Billing not configured' });
+        res.status(503).json(errorBody(req, 'Billing not configured', 'service_unavailable'));
         return;
       }
       throw err;
@@ -78,7 +78,7 @@ export const billingController = {
     const endpointSecret = config.get('stripeWebhookSecret');
 
     if (!sig || !endpointSecret) {
-      res.status(400).json({ error: 'Missing stripe signature' });
+      res.status(400).json(errorBody(req, 'Missing stripe signature', 'bad_request'));
       return;
     }
 
@@ -87,7 +87,7 @@ export const billingController = {
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err: any) {
-      res.status(400).json({ error: `Webhook Error: ${err.message}` });
+      res.status(400).json(errorBody(req, `Webhook Error: ${err.message}`, 'bad_request'));
       return;
     }
 

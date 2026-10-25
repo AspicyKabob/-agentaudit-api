@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { agentService } from './agent.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -22,7 +23,7 @@ export const agentController = {
     const { id } = req.params;
     const agent = await agentService.get(organizationId, id);
     if (!agent) {
-      res.status(404).json({ error: 'Agent not found' });
+      res.status(404).json(errorBody(req, 'Agent not found', 'not_found'));
       return;
     }
     res.status(200).json(agent);

@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { reportService } from './report.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -23,7 +24,7 @@ export const reportController = {
     const report = await reportService.get(organizationId, id);
 
     if (!report) {
-      res.status(404).json({ error: 'Report not found' });
+      res.status(404).json(errorBody(req, 'Report not found', 'not_found'));
       return;
     }
 
@@ -36,7 +37,7 @@ export const reportController = {
     const result = await reportService.download(organizationId, id);
 
     if (!result) {
-      res.status(404).json({ error: 'Report not found or not ready' });
+      res.status(404).json(errorBody(req, 'Report not found or not ready', 'not_found'));
       return;
     }
 

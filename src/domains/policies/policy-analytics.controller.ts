@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { policyAnalyticsService } from './policy-analytics.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -23,7 +24,7 @@ export const policyAnalyticsController = {
     });
 
     if (!result) {
-      res.status(404).json({ error: 'Policy not found' });
+      res.status(404).json(errorBody(req, 'Policy not found', 'not_found'));
       return;
     }
 

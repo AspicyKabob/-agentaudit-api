@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { authService } from './auth.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -39,7 +40,7 @@ export const authController = {
 
     const validSeverities = ['low', 'medium', 'high', 'warning', 'critical'];
     if (notifyMinSeverity !== undefined && !validSeverities.includes(notifyMinSeverity)) {
-      res.status(400).json({ error: 'notifyMinSeverity must be low, medium, high, warning, or critical' });
+      res.status(400).json(errorBody(req, 'notifyMinSeverity must be low, medium, high, warning, or critical', 'bad_request'));
       return;
     }
 
