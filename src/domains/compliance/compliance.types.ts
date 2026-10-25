@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+﻿import { z } from 'zod/v3';
 import { PIIPatternType } from '../audit/pii-detector';
 
 export const PACK_IDS = ['hipaa', 'finance', 'gdpr'] as const;

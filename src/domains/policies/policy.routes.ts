@@ -5,7 +5,7 @@ import { authenticate } from '../../middleware/auth.middleware';
 import { createPolicySchema, updatePolicySchema, policyIdSchema, clonePackToPolicySchema, policyAnalyticsQuerySchema, createVersionSchema, policyVersionIdSchema } from './policy.types';
 import { policyAnalyticsController } from './policy-analytics.controller';
 import { policyVersionController } from './policy-version.controller';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const agentAssignmentSchema = z.object({
   params: z.object({

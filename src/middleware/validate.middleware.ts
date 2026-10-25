@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodSchema, ZodError } from 'zod/v3';
 import { logger } from '../utils/logger';
 
 export function validate(schema: ZodSchema) {
