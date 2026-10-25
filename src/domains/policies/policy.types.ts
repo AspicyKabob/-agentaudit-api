@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/v3';
 import { PACK_IDS } from '../compliance/compliance.types';
 
 const enforcementModeSchema = z.enum(['block', 'flag', 'log']).default('flag');
