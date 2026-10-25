@@ -5,6 +5,7 @@ on:
     tags:
       - 'v*.*.*'
       - 'v*.*.*-python'
+  workflow_dispatch:
 
 jobs:
   publish:

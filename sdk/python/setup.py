@@ -2,13 +2,13 @@ from setuptools import setup, find_packages
 
 setup(
     name="agentaudit-client",
-    version="1.0.4",
+    version="1.0.5",
     description="Audit & Compliance SDK for AI Agents",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     author="AgentAudit Team",
     author_email="support@agentaudit.online",
-    url="https://github.com/agentaudit/agentaudit-python",
+    url="https://github.com/AspicyKabob/-agentaudit-api",
     packages=find_packages(),
     install_requires=[
         "requests>=2.25.0",
