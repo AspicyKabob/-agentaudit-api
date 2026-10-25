@@ -104,23 +104,52 @@
   function confirmModal(title, message, confirmLabel, confirmClass, onConfirm) {
     var existing = document.getElementById('dash-confirm-overlay');
     if (existing) existing.remove();
+    var trigger = document.activeElement;
     var overlay = document.createElement('div');
     overlay.id = 'dash-confirm-overlay';
     overlay.className = 'dash-modal-overlay open';
     overlay.innerHTML =
-      '<div class="dash-modal" style="max-width:380px;">' +
-        '<h3>' + title + '</h3>' +
+      '<div class="dash-modal" style="max-width:380px;" role="dialog" aria-modal="true" aria-labelledby="dash-confirm-title">' +
+        '<h3 id="dash-confirm-title">' + title + '</h3>' +
         '<p>' + message + '</p>' +
+        '<p id="dash-confirm-error" style="display:none;color:var(--accent);font-size:12px;margin-bottom:12px;" role="alert"></p>' +
         '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
           '<button class="btn-dash" id="dash-confirm-cancel">Cancel</button>' +
           '<button class="btn-dash ' + (confirmClass || 'btn-dash-danger') + '" id="dash-confirm-ok">' + (confirmLabel || 'Confirm') + '</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(overlay);
-    function close() { overlay.remove(); }
-    document.getElementById('dash-confirm-cancel').addEventListener('click', close);
+    var cancelBtn = document.getElementById('dash-confirm-cancel');
+    var okBtn = document.getElementById('dash-confirm-ok');
+    var errEl = document.getElementById('dash-confirm-error');
+    function close() {
+      overlay.remove();
+      if (trigger && document.contains(trigger)) trigger.focus();
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' && document.getElementById('dash-confirm-overlay')) { e.stopPropagation(); close(); }
+    }
+    document.addEventListener('keydown', onKey, true);
+    var origClose = close;
+    close = function() { document.removeEventListener('keydown', onKey, true); origClose(); };
+    cancelBtn.addEventListener('click', close);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) close(); });
-    document.getElementById('dash-confirm-ok').addEventListener('click', function() { close(); onConfirm(); });
+    okBtn.focus();
+    okBtn.addEventListener('click', function() {
+      var result = onConfirm();
+      if (!result || !result.then) { close(); return; }
+      okBtn.disabled = true;
+      cancelBtn.disabled = true;
+      okBtn.textContent = 'Working…';
+      errEl.style.display = 'none';
+      result.then(close).catch(function(err) {
+        errEl.textContent = (err && err.message ? err.message : 'Action failed') + ' — try again or cancel.';
+        errEl.style.display = 'block';
+        okBtn.disabled = false;
+        cancelBtn.disabled = false;
+        okBtn.textContent = confirmLabel || 'Confirm';
+      });
+    });
   }
 
   // ─── File download helper ─────────────────────────────────────────
@@ -224,6 +253,26 @@
     }
   });
 
+  // ─── Danger zone: delete organization ─────────────────────────────
+  document.getElementById('btn-delete-org').addEventListener('click', function() {
+    var pwdInput = document.getElementById('delete-org-password');
+    var pwd = pwdInput ? pwdInput.value : '';
+    if (!pwd) { toast('Enter your password to delete the organization', 'error'); if (pwdInput) pwdInput.focus(); return; }
+    confirmModal(
+      'Delete organization permanently?',
+      'All API keys, rules, agents, and audit history will be permanently deleted. There is no recovery.',
+      'Delete permanently', 'btn-dash-danger',
+      function() {
+        return api('DELETE', '/api/v1/auth/organization', { password: pwd })
+          .then(function() {
+            clearToken();
+            toast('Organization deleted', 'info');
+            setTimeout(function() { window.location.href = '/'; }, 800);
+          });
+      }
+    );
+  });
+
   // ─── Upgrade / billing portal ─────────────────────────────────────
   document.getElementById('btn-upgrade').addEventListener('click', async function() {
     var btn = this;
@@ -282,9 +331,8 @@
     if (!btn) return;
     var id = btn.getAttribute('data-revoke-id');
     confirmModal('Revoke API key?', 'Any agent using this key will stop working immediately.', 'Revoke key', 'btn-dash-danger', function() {
-      api('DELETE', '/api/v1/auth/api-keys/' + id)
-        .then(function() { toast('Key revoked', 'info'); loadOverview(); })
-        .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+      return api('DELETE', '/api/v1/auth/api-keys/' + id)
+        .then(function() { toast('Key revoked', 'info'); loadOverview(); });
     });
   });
 
@@ -303,9 +351,8 @@
       }
       if (action === 'remove') {
         confirmModal('Remove pack?', 'All rules installed by this pack will be permanently deleted.', 'Remove', 'btn-dash-danger', function() {
-          api('DELETE', '/api/v1/compliance-rules/packs/' + packId)
-            .then(function() { toast('Pack removed', 'info'); loadPacks(); })
-            .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+          return api('DELETE', '/api/v1/compliance-rules/packs/' + packId)
+            .then(function() { toast('Pack removed', 'info'); loadPacks(); });
         });
       }
       if (action === 'test') {
@@ -535,9 +582,8 @@
 
     if (action === 'delete') {
       confirmModal('Delete rule?', 'This rule will stop running immediately.', 'Delete', 'btn-dash-danger', function() {
-        api('DELETE', '/api/v1/compliance-rules/' + id)
-          .then(function() { toast('Rule deleted', 'info'); loadRules(); })
-          .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+        return api('DELETE', '/api/v1/compliance-rules/' + id)
+          .then(function() { toast('Rule deleted', 'info'); loadRules(); });
       });
     }
   });
@@ -598,9 +644,8 @@
 
     if (action === 'delete') {
       confirmModal('Delete report?', 'This cannot be undone.', 'Delete', 'btn-dash-danger', function() {
-        api('DELETE', '/api/v1/reports/' + id)
-          .then(function() { toast('Report deleted', 'info'); loadReports(); })
-          .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+        return api('DELETE', '/api/v1/reports/' + id)
+          .then(function() { toast('Report deleted', 'info'); loadReports(); });
       });
     }
   });
@@ -773,9 +818,8 @@
             btn.addEventListener('click', function() {
               var versionId = btn.getAttribute('data-restore-version');
               confirmModal('Restore version?', 'Current policy settings will be replaced.', 'Restore', 'btn-dash-primary', function() {
-                api('POST', '/api/v1/policies/' + id + '/versions/' + versionId + '/restore')
-                  .then(function() { toast('Version restored', 'success'); closePolicyDetailModal(); loadPolicies(); })
-                  .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+                return api('POST', '/api/v1/policies/' + id + '/versions/' + versionId + '/restore')
+                  .then(function() { toast('Version restored', 'success'); closePolicyDetailModal(); loadPolicies(); });
               });
             });
           });
@@ -792,9 +836,8 @@
 
       document.getElementById('btn-policy-delete').onclick = function() {
         confirmModal('Delete policy?', 'This cannot be undone.', 'Delete', 'btn-dash-danger', function() {
-          api('DELETE', '/api/v1/policies/' + id)
-            .then(function() { toast('Policy deleted', 'info'); closePolicyDetailModal(); loadPolicies(); })
-            .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+          return api('DELETE', '/api/v1/policies/' + id)
+            .then(function() { toast('Policy deleted', 'info'); closePolicyDetailModal(); loadPolicies(); });
         });
       };
 
@@ -1206,7 +1249,7 @@
             e.stopPropagation();
             var id = btn.getAttribute('data-delete-agent');
             confirmModal('Delete agent?', 'All associated audit logs will remain but the agent registration will be removed.', 'Delete', 'btn-dash-danger', function() {
-              api('DELETE', '/api/v1/agents/' + id)
+              return api('DELETE', '/api/v1/agents/' + id)
                 .then(function() {
                   toast('Agent deleted', 'info');
                   sectionLoaded['agents'] = false;
@@ -1214,8 +1257,7 @@
                   api('GET', '/api/v1/agents').then(function(a) {
                     document.getElementById('stat-agents').textContent = Array.isArray(a) ? a.length : '0';
                   }).catch(function() {});
-                })
-                .catch(function(err) { toast(err.message || 'Failed', 'error'); });
+                });
             });
           });
         });

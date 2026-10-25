@@ -694,6 +694,11 @@ class AgentAudit:
         resp = self._request("GET", "/alerts", params=params)
         return resp.json()
 
+    def resolve_alert(self, alert_id: str) -> Dict[str, Any]:
+        """Mark a compliance alert as resolved."""
+        resp = self._request("PATCH", f"/alerts/{alert_id}/resolve")
+        return resp.json()
+
     # ------------------------------------------------------------------
     # Health check
     # ------------------------------------------------------------------

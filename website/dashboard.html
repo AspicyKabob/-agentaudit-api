@@ -703,6 +703,20 @@
             <button class="btn-dash btn-dash-primary" id="btn-save-api-base">Save API Base</button>
           </div>
         </div>
+
+        <div class="panel" style="border-color: rgba(220,38,38,0.3);">
+          <div class="panel-header">
+            <span class="panel-title" style="color: var(--accent);">Danger Zone</span>
+          </div>
+          <div class="panel-body" style="padding: 16px 24px;">
+            <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px 0;">Permanently delete your organization, all API keys, rules, agents, and audit history. This cannot be undone.</p>
+            <div class="field" style="margin-bottom: 14px;">
+              <label for="delete-org-password">Confirm your password</label>
+              <input id="delete-org-password" type="password" autocomplete="current-password" placeholder="Your account password">
+            </div>
+            <button class="btn-dash btn-dash-danger" id="btn-delete-org">Delete Organization</button>
+          </div>
+        </div>
       </section>
     </main>
   </div>

@@ -537,7 +537,7 @@
     <div class="container docs-hero">
       <span class="section-badge">API Reference</span>
       <h1>AgentAudit <span class="gradient-text">Docs</span></h1>
-      <p>Everything you need to integrate audit logging, guardrails, and compliance monitoring into your agent stack.</p>
+      <p>Everything you need to integrate audit logging, guardrails, and compliance monitoring into your agent stack. This page is the curated integration guide; for the interactive OpenAPI reference with try-it-out requests, use the <a href="/docs" target="_blank" style="color:inherit;text-decoration:underline;">Swagger UI</a>.</p>
       <div class="docs-hero-meta">
         <span>Base URL: <code>/api/v1</code> (same origin) — hosted: <a href="/api/v1" target="_blank">https://agentaudit.online/api/v1</a></span>
         <span>Version: <strong>v1</strong></span>
@@ -759,13 +759,51 @@ Authorization: Bearer &lt;jwt&gt;
               <button class="copy-btn">Copy</button>
             </div>
 
+            <div class="code-block">
+              <pre>// Response 201
+{
+  "id": "log_...",
+  "action": "guardrail_check",
+  "complianceFlags": ["CRITICAL_pii_detect_Block SSNs"],
+  "enforcementAction": "block",
+  "traceId": "run-1749300000000",
+  "createdAt": "2026-10-25T12:00:00.000Z"
+}</pre>
+              <button class="copy-btn">Copy</button>
+            </div>
+
             <h3>Retrieve logs</h3>
             <div class="endpoint-row">
               <span class="method-badge get">GET</span>
               <span class="path">/api/v1/audit-logs</span>
-              <span class="desc">Auth: JWT</span>
+              <span class="desc">Auth: JWT or API Key</span>
             </div>
             <p>Supports query params: <code>page</code>, <code>limit</code>, <code>action</code>, <code>agentId</code>, <code>traceId</code>, <code>startDate</code>, <code>endDate</code>. Responds with <code>{ data, pagination: { page, limit, total, totalPages } }</code>.</p>
+
+            <div class="code-tabs" data-tab-group="query-logs">
+              <div class="tab-bar">
+                <button class="tab-btn active" data-tab="curl">cURL</button>
+                <button class="tab-btn" data-tab="python">Python</button>
+                <button class="tab-btn" data-tab="typescript">TypeScript</button>
+                <button class="tab-copy-btn">Copy</button>
+              </div>
+              <div class="tab-panel active" data-tab="curl">
+                <pre>curl "https://agentaudit.online/api/v1/audit-logs?action=llm_call&amp;limit=20" \
+  -H "X-API-Key: aa_your_key_here"</pre>
+              </div>
+              <div class="tab-panel" data-tab="python">
+                <pre>logs = client.query_logs(action="llm_call", limit=20)
+
+for entry in logs["data"]:
+    print(entry["id"], entry["enforcementAction"])</pre>
+              </div>
+              <div class="tab-panel" data-tab="typescript">
+                <pre>const { data, pagination } = await client.queryLogs({
+  action: 'llm_call',
+  limit: 20,
+});</pre>
+              </div>
+            </div>
           </div>
 
           <!-- ── Batch ───────────────────────────────────────────────── -->
@@ -780,8 +818,15 @@ Authorization: Bearer &lt;jwt&gt;
               <span class="desc">Auth: API Key</span>
             </div>
 
-            <div class="code-block">
-              <pre>curl -X POST https://agentaudit.online/api/v1/audit-logs/batch \
+            <div class="code-tabs" data-tab-group="batch">
+              <div class="tab-bar">
+                <button class="tab-btn active" data-tab="curl">cURL</button>
+                <button class="tab-btn" data-tab="python">Python</button>
+                <button class="tab-btn" data-tab="typescript">TypeScript</button>
+                <button class="tab-copy-btn">Copy</button>
+              </div>
+              <div class="tab-panel active" data-tab="curl">
+                <pre>curl -X POST https://agentaudit.online/api/v1/audit-logs/batch \
   -H "X-API-Key: aa_your_key_here" \
   -H "Content-Type: application/json" \
   -d '[
@@ -804,7 +849,35 @@ Authorization: Bearer &lt;jwt&gt;
       "metadata": { "tokens": 820 }
     }
   ]'</pre>
-              <button class="copy-btn">Copy</button>
+              </div>
+              <div class="tab-panel" data-tab="python">
+                <pre>created = client.log_batch([
+    {
+        "action": "llm_start",
+        "traceId": "run-1749300000000",
+        "prompt": "Analyse Q1 data",
+        "metadata": {"model": "gpt-4o"},
+    },
+    {
+        "action": "tool_use",
+        "traceId": "run-1749300000000",
+        "metadata": {"tool": "code_interpreter"},
+    },
+    {
+        "action": "llm_end",
+        "traceId": "run-1749300000000",
+        "response": "Q1 revenue grew 18% YoY",
+        "metadata": {"tokens": 820},
+    },
+])</pre>
+              </div>
+              <div class="tab-panel" data-tab="typescript">
+                <pre>const { data, processed, errors } = await client.logBatch([
+  { action: 'llm_start', traceId: 'run-1749300000000', prompt: 'Analyse Q1 data', metadata: { model: 'gpt-4o' } },
+  { action: 'tool_use', traceId: 'run-1749300000000', metadata: { tool: 'code_interpreter' } },
+  { action: 'llm_end', traceId: 'run-1749300000000', response: 'Q1 revenue grew 18% YoY', metadata: { tokens: 820 } },
+]);</pre>
+              </div>
             </div>
 
             <div class="callout">
@@ -900,6 +973,35 @@ Authorization: Bearer &lt;jwt&gt;
               <span class="path">/api/v1/alerts/:id/resolve</span>
               <span class="desc">Mark an alert as resolved</span>
             </div>
+            <p>Both accept JWT or <code>X-API-Key</code> auth.</p>
+
+            <div class="code-tabs" data-tab-group="alerts">
+              <div class="tab-bar">
+                <button class="tab-btn active" data-tab="curl">cURL</button>
+                <button class="tab-btn" data-tab="python">Python</button>
+                <button class="tab-btn" data-tab="typescript">TypeScript</button>
+                <button class="tab-copy-btn">Copy</button>
+              </div>
+              <div class="tab-panel active" data-tab="curl">
+                <pre>curl "https://agentaudit.online/api/v1/alerts?resolved=false" \
+  -H "X-API-Key: aa_your_key_here"
+
+curl -X PATCH https://agentaudit.online/api/v1/alerts/alert_id/resolve \
+  -H "X-API-Key: aa_your_key_here"</pre>
+              </div>
+              <div class="tab-panel" data-tab="python">
+                <pre>alerts = client.get_alerts(is_resolved=False)
+
+# Resolve an alert
+client.resolve_alert(alert_id)</pre>
+              </div>
+              <div class="tab-panel" data-tab="typescript">
+                <pre>const alerts = await client.getAlerts({ isResolved: false });
+
+// Resolve an alert
+await client.resolveAlert(alertId);</pre>
+              </div>
+            </div>
           </div>
 
           <!-- ── Agents ─────────────────────────────────────────────── -->
@@ -935,24 +1037,44 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
 
             <h3>Create an agent</h3>
-            <div class="code-block">
-              <pre>POST /api/v1/agents
-Authorization: Bearer &lt;jwt&gt;
+            <p>Accepts JWT or <code>X-API-Key</code> auth.</p>
+            <div class="code-tabs" data-tab-group="create-agent">
+              <div class="tab-bar">
+                <button class="tab-btn active" data-tab="curl">cURL</button>
+                <button class="tab-btn" data-tab="python">Python</button>
+                <button class="tab-btn" data-tab="typescript">TypeScript</button>
+                <button class="tab-copy-btn">Copy</button>
+              </div>
+              <div class="tab-panel active" data-tab="curl">
+                <pre>curl -X POST https://agentaudit.online/api/v1/agents \
+  -H "X-API-Key: aa_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "writer-agent", "type": "custom", "description": "Drafts emails" }'
 
+// Response 201
 {
-  "name": "writer-agent",
-  "metadata": { "version": "1.0", "team": "content" }
-}
-
-// Response
-{
-  "id": "agent_...",
+  "id": "9f1c...-uuid",
   "name": "writer-agent",
   "organizationId": "org_...",
-  "metadata": { "version": "1.0", "team": "content" },
-  "createdAt": "2026-01-15T10:00:00.000Z"
+  "createdAt": "2026-10-25T12:00:00.000Z"
 }</pre>
-              <button class="copy-btn">Copy</button>
+              </div>
+              <div class="tab-panel" data-tab="python">
+                <pre>agent = client.register_agent(
+    name="writer-agent",
+    agent_type="custom",
+    description="Drafts emails",
+)
+agent_id = agent["id"]</pre>
+              </div>
+              <div class="tab-panel" data-tab="typescript">
+                <pre>const agent = await client.registerAgent({
+  name: 'writer-agent',
+  type: 'custom',
+  description: 'Drafts emails',
+});
+const agentId = agent.id;</pre>
+              </div>
             </div>
 
             <p>Once an agent is registered, pass its <code>id</code> as <code>agentId</code> in any audit log to link the log to that agent.</p>
