@@ -124,7 +124,7 @@ These items can run alongside a quiet beta, but should be completed before broad
 - [x] A Postman collection is included.
 - [x] Verify the README quickstart against the live deployment from a clean machine (replicated the exact documented flow against `https://agentaudit.online` 2026-10-18: register → login JWT → API key → blocking SSN rule → leaky submission returns `{"enforcementAction":"block","complianceFlags":["CRITICAL_pii_detect_Block SSNs"]}` exactly as documented; clean submission returns `allow`; test organization deleted afterward).
 - [x] Install both published SDK packages from clean environments and verify their primary imports (PyPI `1.0.4`, npm `1.0.2`; checked 2026-06-21).
-- [ ] Publish new Python and TypeScript SDK versions containing authoritative `enforcementAction` parsing, then re-verify the installed artifacts.
+- [x] Publish new Python and TypeScript SDK versions containing authoritative `enforcementAction` parsing, then re-verify the installed artifacts (2026-10-25: PyPI `agentaudit-client==1.0.5` and npm `agentaudit-client@1.0.6` both live and verified on the registries; npm published via OIDC trusted publishing with a signed Sigstore provenance attestation — no long-lived token required).
 - [x] Update `ROADMAP.md`: LangChain and Postman are implemented, not planned.
 - [x] Replace remaining repository `YOUR_USERNAME` placeholders with the public GitHub URL.
 - [x] Align deployment, self-hosting, roadmap, and website pricing language at Pro `$29` / Business `$79`.
