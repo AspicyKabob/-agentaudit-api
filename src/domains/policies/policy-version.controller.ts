@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { policyVersionService } from './policy-version.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -28,7 +29,7 @@ export const policyVersionController = {
 
     const version = await policyVersionService.getVersion(organizationId, id, versionId);
     if (!version) {
-      res.status(404).json({ error: 'Policy version not found' });
+      res.status(404).json(errorBody(req, 'Policy version not found', 'not_found'));
       return;
     }
 

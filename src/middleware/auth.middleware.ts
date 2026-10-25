@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/token';
 import { prisma } from '../db/prisma';
 import { logger } from '../utils/logger';
+import { errorBody } from '../utils/errorBody';
 
 export async function authenticate(
   req: Request,
@@ -11,7 +12,7 @@ export async function authenticate(
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Missing or invalid authorization header' });
+    res.status(401).json(errorBody(req, 'Missing or invalid authorization header', 'unauthorized'));
     return;
   }
 
@@ -24,7 +25,7 @@ export async function authenticate(
     });
 
     if (!organization) {
-      res.status(401).json({ error: 'Organization not found' });
+      res.status(401).json(errorBody(req, 'Organization not found', 'unauthorized'));
       return;
     }
 
@@ -32,6 +33,6 @@ export async function authenticate(
     next();
   } catch (error) {
     logger.warn({ error }, 'JWT verification failed');
-    res.status(401).json({ error: 'Invalid or expired token' });
+    res.status(401).json(errorBody(req, 'Invalid or expired token', 'unauthorized'));
   }
 }

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodSchema, ZodError } from 'zod/v3';
 import { logger } from '../utils/logger';
+import { errorBody } from '../utils/errorBody';
 
 export function validate(schema: ZodSchema) {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -19,7 +20,7 @@ export function validate(schema: ZodSchema) {
           message: issue.message,
         }));
         logger.warn({ issues }, 'Validation failed');
-        res.status(400).json({ error: 'Validation failed', issues });
+        res.status(400).json(errorBody(req, 'Validation failed', 'bad_request', { issues }));
         return;
       }
       next(error);

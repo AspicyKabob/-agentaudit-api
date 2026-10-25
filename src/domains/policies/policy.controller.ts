@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { policyService } from './policy.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -22,7 +23,7 @@ export const policyController = {
     const { id } = req.params;
     const policy = await policyService.get(organizationId, id);
     if (!policy) {
-      res.status(404).json({ error: 'Policy not found' });
+      res.status(404).json(errorBody(req, 'Policy not found', 'not_found'));
       return;
     }
     res.status(200).json(policy);

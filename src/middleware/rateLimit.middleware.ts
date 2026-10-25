@@ -5,10 +5,11 @@ import { logger } from '../utils/logger';
 import { connectRedis, getRedisClient } from '../utils/redis';
 import { prisma } from '../db/prisma';
 import { PrismaRateLimitStore } from './prisma-rate-limit-store';
+import { errorBody } from '../utils/errorBody';
 
 function onLimitReached(req: Request, res: Response) {
   logger.warn({ ip: req.ip, path: req.path }, 'Rate limit exceeded');
-  res.status(429).json({ error: 'Too many requests. Please slow down.' });
+  res.status(429).json(errorBody(req, 'Too many requests. Please slow down.', 'rate_limited'));
 }
 
 type LimiterName = 'auth' | 'single' | 'batch' | 'read' | 'general';

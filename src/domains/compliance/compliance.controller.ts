@@ -1,4 +1,5 @@
 ﻿import { Request, Response } from 'express';
+import { errorBody } from '../../utils/errorBody';
 import { complianceService } from './compliance.service';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { logger } from '../../utils/logger';
@@ -22,7 +23,7 @@ export const complianceController = {
     const { id } = req.params;
     const rule = await complianceService.get(organizationId, id);
     if (!rule) {
-      res.status(404).json({ error: 'Compliance rule not found' });
+      res.status(404).json(errorBody(req, 'Compliance rule not found', 'not_found'));
       return;
     }
     res.status(200).json(rule);

@@ -1,3 +1,4 @@
+import { errorBody } from '../../utils/errorBody';
 import { Request, Response } from 'express';
 import { auditService } from './audit.service';
 import { asyncHandler } from '../../utils/asyncHandler';
@@ -45,7 +46,7 @@ export const auditController = {
     const log = await auditService.get(organizationId, id);
 
     if (!log) {
-      res.status(404).json({ error: 'Audit log not found' });
+      res.status(404).json(errorBody(req, 'Audit log not found', 'not_found'));
       return;
     }
 
@@ -76,7 +77,7 @@ export const auditController = {
     const chain = await auditService.getChain(organizationId, id);
 
     if (!chain) {
-      res.status(404).json({ error: 'Audit log not found' });
+      res.status(404).json(errorBody(req, 'Audit log not found', 'not_found'));
       return;
     }
 
