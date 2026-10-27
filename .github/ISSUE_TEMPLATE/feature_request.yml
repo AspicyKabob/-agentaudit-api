@@ -1,0 +1,49 @@
+name: Feature request
+description: Suggest an improvement to AgentAudit.
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem you want to solve. Use synthetic examples only; do not include credentials, customer data, or security vulnerability details. Report vulnerabilities privately using SECURITY.md.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - API
+        - Web dashboard or landing site
+        - Python SDK
+        - TypeScript SDK
+        - Deployment or documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain your use case and what is difficult today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+      description: Describe the behavior you would like and how you would use it.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Include any workarounds you have tried.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues for similar requests.
+          required: true
+        - label: I removed credentials and customer data, and this is not a vulnerability report.
+          required: true

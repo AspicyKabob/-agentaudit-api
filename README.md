@@ -2,12 +2,19 @@
 
 # AgentAudit API
 
-**Real-time guardrails for AI agents. Block PII, policy violations, and risky outputs before they reach users.**
+<img src="docs/assets/readme-banner.svg" alt="AgentAudit — rule-based checks and audit trails for AI apps" width="800">
+
+**Check AI outputs against your rules. Honor block decisions before delivery. Keep an audit trail.**
+
+[Hosted service](https://agentaudit.online/) · [Integration guide](https://agentaudit.online/docs.html) · [API reference](https://agentaudit.online/docs) · [Self-hosting](#self-hosting)
 
 [<img src="https://img.shields.io/badge/version-1.1.0--beta.1-blue?style=flat-square">](https://github.com/AspicyKabob/-agentaudit-api/releases/tag/v1.1.0-beta.1)
 [<img src="https://img.shields.io/badge/license-MIT-green?style=flat-square">](LICENSE)
 [<img src="https://img.shields.io/badge/deploy-Railway-purple?style=flat-square">](RAILWAY_DEPLOY.md)
-[<img src="https://img.shields.io/badge/status-online-brightgreen?style=flat-square">](https://agentaudit.online/health)
+[<img src="https://github.com/AspicyKabob/-agentaudit-api/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI on main">](https://github.com/AspicyKabob/-agentaudit-api/actions/workflows/ci.yml)
+[<img src="https://img.shields.io/pypi/v/agentaudit-client?style=flat-square" alt="PyPI version">](https://pypi.org/project/agentaudit-client/)
+[<img src="https://img.shields.io/npm/v/agentaudit-client?style=flat-square" alt="npm version">](https://www.npmjs.com/package/agentaudit-client)
+[Health endpoint](https://agentaudit.online/health)
 
 [<img src="https://img.shields.io/badge/Python_SDK-pip%20install%20agentaudit--client-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://pypi.org/project/agentaudit-client/)
 [<img src="https://img.shields.io/badge/TypeScript_SDK-npm%20i%20agentaudit--client-3178C6?style=for-the-badge&logo=npm&logoColor=white">](https://www.npmjs.com/package/agentaudit-client)
@@ -23,14 +30,45 @@
 
 ## Why AgentAudit?
 
-Most AI compliance tools **log violations after they happen**. AgentAudit **blocks them in real-time** — before your agent's output ever reaches a user.
+AgentAudit is a safety checkpoint and activity log for AI-powered apps. Before showing an AI response to someone, your app sends it to AgentAudit to check for sensitive information or violations of rules you configure. Your app uses the decision to allow or withhold the output, while your team gets a record to investigate later.
 
-| What Others Do | What AgentAudit Does |
-|----------------|----------------------|
-| Log PII after it's sent | Block PII **before** delivery |
-| Alert on policy violations | **Prevent** policy violations |
-| Post-hoc audit reports | Real-time guardrail with audit trails |
-| Manual compliance review | One-line SDK, zero config |
+| You need to… | AgentAudit helps with… |
+|--------------|-----------------------|
+| Check outputs before delivery | Rule evaluation and an `enforcementAction` decision |
+| Detect specific sensitive data | Configurable PII, keyword, and pattern checks |
+| Investigate agent behavior | Searchable audit logs and linked traces |
+| Review rule violations | Alerts, webhooks, and exported reports |
+
+**Blocking requires integration:** configure blocking rules, wait for the check, and honor `enforcementAction: "block"` before displaying or forwarding output. A fresh organization has no rules. AgentAudit does not guarantee factual accuracy, detect every kind of sensitive data, or certify legal compliance.
+
+## Get started
+
+| Use the hosted service | Run your own instance |
+|------------------------|-----------------------|
+| No server or database setup required. | Operate your own API and PostgreSQL database. |
+| Open the [hosted site](https://agentaudit.online/) to create an account, generate an API key, and configure rules. | Follow [Self-Hosting](#self-hosting) or the [local development setup](#local-development). |
+| Follow the [integration guide](https://agentaudit.online/docs.html), or try the [first guarded request](#your-first-guarded-request). | Use your instance URL in API calls and SDK configuration. |
+
+## How it works
+
+1. Your AI app produces an output but does **not** deliver it yet.
+2. AgentAudit evaluates it against your configured rules and records the event.
+3. Your app honors the decision: withhold blocked output; otherwise continue.
+
+```text
+AI output → AgentAudit rule check → allow / block decision → your app controls delivery
+                        ↓
+                 Audit trail + alerts
+```
+
+For example, the [quickstart](#your-first-guarded-request) configures an SSN-blocking rule and submits synthetic text. The response includes:
+
+```json
+{
+  "enforcementAction": "block",
+  "complianceFlags": ["CRITICAL_pii_detect_Block SSNs"]
+}
+```
 
 ---
 
@@ -48,35 +86,42 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 
 ## Screenshots
 
-<div align="center">
+<details>
+<summary>Website preview</summary>
 
-### Landing Page
-![Landing Page](docs/assets/landing-hero.png)
+![AgentAudit website with links to get started and documentation](docs/assets/landing-hero.png)
 
-### Trace Visualizer
-![Trace Visualizer](docs/assets/trace-visualizer.png)
+</details>
 
-</div>
+<details>
+<summary>Trace visualizer preview (empty state)</summary>
+
+![Trace visualizer waiting for a trace ID; no trace data loaded](docs/assets/trace-visualizer.png)
+
+</details>
 
 > **Tip:** Try the live demo at [agentaudit.online](https://agentaudit.online/)
 
-- [Features](#-features)
-- [Architecture](#%EF%B8%8F-architecture)
-- [Quick Start](#-quick-start)
-- [SDKs](#-sdks)
-- [CrewAI Integration](#-crewai-integration)
-- [Compliance Rules](#-compliance-rules)
-- [API Reference](#-api-reference)
-- [Self-Hosting](#-self-hosting)
-- [Contributing](#-contributing)
-- [License](#-license)
+## Contents
+
+- [Get started](#get-started)
+- [How it works](#how-it-works)
+- [Features](#features)
+- [First guarded request](#your-first-guarded-request)
+- [SDKs](#sdks)
+- [LangChain](#langchain-integration) · [OpenAI](#openai-integration) · [AutoGPT](#autogpt-integration) · [CrewAI](#crewai-integration)
+- [Compliance rules](#compliance-rules)
+- [API reference](#api-reference)
+- [Architecture](#architecture)
+- [Local development](#local-development) · [Self-hosting](#self-hosting)
+- [Contributing](#contributing) · [Security](#security) · [License](#license)
 
 ---
 
 ## Features
 
 ### Core
-- **Real-Time Guardrails** — Block violations before delivery, not after
+- **Real-Time Guardrails** — Evaluate configured rules before delivery; your integration honors block decisions
 - **Agent-to-Agent Audit Trails** — Distributed tracing with `traceId` + `parentSpanId`
 - **6 Compliance Rule Types** — PII, keywords, rate limits, regex, sentiment, custom validators
 - **Webhook Alerts** — Async delivery to your endpoint on every violation
@@ -95,6 +140,9 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 - **API Key + JWT** — Service-to-service + dashboard auth
 
 ---
+
+<details>
+<summary>Server architecture and local development setup</summary>
 
 ## Architecture
 
@@ -129,7 +177,9 @@ Try the interactive demo — paste some text with a fake SSN and watch it get fl
 
 ---
 
-## Quick Start
+## Local development
+
+This section is for contributors running the server locally. Hosted API users can skip to [Your first guarded request](#your-first-guarded-request).
 
 ### Prerequisites
 - Node.js 20+
@@ -164,12 +214,14 @@ npm run dev
 # API available at http://localhost:8080
 ```
 
-### 5. Your first guarded request
+</details>
 
-With the server running, this copy/paste flow signs up, mints an API key, adds a rule that **blocks** SSNs, then submits a response that leaks one. A fresh organization has no rules yet (so everything is allowed) — the rule you create is what turns the leak into `enforcementAction: "block"`. Requires `jq`.
+## Your first guarded request
+
+Use the hosted service below, or set `BASE` to your self-hosted instance (for example, `http://localhost:8080`). This flow signs up, mints an API key, adds a rule that **blocks** SSNs, then submits synthetic text containing one. A fresh organization has no rules yet (so everything is allowed) — the rule you create is what turns the result into `enforcementAction: "block"`. Requires Bash, curl, and `jq`; use your own email and a unique password in the account requests.
 
 ```bash
-BASE=http://localhost:8080
+BASE=https://agentaudit.online
 
 # Register an organization (first user becomes the org owner)
 curl -s -X POST "$BASE/api/v1/auth/register" -H 'Content-Type: application/json' \
@@ -203,7 +255,7 @@ curl -s -X POST "$BASE/api/v1/compliance-rules/packs" -H "Authorization: Bearer 
   -H 'Content-Type: application/json' -d '{"packId":"hipaa"}'   # HIPAA: SSN, phone, email
 ```
 
-Your SDK turns `enforcementAction: "block"` into "do not deliver this output." See [SDKs](#-sdks) for the one-line client equivalent.
+A block decision does not retract text already sent to a user. Your application must withhold the output when blocked. The [SDK guardrail examples](#sdks) show how to check `result.allowed` before delivery.
 
 ### Deploy to Railway
 
@@ -463,7 +515,7 @@ result = crew.kickoff()
 | **Rate Limiting** | Alerts on request thresholds | >100 req/min |
 | **Regex Matching** | Custom patterns (500-char max for ReDoS protection) | `/\b\d{3}-\d{2}-\d{4}\b/` |
 | **Sentiment Analysis** | Flags toxic/hostile text | AFINN-165 dictionary |
-| **Custom Validators** | Sandbox JS functions | `vm.runInNewContext`, 100ms timeout |
+| **Custom Validators** | Sandbox JS functions | V8 isolate (`isolated-vm`), 100ms timeout |
 
 ### Pre-Built Rule Packs
 
@@ -726,7 +778,7 @@ npm run test:watch
 
 ## Contributing
 
-Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Contributions are welcome! Please see our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md). Use the bug-report or feature-request form in [GitHub Issues](https://github.com/AspicyKabob/-agentaudit-api/issues) for public feedback. Report vulnerabilities privately using [SECURITY.md](SECURITY.md), not public issues.
 
 ### Quick Contribute
 
