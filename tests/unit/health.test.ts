@@ -39,6 +39,7 @@ describe('public health checks', () => {
     const response = await request(app).get('/health').set('Origin', 'https://status.example.invalid').expect(200);
     expect(response.headers['access-control-allow-origin']).toBe('*');
     expect(response.headers['access-control-allow-credentials']).toBeUndefined();
+    expect(response.headers['access-control-expose-headers']).toBe('X-Request-Id');
   });
 
   it('reports database failure without exposing internal errors', async () => {

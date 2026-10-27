@@ -204,7 +204,7 @@ These are important, but they do not block a carefully labeled developer beta.
 - [ ] Add IP allowlisting.
 - [ ] Plan and begin SOC 2 readiness work.
 - [ ] Add Slack/Teams alert delivery.
-- [ ] Add a public status page (standalone status assets, restricted Pages artifact, healthy/degraded/unknown/stale/timeout states, and mobile layout verified locally on 2026-10-27; public deployment verification pending).
+- [x] Add a public status page (2026-10-27: independently hosted at https://aspicykabob.github.io/-agentaudit-api/ via a whitelist-only Pages artifact; HTML/script return 200, dashboard path returns 404, and a real cross-origin browser check reports healthy production release `cdef544`. Healthy/degraded/unknown/stale/timeout states and mobile layout are covered by tests; no uptime-history or full-feature-availability claims).
 - [ ] Define load targets, run sustained load tests, and publish capacity/scale limits (2026-10-27: local embedded-PostgreSQL targets and request budgets documented in `docs/operations.md`; sustained 5 requests/second for 120 seconds and 10 requests/second for 30 seconds passed on rerun, with exact quotas, block decisions, alerts, and rate-limit boundary checks. Initial failed run is preserved. Production-like managed PostgreSQL, batches, database-pressure measurements, and a full 15-minute-window staging run remain required before publishing production scale limits).
 
 ## Launch-Day Runbook
@@ -213,7 +213,7 @@ These are important, but they do not block a carefully labeled developer beta.
 - [ ] Confirm CI is green on the exact release commit.
 - [ ] Confirm migrations and production configuration.
 - [x] Run the authenticated live smoke test (2026-10-25: 19/19 production checks pass — health/MCP/Swagger, all 12 public pages + OG image + canonicals, register→JWT→API key→blocking SSN rule→`enforcementAction:block`, clean→`allow`, traceId filter, real pagination, uniform `{error,code,requestId}` error shape, RateLimit-* headers, idempotency, npm `1.0.6` artifact enforcement; plus X-API-Key auth verified on `/audit-logs` GET, `/agents`, `/alerts`, `/policies`).
-- [ ] Confirm Sentry, uptime, logs, and alert routing (2026-10-27: production `/health` returned HTTP 200 on commit `4f94909`; local capture/privacy, webhook-failure, bounded-health, and request-log tests pass. One synthetic Sentry event is owner-approved; fresh event/alert/inbox and UptimeRobot destination/test-notification confirmation remain to be recorded).
+- [ ] Confirm Sentry, uptime, logs, and alert routing (2026-10-27: production `/health` and the independent status site verified release `cdef544`; local capture/privacy, webhook-failure, bounded-health, request-log, and event-acceptance tests pass. One live synthetic Sentry event is owner-approved and tracked by the manual `Verify production monitoring` workflow. Its result plus fresh alert/inbox and UptimeRobot destination/test-notification confirmation must be recorded before this launch-day gate is complete).
 - [ ] Confirm support inbox coverage.
 - [ ] Verify pricing, checkout mode, legal links, and beta messaging.
 - [ ] Record the release tag, deployed commit, operator, and launch time below.

@@ -49,7 +49,7 @@ export function createApp() {
   app.post('/api/v1/auth/login', authLimiter);
   app.use('/api/v1', generalLimiter);
 
-  app.get('/health', cors({ origin: '*', credentials: false }), async (_req, res) => {
+  app.get('/health', cors({ origin: '*', credentials: false, exposedHeaders: ['X-Request-Id'] }), async (_req, res) => {
     res.removeHeader('Access-Control-Allow-Credentials');
     const { prisma } = await import('./db/prisma');
     const { getRedisClient } = await import('./utils/redis');
