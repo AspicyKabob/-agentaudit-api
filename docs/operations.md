@@ -104,3 +104,50 @@ Enable Redis before sustained high traffic, significant PostgreSQL limiter load,
 6. After recovery, record root cause and follow-up work. Publish a sanitized summary for SEV-1 incidents.
 
 Security reports follow `SECURITY.md`, not the public incident issue flow.
+
+## Monitoring Verification
+
+- `/health` runs database and active-Redis probes concurrently, with a two-second deadline per probe. An unavailable database or active Redis store returns HTTP 503. Disabled Redis is expected when PostgreSQL backs the rate limiters.
+- Health responses are not cached and include `checkedAt`, the deployed commit, and an `X-Request-Id`. Credential-free cross-origin GETs are supported only for this public health endpoint; authenticated API CORS remains restricted.
+- Request-completion logs contain the request ID, method, route template, status, duration, and aborted flag, not request bodies, query strings, or authorization headers. Search Railway logs by request ID when investigating a failed request.
+- Unexpected errors reach Sentry with request/release context. Routine 4xx errors are excluded. Request data, user data, breadcrumbs, and extras are stripped before Sentry transport. Do not put secrets or customer content into exception messages.
+- Outbound customer-webhook HTTP/transport failures and exhausted email retries are covered by automated tests. A healthy `/health` response does not verify either delivery provider.
+
+For a read-only production check, run `node scripts/verify-monitoring.js`. For an explicitly approved notification test, dispatch **Verify production monitoring** with `send_event=true`. The workflow uses the GitHub `SENTRY_DSN` secret and sends one synthetic event through the compiled application's capture helper. It records the event ID and transport acceptance without printing the DSN. HTTP acceptance is not proof of alert-rule execution or mailbox delivery: confirm the event's production environment, release, request tags, alert-rule firing, and inbox receipt separately. Do not repeat the event merely because a notification has not arrived yet.
+
+UptimeRobot remains the external `/health` monitor. Reconfirm its interval, failed-check threshold, alert destination, and a recent test/recovery notification in the owner dashboard before launch. Do not deliberately take production offline for this test.
+
+## Independent Public Status Page
+
+The standalone status site is hosted separately from Railway using GitHub Pages:
+
+https://aspicykabob.github.io/-agentaudit-api/
+
+The same page is available at `/status.html` on the application. `npm run status:build` creates a `dist-status` bundle containing only `index.html` and `status.js`; the Pages workflow publishes only that bundle. It does not publish the dashboard, API source, environment files, or customer data. The GitHub Pages deployment uses its own hosting, but still depends on GitHub and the user's network.
+
+The page polls the public production health endpoint every 30 seconds while visible, times out after five seconds, and marks results older than 60 seconds unknown. It never treats a missing, stale, malformed, or failed health response as green. It shows database/active-Redis connectivity only, not a comprehensive feature test. Historical uptime and incident history are not inferred from browser checks. Publish sanitized incident updates in GitHub Issues and link them from support responses.
+
+## Beta Load Targets and Capacity Evidence
+
+Run `npm run load:quick` to verify the runner or `npm run load:local` for the complete local profile. These commands always create a new in-memory PGlite database, apply repository migrations, bind an ephemeral loopback port, and discard that database on exit. They do not read `.env`, accept a remote target, disable the rate limiters, send email/webhooks, or access production data. The embedded adapter is pinned to a Prisma-compatible version.
+
+The local profile uses eight synthetic tenants, one SSN-blocking rule each, 80 seed records, and a 90% single-write / 10% query workload with 512-byte metadata padding:
+
+| Stage | Offered rate | Duration | Acceptance target |
+| --- | --- | --- | --- |
+| Warmup | 2 requests/second | 10 seconds | No errors or dropped work |
+| Sustained local regression target | 5 requests/second | 120 seconds | p95 < 500 ms, p99 < 1,500 ms, zero errors or dropped work |
+| Short burst | 10 requests/second | 30 seconds | Same latency/error targets |
+
+Latency includes scheduler delay from the intended request start, and the runner caps in-flight work at 16 rather than silently building an unlimited queue. It reports scheduler lag, status counts, p50/p95/p99, process peak RSS, and event-loop delay. It also verifies persisted counts, exact quota usage, expected block decisions and alerts, tenant ownership of queried rows, and a real HTTP 429 with `Retry-After` at the 200-read limit. A failed acceptance target exits unsuccessfully.
+
+**These are local test targets, not a production throughput promise or SLA.** PGlite shares the local process and serializes database work; this does not measure Railway CPU, managed PostgreSQL storage/pool capacity, network latency, Redis, multi-replica behavior, large datasets, or batch transactions. The HTTP client also shares the benchmark process, so CPU/scheduler contention affects results.
+
+Current API budgets are per-IP (IPv6 subnet grouping applies), in separate 15-minute buckets: 1,000 single submissions, 500 batch requests, 200 audit reads, 200 general API requests excluding audit-log routes, and five failed login/register attempts. Clients sharing a gateway share these budgets across API keys. A 5-request/second test lasting two minutes does not authorize that rate indefinitely: 1,000 single requests per 900 seconds averages about 1.11 requests/second within that bucket. Monthly quotas apply separately. Do not raise or bypass limits to make a benchmark pass.
+
+Before publishing production scale limits, run at least one full rate-limit window against an isolated staging environment with production-like PostgreSQL, instance sizing, storage, dataset size, and Redis mode. Cover single writes, reads, batches, quota exhaustion, and recovery; collect database CPU, query/pool latency, connection usage, and application memory. Record exact commit, resource sizes, dataset/rule counts, error budget, and p95/p99. Keep the production-capacity gate open until that evidence exists.
+
+### Local measurement log
+
+- 2026-10-27, Windows / Node 24.15.0 / Intel Core 5 120U: initial sustained run completed 594 of 600 offered requests with zero HTTP/contract errors but six dropped requests, p95 1,142 ms and p99 3,468 ms. The later 10-request/second burst passed. This run did not meet the target; scheduler-lag reporting and latency measurement from the intended start were subsequently added. No production load was generated.
+- 2026-10-27 20:34 UTC, same local machine and unchanged acceptance targets: corrected-metrics rerun passed. Sustained 5 requests/second for 120 seconds completed 600/600 requests, p95 72.43 ms, p99 167.76 ms, maximum scheduler lag 43 ms. The 10-request/second, 30-second burst completed 300/300, p95 61.39 ms, p99 85.18 ms. All stages had zero errors/dropped work. Across warmup and measured stages: 828 successful writes, 908 persisted logs including 80 seeds, 184 blocked events/alerts, exact quota accounting, tenant-owned query results, and a verified 200-read/15-minute HTTP 429 boundary. Peak process RSS was 491 MiB and event-loop p99 was 37.09 ms. These are local embedded-database measurements only; managed PostgreSQL/staging capacity remains unverified.

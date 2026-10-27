@@ -20,7 +20,10 @@
     "verify": "npm run lint && npm run build && npm test -- --runInBand",
     "verify:ci": "npm run lint && npm run build && npm test -- --runInBand --no-coverage --forceExit",
     "visual:update": "node scripts/visual-regression.js --update",
-    "visual:check": "node scripts/visual-regression.js"
+    "visual:check": "node scripts/visual-regression.js",
+    "load:local": "node scripts/load-test-local.js",
+    "load:quick": "node scripts/load-test-local.js --quick",
+    "status:build": "node scripts/build-status.js"
   },
   "keywords": [
     "api",
@@ -83,7 +86,7 @@
     "eslint": "^8.57.0",
     "jest": "^30.5.2",
     "pg": "^8.23.0",
-    "pglite-prisma-adapter": "^0.2.0",
+    "pglite-prisma-adapter": "0.3.0",
     "pino-pretty": "^10.3.1",
     "pixelmatch": "8.0.0",
     "playwright": "1.56.1",

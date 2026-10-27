@@ -101,7 +101,8 @@ export function errorHandler(
 
   if (status >= 500) {
     log.error({ error: err.message, stack: err.stack, requestId }, 'Unhandled error');
-    captureException(err, { requestId, path: req.originalUrl, method: req.method });
+    const path = typeof req.route?.path === 'string' ? `${req.baseUrl || ''}${req.route.path}` : 'unmatched';
+    captureException(err, { requestId, path, method: req.method });
   } else {
     log.warn({ error: err.message, status, requestId }, 'Request error');
   }

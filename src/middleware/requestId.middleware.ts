@@ -23,5 +23,20 @@ export function requestId(req: Request, res: Response, next: NextFunction): void
   req.id = id;
   req.log = logger.child({ requestId: id });
   res.setHeader('X-Request-Id', id);
+  const started = performance.now();
+  let recorded = false;
+  const record = () => {
+    if (recorded) return;
+    recorded = true;
+    req.log?.info({
+      method: req.method,
+      route: typeof req.route?.path === 'string' ? `${req.baseUrl || ''}${req.route.path}` : 'unmatched',
+      status: res.statusCode,
+      durationMs: Math.round((performance.now() - started) * 100) / 100,
+      aborted: !res.writableFinished,
+    }, 'Request completed');
+  };
+  res.once('finish', record);
+  res.once('close', record);
   next();
 }

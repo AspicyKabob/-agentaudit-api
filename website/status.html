@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Status — AgentAudit</title>
+  <meta name="description" content="Current AgentAudit API and database health checks, monitoring scope, and incident-update links.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://aspicykabob.github.io/-agentaudit-api/">
+  <meta property="og:title" content="Service Status — AgentAudit">
+  <meta property="og:description" content="Live health-check results with clear monitoring scope and incident-update links.">
+  <meta property="og:image" content="https://agentaudit.online/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://aspicykabob.github.io/-agentaudit-api/">
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #f5f5f5; background: #111; }
+    * { box-sizing: border-box; }
+    body { margin: 0; line-height: 1.6; }
+    a { color: #eee; text-underline-offset: 4px; }
+    a:hover { color: #fca5a5; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #fca5a5; outline-offset: 5px; }
+    header, main, footer { width: min(880px, calc(100% - 40px)); margin: auto; }
+    header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; padding: 28px 0; border-bottom: 1px solid #333; }
+    .brand { font-family: Georgia, serif; font-size: 28px; text-decoration: none; }
+    .brand span { color: #ef4444; }
+    nav { display: flex; flex-wrap: wrap; gap: 20px; font-size: 14px; }
+    main { padding: 40px 0; }
+    h1 { font-family: Georgia, serif; font-size: clamp(34px, 7vw, 48px); line-height: 1.2; font-weight: 400; margin: 0 0 16px; }
+    h2 { font-size: 20px; margin: 0 0 12px; }
+    p { color: #c7c7c7; }
+    .eyebrow { color: #fca5a5; text-transform: uppercase; font-size: 12px; letter-spacing: .12em; }
+    .panel { border: 1px solid #3c3c3c; border-radius: 12px; background: #191919; padding: 24px; margin-top: 24px; }
+    #summary { border-left: 4px solid #a3a3a3; }
+    #summary[data-state="up"] { border-left-color: #86efac; }
+    #summary[data-state="down"] { border-left-color: #fca5a5; }
+    #summary[data-state="unknown"] { border-left-color: #fde68a; }
+    .summary-heading { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; }
+    button { font: inherit; color: #fff; border: 1px solid #666; background: #282828; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    dl { margin: 0; }
+    .component { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding: 14px 0; border-bottom: 1px solid #333; }
+    .component:last-child { border-bottom: 0; }
+    dt { font-weight: 600; }
+    dd { margin: 0; color: #c7c7c7; }
+    [data-state="up"] > dd { color: #86efac; }
+    [data-state="down"] > dd { color: #fca5a5; }
+    [data-state="unknown"] > dd { color: #fde68a; }
+    .metadata { font-size: 13px; overflow-wrap: anywhere; }
+    .metadata p { margin: 8px 0; }
+    .notice { color: #fde68a; }
+    footer { padding: 24px 0 40px; border-top: 1px solid #333; font-size: 14px; color: #c7c7c7; }
+    @media (max-width: 480px) { .panel { padding: 18px; } main { padding-top: 24px; } }
+  </style>
+  <script src="status.js" defer></script>
+</head>
+<body>
+  <header>
+    <a class="brand" href="https://agentaudit.online/"><span>A</span>gentAudit</a>
+    <nav aria-label="Status navigation">
+      <a href="https://agentaudit.online/docs.html">Documentation</a>
+      <a href="https://github.com/AspicyKabob/-agentaudit-api/issues">Updates &amp; issues</a>
+    </nav>
+  </header>
+  <main>
+    <p class="eyebrow">Public beta · Service health</p>
+    <h1>AgentAudit status</h1>
+    <p>Current health-check results from this browser. This is a point-in-time check, not a guarantee that every API feature is working.</p>
+    <section id="summary" class="panel" data-state="unknown" aria-labelledby="summary-title">
+      <div class="summary-heading">
+        <h2 id="summary-title" role="status" aria-live="polite">Status not checked yet</h2>
+        <button id="refresh" type="button">Check now</button>
+      </div>
+      <p id="summary-detail">Checking the API and its dependencies requires JavaScript and a network connection.</p>
+      <noscript><p class="notice">JavaScript is disabled. Open the <a href="https://agentaudit.online/health">raw health endpoint</a> or check <a href="https://github.com/AspicyKabob/-agentaudit-api/issues">GitHub updates</a> instead.</p></noscript>
+      <dl aria-label="Component health">
+        <div class="component" id="api-row" data-state="unknown"><dt>API health endpoint</dt><dd id="api-state">Not checked</dd></div>
+        <div class="component" id="database-row" data-state="unknown"><dt>Database connectivity</dt><dd id="database-state">Not checked</dd></div>
+        <div class="component" id="redis-row" data-state="unknown"><dt>Redis rate-limit store</dt><dd id="redis-state">Not checked</dd></div>
+        <div class="component"><dt>Email &amp; customer webhooks</dt><dd>Not checked by this page</dd></div>
+      </dl>
+      <div class="metadata">
+        <p>Last attempt: <time id="last-attempt">Not yet checked</time></p>
+        <p>Last successful response: <time id="last-success">None in this session</time></p>
+        <p id="check-context">No check metadata available.</p>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="scope-title">
+      <h2 id="scope-title">What these checks cover</h2>
+      <p>The API runs a bounded database query and, when Redis is the active rate-limit store, a Redis ping. Disabled Redis is expected in the PostgreSQL-backed beta mode. A failed active dependency produces a degraded result.</p>
+      <p>Checks refresh every 30 seconds while this page is visible. Results older than 60 seconds become unknown. Login, audit submission, billing, email delivery, and webhook delivery are not exercised here. No historical uptime percentage is calculated.</p>
+    </section>
+    <section class="panel" aria-labelledby="updates-title">
+      <h2 id="updates-title">Incident updates &amp; support</h2>
+      <p>See <a href="https://github.com/AspicyKabob/-agentaudit-api/issues">public GitHub issues</a> for maintainer-published updates, or contact <a href="mailto:support@agentaudit.online">support@agentaudit.online</a>. Include the time and request ID, but never credentials or customer data.</p>
+      <p id="hosting-note" class="notice">The copy at agentaudit.online shares the API's hosting and may be unavailable during an outage. Use the <a href="https://aspicykabob.github.io/-agentaudit-api/">independently hosted GitHub Pages copy</a> instead. GitHub issues remain the fallback for maintainer-published updates.</p>
+    </section>
+  </main>
+  <footer>Read-only health checks · <a href="https://agentaudit.online/health">Raw health response</a> · <a href="https://agentaudit.online/">Back to AgentAudit</a></footer>
+</body>
+</html>

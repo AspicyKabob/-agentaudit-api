@@ -4,6 +4,7 @@ node_modules/
 
 # Build
 dist/
+dist-status/
 
 # Environment
 .env

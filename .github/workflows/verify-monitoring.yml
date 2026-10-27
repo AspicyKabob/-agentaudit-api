@@ -1,0 +1,39 @@
+name: Verify production monitoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      send_event:
+        description: 'Send one synthetic Sentry event (may notify the configured support recipient)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install native build tools
+        run: sudo apt-get install -y python3 make g++
+      - name: Install and build
+        run: npm ci && npm run build
+      - name: Verify production health and optional event delivery
+        env:
+          NODE_ENV: production
+          APP_RELEASE: ${{ github.sha }}
+          SENTRY_DSN: ${{ inputs.send_event && secrets.SENTRY_DSN || '' }}
+          SEND_EVENT: ${{ inputs.send_event }}
+        run: |
+          if [ "$SEND_EVENT" = "true" ]; then
+            node scripts/verify-monitoring.js --send-event
+          else
+            node scripts/verify-monitoring.js
+          fi

@@ -10,6 +10,7 @@ let enabled = false;
  */
 export function initObservability(): void {
   const dsn = config.get('sentryDsn');
+  enabled = false;
   if (!dsn) return;
 
   Sentry.init({
@@ -17,6 +18,14 @@ export function initObservability(): void {
     environment: config.get('env'),
     release: process.env.APP_RELEASE || process.env.RAILWAY_GIT_COMMIT_SHA || undefined,
     tracesSampleRate: 0,
+    sendDefaultPii: false,
+    beforeSend(event) {
+      delete event.request;
+      delete event.user;
+      delete event.breadcrumbs;
+      delete event.extra;
+      return event;
+    },
   });
   enabled = true;
   logger.info('Sentry error tracking enabled');

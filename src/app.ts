@@ -49,37 +49,47 @@ export function createApp() {
   app.post('/api/v1/auth/login', authLimiter);
   app.use('/api/v1', generalLimiter);
 
-  app.get('/health', async (_req, res) => {
+  app.get('/health', cors({ origin: '*', credentials: false }), async (_req, res) => {
+    res.removeHeader('Access-Control-Allow-Credentials');
     const { prisma } = await import('./db/prisma');
     const { getRedisClient } = await import('./utils/redis');
     const { redisStoreActive } = await import('./middleware/rateLimit.middleware');
 
-    let database = 'up';
-    try {
-      await prisma.$executeRaw`SELECT 1`;
-    } catch {
-      database = 'down';
-    }
-
-    let redis = 'disabled';
-    if (redisStoreActive()) {
-      const client = getRedisClient();
+    async function probe(check: () => Promise<unknown>): Promise<'up' | 'down'> {
+      let timer: ReturnType<typeof setTimeout> | undefined;
       try {
-        await (client as any)?.ping?.();
-        redis = 'up';
+        await Promise.race([
+          Promise.resolve().then(check),
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Health check timed out')), 2000); }),
+        ]);
+        return 'up';
       } catch {
-        redis = 'down';
+        return 'down';
+      } finally {
+        clearTimeout(timer);
       }
     }
 
-    const ok = database === 'up';
+    const [database, redis] = await Promise.all([
+      probe(() => prisma.$executeRaw`SELECT 1`),
+      redisStoreActive()
+        ? probe(async () => {
+          const client = getRedisClient();
+          if (!client) throw new Error('Redis client unavailable');
+          await client.ping();
+        })
+        : Promise.resolve('disabled'),
+    ]);
+    const ok = database === 'up' && redis !== 'down';
 
+    res.setHeader('Cache-Control', 'no-store');
     res.status(ok ? 200 : 503).json({
       status: ok ? 'ok' : 'degraded',
       service: 'agentaudit-api',
       version: '1.1.0-trace',
       commit: (process.env.APP_RELEASE || process.env.RAILWAY_GIT_COMMIT_SHA)?.slice(0, 7) || 'unknown',
       dependencies: { database, redis },
+      checkedAt: new Date().toISOString(),
     });
   });
 

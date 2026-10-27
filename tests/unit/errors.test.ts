@@ -6,6 +6,9 @@ import {
   UnauthorizedError,
 } from '../../src/utils/errors';
 import { errorHandler } from '../../src/middleware/error.middleware';
+import { captureException } from '../../src/utils/observability';
+
+jest.mock('../../src/utils/observability', () => ({ captureException: jest.fn() }));
 
 function mockReqRes(reqOverrides: Partial<Request> = {}) {
   const json = jest.fn();
@@ -37,6 +40,24 @@ describe('AppError', () => {
 });
 
 describe('errorHandler', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('reports unexpected failures with safe request tags but excludes routine 4xx errors', () => {
+    const { req, res } = mockReqRes({
+      originalUrl: '/api/v1/audit-logs/private-value?token=private',
+      baseUrl: '/api/v1/audit-logs',
+      route: { path: '/:id' },
+    });
+    const error = new Error('synthetic failure');
+    errorHandler(error, req, res, jest.fn());
+    expect(captureException).toHaveBeenCalledWith(error, {
+      requestId: 'req-123', path: '/api/v1/audit-logs/:id', method: 'GET',
+    });
+    jest.clearAllMocks();
+    errorHandler(new NotFoundError('Agent not found'), req, res, jest.fn());
+    expect(captureException).not.toHaveBeenCalled();
+  });
+
   it('exposes 4xx messages with a code and the request id', () => {
     const { req, res, status, json } = mockReqRes();
     errorHandler(new NotFoundError('Agent not found'), req, res, jest.fn());

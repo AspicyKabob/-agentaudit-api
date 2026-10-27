@@ -14,7 +14,7 @@
 [<img src="https://github.com/AspicyKabob/-agentaudit-api/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI on main">](https://github.com/AspicyKabob/-agentaudit-api/actions/workflows/ci.yml)
 [<img src="https://img.shields.io/pypi/v/agentaudit-client?style=flat-square" alt="PyPI version">](https://pypi.org/project/agentaudit-client/)
 [<img src="https://img.shields.io/npm/v/agentaudit-client?style=flat-square" alt="npm version">](https://www.npmjs.com/package/agentaudit-client)
-[Health endpoint](https://agentaudit.online/health)
+[Service status](https://aspicykabob.github.io/-agentaudit-api/) · [Health endpoint](https://agentaudit.online/health)
 
 [<img src="https://img.shields.io/badge/Python_SDK-pip%20install%20agentaudit--client-3776AB?style=for-the-badge&logo=python&logoColor=white">](https://pypi.org/project/agentaudit-client/)
 [<img src="https://img.shields.io/badge/TypeScript_SDK-npm%20i%20agentaudit--client-3178C6?style=for-the-badge&logo=npm&logoColor=white">](https://www.npmjs.com/package/agentaudit-client)
@@ -810,8 +810,10 @@ git push origin feature/my-feature
 - **API Keys**: Stored as HMAC-SHA256 digests keyed by a server-side salt (`API_KEY_SALT`); the raw key is shown once and never persisted in plaintext.
 - **JWT Tokens**: Configurable expiration (default: 15m access, 7d refresh).
 - **Rate Limiting**:
-  - Auth endpoints: 5 requests/15 minutes (IP-based).
-  - Audit endpoints: 2000 requests/15 minutes (API-key-based).
+  - Login/register: 5 failed attempts/15 minutes per IP.
+  - Audit ingestion: 1,000 single requests or 500 batch requests/15 minutes in separate per-IP buckets; batches contain up to 100 events.
+  - Audit-log reads: 200 requests/15 minutes per IP; general API traffic has a separate 200-request bucket.
+  - Shared gateways/NAT share budgets across API keys. These budgets are not throughput guarantees; honor `Retry-After` on HTTP 429.
   - **Webhooks**: Exempt from rate limiting to prevent payment event loss.
 - **Input Validation**: Zod schemas for all API endpoints.
 - **Regex Rules**: Evaluated with the RE2 linear-time engine (no catastrophic backtracking), with a 500-char pattern cap — ReDoS-immune.

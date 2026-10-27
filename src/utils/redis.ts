@@ -41,7 +41,7 @@ export async function connectRedis(): Promise<boolean> {
 
     await client.connect();
     connected = true;
-    logger.info({ url }, 'Redis connected');
+    logger.info('Redis connected');
   } catch (err: any) {
     connected = false;
     client = undefined;
