@@ -25,7 +25,7 @@ body:
     id: version
     attributes:
       label: Version or commit
-      placeholder: v1.1.0-trace or commit SHA
+      placeholder: API release/commit, SDK package version, or hosted service with date/time
     validations:
       required: true
   - type: textarea

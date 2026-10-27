@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">AgentAudit</title>
+  <desc id="desc">Rule-based checks and audit trails for AI apps. Check outputs. Honor decisions. Keep a record.</desc>
+  <rect width="1200" height="280" rx="16" fill="#111111"/>
+  <path d="M0 279H1200" stroke="#dc2626" stroke-width="2"/>
+  <text x="64" y="118" font-family="Georgia, serif" font-size="64" fill="#f5f5f5"><tspan fill="#ef4444">A</tspan>gentAudit</text>
+  <text x="66" y="173" font-family="Arial, sans-serif" font-size="27" fill="#d4d4d4">Rule-based checks and audit trails for AI apps</text>
+  <text x="66" y="222" font-family="Arial, sans-serif" font-size="20" fill="#a3a3a3">Check outputs. Honor decisions. Keep a record.</text>
+  <rect x="1010" y="53" width="128" height="36" rx="18" fill="#291515" stroke="#ef4444"/>
+  <text x="1074" y="77" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#f5f5f5">Public beta</text>
+</svg>

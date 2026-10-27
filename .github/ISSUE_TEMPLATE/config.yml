@@ -1,5 +1,11 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Integration guide and examples
+    url: https://agentaudit.online/docs.html
+    about: Start here for setup instructions and SDK examples.
+  - name: Interactive API reference
+    url: https://agentaudit.online/docs
+    about: Explore endpoint schemas and authentication requirements.
   - name: Security report
     url: https://github.com/AspicyKabob/-agentaudit-api/blob/main/SECURITY.md
     about: Report vulnerabilities privately. Do not disclose security details in a public issue.

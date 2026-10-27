@@ -1,6 +1,10 @@
 # Contributing to AgentAudit
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the AgentAudit API.
+Thank you for your interest in contributing! This document provides guidelines for contributing to the AgentAudit API. Please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Reporting bugs and requesting features
+
+Use the bug-report and feature-request forms in GitHub Issues. Include reproducible steps, your API or SDK version, and synthetic examples. Never include credentials or customer data. Report suspected vulnerabilities privately using [SECURITY.md](SECURITY.md), not in public issues or pull requests.
 
 ## Development Setup
 
@@ -53,4 +57,4 @@ npm run test:coverage
 
 ## Questions?
 
-Open an issue or reach out on Discord.
+Open a GitHub issue for general questions, or email [support@agentaudit.online](mailto:support@agentaudit.online) for private support. See the [integration guide](https://agentaudit.online/docs.html) and [API reference](https://agentaudit.online/docs) for usage help.
