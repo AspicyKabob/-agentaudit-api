@@ -169,7 +169,8 @@ These items can run alongside a quiet beta, but should be completed before broad
 ### Reliability and Observability
 
 - [x] Sentry integration exists and is disabled safely when no DSN is configured.
-- [x] Structured logging and request correlation are implemented.
+- [x] Structured logging and request correlation are implemented (2026-10-27: added request-completion status/duration/abort metadata using route templates, excluded query strings and request bodies, and removed Redis connection URLs from logs; covered by automated tests).
+- [x] Health checks fail safely for database stalls and active-Redis failures (2026-10-27: two-second parallel probe deadlines, no-cache timestamps, and credential-free public health CORS for the independent status site; local failure-path tests pass).
 - [x] CI runs lint, build, API tests, Python SDK tests, and TypeScript SDK tests.
 - [x] Configure the production `SENTRY_DSN` and confirm a test exception arrives with release and request context (Sentry issue `NODE-EXPRESS-2`, production environment, release `5e1cf83bd207...`, and `requestId`, `path`, and `method` tags verified 2026-09-15).
 - [x] Configure an external uptime monitor for `/health` and an alert destination (UptimeRobot HTTP monitor active at a 5-minute interval, reporting Up / 100% uptime; account and notifications use `support@agentaudit.online`; owner dashboard confirmation 2026-09-16).
@@ -203,8 +204,8 @@ These are important, but they do not block a carefully labeled developer beta.
 - [ ] Add IP allowlisting.
 - [ ] Plan and begin SOC 2 readiness work.
 - [ ] Add Slack/Teams alert delivery.
-- [ ] Add a public status page.
-- [ ] Define load targets, run sustained load tests, and publish capacity/scale limits.
+- [ ] Add a public status page (standalone status assets, restricted Pages artifact, healthy/degraded/unknown/stale/timeout states, and mobile layout verified locally on 2026-10-27; public deployment verification pending).
+- [ ] Define load targets, run sustained load tests, and publish capacity/scale limits (2026-10-27: local embedded-PostgreSQL targets and request budgets documented in `docs/operations.md`; sustained 5 requests/second for 120 seconds and 10 requests/second for 30 seconds passed on rerun, with exact quotas, block decisions, alerts, and rate-limit boundary checks. Initial failed run is preserved. Production-like managed PostgreSQL, batches, database-pressure measurements, and a full 15-minute-window staging run remain required before publishing production scale limits).
 
 ## Launch-Day Runbook
 
@@ -212,7 +213,7 @@ These are important, but they do not block a carefully labeled developer beta.
 - [ ] Confirm CI is green on the exact release commit.
 - [ ] Confirm migrations and production configuration.
 - [x] Run the authenticated live smoke test (2026-10-25: 19/19 production checks pass — health/MCP/Swagger, all 12 public pages + OG image + canonicals, register→JWT→API key→blocking SSN rule→`enforcementAction:block`, clean→`allow`, traceId filter, real pagination, uniform `{error,code,requestId}` error shape, RateLimit-* headers, idempotency, npm `1.0.6` artifact enforcement; plus X-API-Key auth verified on `/audit-logs` GET, `/agents`, `/alerts`, `/policies`).
-- [ ] Confirm Sentry, uptime, logs, and alert routing.
+- [ ] Confirm Sentry, uptime, logs, and alert routing (2026-10-27: production `/health` returned HTTP 200 on commit `4f94909`; local capture/privacy, webhook-failure, bounded-health, and request-log tests pass. One synthetic Sentry event is owner-approved; fresh event/alert/inbox and UptimeRobot destination/test-notification confirmation remain to be recorded).
 - [ ] Confirm support inbox coverage.
 - [ ] Verify pricing, checkout mode, legal links, and beta messaging.
 - [ ] Record the release tag, deployed commit, operator, and launch time below.

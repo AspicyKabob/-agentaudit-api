@@ -1387,15 +1387,16 @@ Authorization: Bearer &lt;jwt&gt;
             </table>
 
             <h3>Rate limiting</h3>
-            <p>Every response carries <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, <code>RateLimit-Reset</code>, and <code>RateLimit-Policy</code> headers so you can back off before hitting the cap. Limits are per 15-minute window:</p>
+            <p>Rate-limited API responses carry <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code>, <code>RateLimit-Reset</code>, and <code>RateLimit-Policy</code> headers. Current limits use separate per-IP buckets (with IPv6 subnet grouping) per 15-minute window:</p>
             <table class="param-table">
-              <tr><th>Scope</th><th>Limit</th></tr>
+              <tr><th>Scope</th><th>Limit per IP</th></tr>
               <tr><td>Auth (login/register)</td><td>5 failed attempts</td></tr>
-              <tr><td><code>POST /audit-logs</code></td><td>1000 per API key</td></tr>
-              <tr><td><code>POST /audit-logs/batch</code></td><td>500 per API key</td></tr>
-              <tr><td>Reads</td><td>200</td></tr>
-              <tr><td>Everything else</td><td>200</td></tr>
+              <tr><td><code>POST /audit-logs</code></td><td>1000 requests</td></tr>
+              <tr><td><code>POST /audit-logs/batch</code></td><td>500 requests; up to 100 events each</td></tr>
+              <tr><td>Audit-log reads</td><td>200 requests</td></tr>
+              <tr><td>General API bucket</td><td>200 requests; audit-log routes excluded</td></tr>
             </table>
+            <p>Clients behind the same gateway or NAT share these budgets, even with different API keys. A new key does not reset the bucket. On HTTP 429, honor <code>Retry-After</code> and use bounded exponential backoff with jitter. These are request budgets, not guaranteed throughput; health checks and static pages are outside the API limiters.</p>
 
             <h3>Monthly quota</h3>
             <p>Audit-log writes count against your plan's monthly quota (<code>apiUsed</code>/<code>apiQuota</code> on your profile). When the quota is exhausted, writes fail with <code>402</code> and <code>quota_exceeded</code> until the next billing window or an upgrade.</p>
@@ -1430,6 +1431,7 @@ Authorization: Bearer &lt;jwt&gt;
           <a href="pricing.html">Pricing</a>
           <a href="security.html">Security</a>
           <a href="docs.html">Docs</a>
+          <a href="https://aspicykabob.github.io/-agentaudit-api/">Service Status</a>
         </div>
         <div class="footer-links">
           <h4>Resources</h4>
