@@ -24,7 +24,7 @@ async function main() {
   const send = transport.send.bind(transport);
   transport.send = async (envelope) => {
     const result = await send(envelope);
-    statuses.push(result.statusCode);
+    if (envelope[1].some(([item]) => item.type === 'event')) statuses.push(result.statusCode);
     return result;
   };
   captureException(new Error('AgentAudit monitoring verification — synthetic event, no customer data'), {
@@ -33,8 +33,8 @@ async function main() {
   });
   const eventId = Sentry.lastEventId();
   const flushed = await Sentry.flush(10000);
-  const accepted = flushed && statuses.includes(200);
-  console.log(JSON.stringify({ eventId, flushed, transportAccepted: accepted, dashboardAndMailboxConfirmationRequired: true }));
+  const accepted = flushed && statuses.length === 1 && statuses[0] === 200;
+  console.log(JSON.stringify({ eventId, flushed, eventTransportStatuses: statuses, transportAccepted: accepted, dashboardAndMailboxConfirmationRequired: true }));
   if (!accepted) throw new Error('Error-tracking transport did not confirm acceptance');
 }
 
