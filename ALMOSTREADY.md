@@ -68,7 +68,7 @@ These items should be complete before announcing the public beta.
 - [x] Quota checks are atomic and usage periods reset deterministically.
 - [x] Choose the beta billing mode: paid beta with Stripe enabled (owner-decided 2026-06-23).
 - [x] Standardize published pricing at Pro `$29` / Business `$79` (owner-confirmed 2026-06-20).
-- [ ] If billing is enabled, verify live Stripe products and price IDs match the published pricing.
+- [ ] If billing is enabled, verify live Stripe products and price IDs match the published pricing (2026-10-28: `/api/v1/billing/prices` serves real Pro/Business `price_1Tb...` IDs; matching IDs↔amounts requires Stripe dashboard confirmation).
 - [ ] **Final launch pass:** If billing is enabled, complete a fresh Stripe sandbox checkout, webhook, plan-change, cancellation, and failed-payment test.
 - [ ] If billing is disabled, remove or clearly disable checkout calls-to-action for beta.
 - [x] Verify quota behavior against the production database under concurrent requests (10 concurrent `POST /api/v1/audit-logs` on a free-plan test org; all returned 201 in 261ms, `apiUsed` and `totalLogs` both exactly 10, no double-counting or 500s; account deleted after 2026-09-09).
@@ -210,10 +210,10 @@ These are important, but they do not block a carefully labeled developer beta.
 ## Launch-Day Runbook
 
 - [ ] Freeze non-launch changes.
-- [ ] Confirm CI is green on the exact release commit.
-- [ ] Confirm migrations and production configuration.
+- [x] Confirm CI is green on the exact release commit (2026-10-27: CI + Deploy workflows all green on `611b807`, the currently deployed production commit; independent status page and `/health` both report `611b807`).
+- [x] Confirm migrations and production configuration (2026-10-28: production `_prisma_migrations` shows 16 applied / 0 unfinished matching the repo's 16 migration dirs; Railway variable names verified — `SENTRY_DSN`, `APP_RELEASE`, `DATABASE_URL`, `JWT_SECRET`, `API_KEY_SALT`, Resend + Stripe keys present; `REDIS_*` absent so PostgreSQL rate-limit fallback is intended; health shows database up, Redis disabled).
 - [x] Run the authenticated live smoke test (2026-10-25: 19/19 production checks pass — health/MCP/Swagger, all 12 public pages + OG image + canonicals, register→JWT→API key→blocking SSN rule→`enforcementAction:block`, clean→`allow`, traceId filter, real pagination, uniform `{error,code,requestId}` error shape, RateLimit-* headers, idempotency, npm `1.0.6` artifact enforcement; plus X-API-Key auth verified on `/audit-logs` GET, `/agents`, `/alerts`, `/policies`).
-- [ ] Confirm Sentry, uptime, logs, and alert routing (2026-10-27: production `/health` and the independent status site verified release `cdef544`; local capture/privacy, webhook-failure, bounded-health, request-log, and event-acceptance tests pass. One live synthetic Sentry event is owner-approved and tracked by the manual `Verify production monitoring` workflow. Its result plus fresh alert/inbox and UptimeRobot destination/test-notification confirmation must be recorded before this launch-day gate is complete).
+- [ ] Confirm Sentry, uptime, logs, and alert routing (2026-10-27/28: Sentry transport accepted synthetic event `bb50c027...` and owner confirmed alert email at `support@agentaudit.online`. UptimeRobot dashboard verified 2026-10-28: HTTP/S monitor on `https://agentaudit.online/health`, 5-minute checks, Up 28d, 99.988% 30-day, one alert contact configured, one real incident (Sep 30 404) logged — alerting demonstrably fires. Fresh owner Test Notification receipt pending. Railway production logs inspected 2026-10-28: `Request completed` entries carry requestId/method/route-template/status/duration/aborted, zero 5xx in recent buffer, no secrets or bodies).
 - [ ] Confirm support inbox coverage.
 - [ ] Verify pricing, checkout mode, legal links, and beta messaging.
 - [ ] Record the release tag, deployed commit, operator, and launch time below.
