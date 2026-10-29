@@ -809,7 +809,7 @@
         if (versions && versions.length) {
           vList.innerHTML = versions.map(function(v) {
             return '<div class="key-row">' +
-              '<div><div class="key-name">' + (v.name || ('Version ' + v.versionNumber)) + '</div>' +
+              '<div><div class="key-name">' + escapeHtml(v.name || ('Version ' + v.versionNumber)) + '</div>' +
               '<div class="key-meta">' + new Date(v.createdAt).toLocaleString() + '</div></div>' +
               '<button class="btn-dash" data-restore-version="' + v.id + '" type="button">Restore</button>' +
               '</div>';
@@ -875,7 +875,8 @@
     document.getElementById('chain-list').innerHTML = '<div class="empty-state">Loading chain...</div>';
     try {
       var chain = await api('GET', '/api/v1/audit-logs/' + logId + '/chain');
-      var logs = Array.isArray(chain) ? chain : (chain.logs || []);
+      var logs = Array.isArray(chain) ? chain
+        : ([chain.root].concat(chain.descendants || [])).filter(Boolean);
       if (!logs.length) {
         document.getElementById('chain-list').innerHTML = '<div class="empty-state">No related logs found for this request.</div>';
         return;
@@ -883,11 +884,11 @@
       document.getElementById('chain-list').innerHTML = logs.map(function(l) {
         var isCurrent = l.id === logId;
         var flagged = l.complianceFlags && l.complianceFlags.length;
-        var inputPreview = l.input ? JSON.stringify(l.input).slice(0, 200) : '';
-        var outputPreview = l.output ? JSON.stringify(l.output).slice(0, 200) : '';
+        var inputPreview = l.prompt ? String(l.prompt).slice(0, 200) : '';
+        var outputPreview = l.response ? String(l.response).slice(0, 200) : '';
         return '<div class="chain-log' + (isCurrent ? ' current' : '') + '">' +
-          '<div class="chain-log-title">' + l.action + (isCurrent ? ' <small style="color:var(--accent)">(this log)</small>' : '') + '</div>' +
-          '<div class="chain-log-meta">' + new Date(l.createdAt).toLocaleString() + ' &nbsp;·&nbsp; agent: ' + (l.agentId ? l.agentId.slice(0, 8) + '...' : '—') + ' &nbsp;·&nbsp; <span class="' + (flagged ? 'status-flag' : 'status-clean') + '">' + (flagged ? 'Flagged' : 'Clean') + '</span></div>' +
+          '<div class="chain-log-title">' + escapeHtml(l.action) + (isCurrent ? ' <small style="color:var(--accent)">(this log)</small>' : '') + '</div>' +
+          '<div class="chain-log-meta">' + new Date(l.createdAt).toLocaleString() + ' &nbsp;·&nbsp; agent: ' + (l.agentId ? escapeHtml(l.agentId.slice(0, 8)) + '...' : '—') + ' &nbsp;·&nbsp; <span class="' + (flagged ? 'status-flag' : 'status-clean') + '">' + (flagged ? 'Flagged' : 'Clean') + '</span></div>' +
           (inputPreview ? '<div class="chain-log-content"><pre>' + escapeHtml(inputPreview) + '</pre></div>' : '') +
           (outputPreview ? '<div class="chain-log-content"><pre>' + escapeHtml(outputPreview) + '</pre></div>' : '') +
           '</div>';

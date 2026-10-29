@@ -63,6 +63,7 @@ export type BatchAuditResponse = {
     id: string;
     action: string;
     complianceFlags: string[];
+    enforcementAction: string;
     createdAt: Date | string;
   }>;
   processed: number;

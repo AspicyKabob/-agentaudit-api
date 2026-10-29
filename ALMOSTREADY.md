@@ -68,8 +68,8 @@ These items should be complete before announcing the public beta.
 - [x] Quota checks are atomic and usage periods reset deterministically.
 - [x] Choose the beta billing mode: paid beta with Stripe enabled (owner-decided 2026-06-23).
 - [x] Standardize published pricing at Pro `$29` / Business `$79` (owner-confirmed 2026-06-20).
-- [ ] If billing is enabled, verify live Stripe products and price IDs match the published pricing (2026-10-28: `/api/v1/billing/prices` serves real Pro/Business `price_1Tb...` IDs; matching IDs↔amounts requires Stripe dashboard confirmation).
-- [ ] **Final launch pass:** If billing is enabled, complete a fresh Stripe sandbox checkout, webhook, plan-change, cancellation, and failed-payment test.
+- [x] If billing is enabled, verify live Stripe products and price IDs match the published pricing (2026-10-28: verified via Stripe API with production key — live mode; `price_1TbR4b…`=Pro Plan $29/mo active, `price_1TbR61…`=Business Plan $79/mo active, matching the published pricing).
+- [ ] **Final launch pass:** If billing is enabled, complete a fresh Stripe sandbox checkout, webhook, plan-change, cancellation, and failed-payment test (2026-10-28 fresh verification: register→login→`checkout-session` returns a live `cs_live_…` Stripe URL; webhook endpoint enabled in live mode on `checkout.session.completed`/`invoice.payment_succeeded`/`customer.subscription.deleted`/`invoice.payment_failed`; unsigned webhook POST correctly rejected. Unverified link: an actual paid charge → webhook → plan activation — requires a real card or owner's prior independent test as evidence).
 - [ ] If billing is disabled, remove or clearly disable checkout calls-to-action for beta.
 - [x] Verify quota behavior against the production database under concurrent requests (10 concurrent `POST /api/v1/audit-logs` on a free-plan test org; all returned 201 in 261ms, `apiUsed` and `totalLogs` both exactly 10, no double-counting or 500s; account deleted after 2026-09-09).
 
