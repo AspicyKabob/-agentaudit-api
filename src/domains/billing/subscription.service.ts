@@ -19,6 +19,51 @@ function planFromSubscription(subscription: any): PlanTier | null {
   return getPlanForPriceId(priceId);
 }
 
+/**
+ * Apply a subscription's mapped plan + quota to an organization and send the
+ * activation/plan-change email when the tier actually changes. Shared by the
+ * checkout-completed and subscription-lifecycle webhook paths.
+ */
+async function applySubscriptionPlan(org: { id: string; plan: string; email: string | null }, subscription: any, eventId: string) {
+  const status = subscription.status;
+  if (status !== 'active' && status !== 'trialing') return;
+  const previousPlan = org.plan;
+  const mappedPlan = planFromSubscription(subscription);
+  if (!mappedPlan) {
+    logger.warn(
+      { organizationId: org.id, subscriptionId: subscription.id },
+      'Subscription price did not map to a known plan; leaving plan unchanged'
+    );
+  }
+  const newPlan = mappedPlan ?? org.plan;
+  await prisma.organization.update({
+    where: { id: org.id },
+    data: {
+      plan: newPlan,
+      apiQuota: getQuotaForPlan(newPlan),
+    },
+  });
+  logger.info({ organizationId: org.id, newPlan, status }, 'Subscription updated');
+
+  if (org.email && newPlan !== previousPlan) {
+    if (previousPlan === 'free' && newPlan !== 'free') {
+      emailService.sendSubscriptionActivated(org.email, org.id, newPlan, {
+        eventId,
+        dedupeKey: `billing:activated:${eventId}`,
+      }).catch((err) => {
+        logger.warn({ organizationId: org.id, error: err }, 'Activation email failed');
+      });
+    } else {
+      emailService.sendPlanChanged(org.email, org.id, newPlan, {
+        eventId,
+        dedupeKey: `billing:plan-change:${eventId}`,
+      }).catch((err) => {
+        logger.warn({ organizationId: org.id, error: err }, 'Plan change email failed');
+      });
+    }
+  }
+}
+
 export const subscriptionService = {
   async createCheckoutSession(organizationId: string, priceId: string, customerEmail: string) {
     ensureStripeConfigured();
@@ -71,6 +116,8 @@ export const subscriptionService = {
         customer: customer.id,
         line_items: [{ price: priceId, quantity: 1 }],
         mode: 'subscription',
+        client_reference_id: organizationId,
+        metadata: { organizationId },
         success_url: `${baseUrl}/dashboard.html?billing=success`,
         cancel_url: `${baseUrl}/index.html#pricing?billing=canceled`,
         subscription_data: { metadata: { organizationId } },
@@ -92,9 +139,10 @@ export const subscriptionService = {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as any;
-        const organizationId = session.subscription_data?.metadata?.organizationId || 
-                              session.client_reference_id;
-        
+        const organizationId = session.metadata?.organizationId ||
+                              session.client_reference_id ||
+                              session.subscription_data?.metadata?.organizationId;
+
         if (organizationId && session.subscription) {
           await prisma.organization.update({
             where: { id: organizationId },
@@ -103,7 +151,13 @@ export const subscriptionService = {
               stripeCustomerId: session.customer as string,
             },
           });
-          logger.info({ organizationId, subscriptionId: session.subscription }, 'Subscription activated');
+          logger.info({ organizationId, subscriptionId: session.subscription }, 'Subscription linked');
+
+          const org = await prisma.organization.findUnique({ where: { id: organizationId } });
+          if (org) {
+            const subscription = await stripe!.subscriptions.retrieve(session.subscription as string);
+            await applySubscriptionPlan(org, subscription, event.id);
+          }
         }
         break;
       }
@@ -116,45 +170,7 @@ export const subscriptionService = {
         });
 
         if (org) {
-          const status = subscription.status;
-          const previousPlan = org.plan;
-
-          if (status === 'active' || status === 'trialing') {
-            const mappedPlan = planFromSubscription(subscription);
-            if (!mappedPlan) {
-              logger.warn(
-                { organizationId: org.id, subscriptionId: subscription.id },
-                'Subscription price did not map to a known plan; leaving plan unchanged'
-              );
-            }
-            const newPlan = mappedPlan ?? org.plan;
-            await prisma.organization.update({
-              where: { id: org.id },
-              data: {
-                plan: newPlan,
-                apiQuota: getQuotaForPlan(newPlan),
-              },
-            });
-            logger.info({ organizationId: org.id, newPlan, status }, 'Subscription updated');
-
-            if (org.email && newPlan !== previousPlan) {
-              if (previousPlan === 'free' && newPlan !== 'free') {
-                emailService.sendSubscriptionActivated(org.email, org.id, newPlan, {
-                  eventId: event.id,
-                  dedupeKey: `billing:activated:${event.id}`,
-                }).catch((err) => {
-                  logger.warn({ organizationId: org.id, error: err }, 'Activation email failed');
-                });
-              } else {
-                emailService.sendPlanChanged(org.email, org.id, newPlan, {
-                  eventId: event.id,
-                  dedupeKey: `billing:plan-change:${event.id}`,
-                }).catch((err) => {
-                  logger.warn({ organizationId: org.id, error: err }, 'Plan change email failed');
-                });
-              }
-            }
-          }
+          await applySubscriptionPlan(org, subscription, event.id);
         }
         break;
       }
