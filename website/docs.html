@@ -1405,7 +1405,7 @@ Authorization: Bearer &lt;jwt&gt;
             <p>Write endpoints are not idempotent — every <code>POST /audit-logs</code> creates a new row, so retry only on network errors or 5xx, never after a 2xx you may have missed. Use a stable <code>traceId</code> if you need to correlate retries in your own telemetry.</p>
 
             <h3>Alert webhooks</h3>
-            <p>Webhook delivery is a single attempt with a 5&nbsp;second timeout. Failures are logged and reported to our error monitoring but are not retried — keep your endpoint lightweight and return 2xx quickly.</p>
+            <p>Webhook notifications require a Pro or Business plan — free-plan requests to enable them return <code>403 plan_required</code>. Webhook delivery is a single attempt with a 5&nbsp;second timeout. Failures are logged and reported to our error monitoring but are not retried — keep your endpoint lightweight and return 2xx quickly.</p>
           </div>
 
           <nav class="docs-pagenav" id="docs-pagenav" aria-label="Section navigation"></nav>
