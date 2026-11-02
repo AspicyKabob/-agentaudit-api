@@ -444,7 +444,7 @@
             <div class="dashboard-org" id="org-name">Loading...</div>
           </div>
           <div style="display:flex;gap:10px;align-items:center;">
-            <button class="btn-dash btn-dash-primary" id="btn-upgrade" style="display:none">Upgrade Plan</button>
+            <button class="btn-dash btn-dash-primary" id="btn-upgrade" type="button">Manage Billing</button>
           </div>
         </div>
 
@@ -624,7 +624,16 @@
         <div class="dashboard-header">
           <div>
             <div class="dashboard-title">Settings</div>
-            <div class="dashboard-org">Notifications and preferences</div>
+            <div class="dashboard-org">Billing, notifications, and preferences</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Billing &amp; Subscription</span>
+            <button class="btn-dash btn-dash-primary" id="btn-billing-portal" type="button">Open Billing Portal</button>
+          </div>
+          <div class="panel-body" style="padding: 16px 24px;">
+            <p style="font-size:12px;color:var(--text-muted);margin:0;">Manage your subscription, change plans, update payment details, and view invoices securely through Stripe. Cancellation options are available in the billing portal.</p>
           </div>
         </div>
         <div class="panel">

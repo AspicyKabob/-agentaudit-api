@@ -274,7 +274,7 @@
   });
 
   // ─── Upgrade / billing portal ─────────────────────────────────────
-  document.getElementById('btn-upgrade').addEventListener('click', async function() {
+  async function openBillingPortal() {
     var btn = this;
     var orig = btn.textContent;
     btn.disabled = true; btn.textContent = 'Loading billing...';
@@ -292,7 +292,9 @@
       else toast(e.message || 'Unable to load billing portal.', 'error');
     }
     btn.disabled = false; btn.textContent = orig;
-  });
+  }
+  document.getElementById('btn-upgrade').addEventListener('click', openBillingPortal);
+  document.getElementById('btn-billing-portal').addEventListener('click', openBillingPortal);
 
   // ─── API Key modal ────────────────────────────────────────────────
   var keyModal = document.getElementById('key-modal');
@@ -933,7 +935,7 @@
       badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
       badge.className = 'plan-tag plan-' + plan;
       document.getElementById('stat-api').textContent = (me.apiUsed || 0).toLocaleString();
-      document.getElementById('btn-upgrade').style.display = plan === 'free' ? '' : 'none';
+      document.getElementById('btn-upgrade').textContent = 'Manage Billing';
 
       // Populate settings from profile
       document.getElementById('webhook-url').value = me.webhookUrl || '';
