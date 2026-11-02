@@ -4,6 +4,7 @@ import { signAccessToken, signRefreshToken } from '../../utils/token';
 import { generateApiKey, hashApiKey } from '../../utils/apiKey';
 import { emailService } from '../../services/email.service';
 import { logger } from '../../utils/logger';
+import { AppError } from '../../utils/errors';
 import { stripe } from '../../utils/stripe';
 
 export const authService = {
@@ -119,6 +120,16 @@ export const authService = {
   },
 
   async updateProfile(organizationId: string, data: { webhookUrl?: string; notifyWebhook?: boolean; notifyEmail?: boolean; notifyMinSeverity?: string }) {
+    if (data.webhookUrl || data.notifyWebhook === true) {
+      const org = await prisma.organization.findUnique({
+        where: { id: organizationId },
+        select: { plan: true },
+      });
+      if ((org?.plan ?? 'free') === 'free') {
+        throw new AppError('Webhook alerts are available on Pro and Business plans. Upgrade to enable webhook notifications.', 403, { code: 'plan_required' });
+      }
+    }
+
     return prisma.organization.update({
       where: { id: organizationId },
       data,

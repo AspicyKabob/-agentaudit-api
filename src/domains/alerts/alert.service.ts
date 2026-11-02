@@ -108,10 +108,11 @@ export const alertService = {
     try {
       const org = await prisma.organization.findUnique({
         where: { id: alert.organizationId },
-        select: { webhookUrl: true },
+        select: { webhookUrl: true, plan: true },
       });
 
       if (!org?.webhookUrl) return;
+      if (org.plan === 'free') return;
 
       const safety = validateWebhookUrl(org.webhookUrl);
       if (!safety.ok) {

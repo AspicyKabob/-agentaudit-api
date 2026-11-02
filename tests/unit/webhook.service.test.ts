@@ -41,6 +41,7 @@ jest.mock('../../src/services/email.service', () => ({
 }));
 
 import { subscriptionService } from '../../src/domains/billing/subscription.service';
+import { authService } from '../../src/domains/auth/auth.service';
 
 describe('subscriptionService.handleWebhookEvent', () => {
   beforeEach(() => {
@@ -116,6 +117,19 @@ describe('subscriptionService.handleWebhookEvent', () => {
       data: { plan: 'free', stripeSubscriptionId: null },
     }));
     expect(mockSendCancellation).toHaveBeenCalled();
+  });
+
+  it('blocks webhook alert setup on the free plan', async () => {
+    mockFindUnique.mockResolvedValue({ plan: 'free' });
+    await expect(authService.updateProfile('org-1', { notifyWebhook: true })).rejects.toMatchObject({ statusCode: 403, code: 'plan_required' });
+    await expect(authService.updateProfile('org-1', { webhookUrl: 'https://hooks.example.com' })).rejects.toMatchObject({ statusCode: 403 });
+  });
+
+  it('allows webhook alert setup on a paid plan', async () => {
+    mockFindUnique.mockResolvedValue({ plan: 'pro' });
+    mockUpdate.mockResolvedValue({ id: 'org-1' });
+    await expect(authService.updateProfile('org-1', { notifyWebhook: true })).resolves.toBeDefined();
+    expect(mockUpdate).toHaveBeenCalled();
   });
 
   it('ignores checkout session with no organization reference', async () => {
