@@ -233,7 +233,7 @@ describe('AgentAudit API Full Integration', () => {
         id: 'org-1',
         name: 'Test Corp',
         email: 'test@example.com',
-        plan: 'free',
+        plan: 'pro',
         apiQuota: 1000,
         apiUsed: 0,
       });
@@ -241,7 +241,7 @@ describe('AgentAudit API Full Integration', () => {
         id: 'org-1',
         name: 'Test Corp',
         email: 'test@example.com',
-        plan: 'free',
+        plan: 'pro',
         webhookUrl: 'https://example.com/webhook',
         notifyWebhook: true,
         notifyEmail: true,
