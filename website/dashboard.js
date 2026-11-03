@@ -236,6 +236,34 @@
     btn.disabled = false; btn.textContent = 'Save';
   });
 
+  // ─── Settings: account password (OAuth accounts) ─────────────────
+  var setPwBtn = document.getElementById('btn-set-password');
+  if (setPwBtn) setPwBtn.addEventListener('click', async function() {
+    var errEl = document.getElementById('account-password-error');
+    var statusEl = document.getElementById('account-password-status');
+    var cur = document.getElementById('account-current-password').value;
+    var next = document.getElementById('account-new-password').value;
+    errEl.hidden = true; statusEl.hidden = true;
+    if (!next || next.length < 8) { errEl.textContent = 'Password must be at least 8 characters.'; errEl.hidden = false; return; }
+    setPwBtn.disabled = true; setPwBtn.textContent = 'Saving...';
+    try {
+      await api('POST', '/api/v1/auth/set-password', { currentPassword: cur || undefined, newPassword: next });
+      statusEl.textContent = 'Password saved.';
+      statusEl.hidden = false;
+      document.getElementById('account-current-password').value = '';
+      document.getElementById('account-new-password').value = '';
+      document.getElementById('field-current-password').hidden = false;
+      setPwBtn.textContent = 'Change password';
+      var hint = document.getElementById('account-password-hint');
+      if (hint) hint.textContent = 'Change the password used to confirm sensitive actions. Your social sign-in keeps working either way.';
+    } catch(err) {
+      errEl.textContent = err.message || 'Failed to set password';
+      errEl.hidden = false;
+      setPwBtn.textContent = 'Set password';
+    }
+    setPwBtn.disabled = false;
+  });
+
   var retention = { loaded: false, busy: false, revision: 0, preview: null, timer: null };
   var retentionDays = document.getElementById('retention-days');
   var retentionPassword = document.getElementById('retention-password');
@@ -1157,6 +1185,21 @@
       document.getElementById('toggle-webhook').checked = me.notifyWebhook === true;
       document.getElementById('toggle-email').checked = me.notifyEmail === true;
       onboardState.hasNotifications = me.notifyEmail === true || me.notifyWebhook === true;
+
+      // OAuth accounts may lack a password — show the set-password panel
+      var pwPanel = document.getElementById('panel-account-password');
+      if (pwPanel && me.hasPassword === false) {
+        pwPanel.hidden = false;
+        var hint = document.getElementById('account-password-hint');
+        if (hint && me.provider && me.provider !== 'local') {
+          hint.textContent = 'Your account was created with ' + me.provider.charAt(0).toUpperCase() + me.provider.slice(1) + ' sign-in and has no password. Set one to confirm sensitive actions like retention changes or account deletion.';
+        }
+      } else if (pwPanel && me.provider && me.provider !== 'local') {
+        pwPanel.hidden = false;
+        document.getElementById('account-password-hint').textContent = 'Change the password used to confirm sensitive actions. Your ' + me.provider + ' sign-in keeps working either way.';
+        document.getElementById('field-current-password').hidden = false;
+        document.getElementById('btn-set-password').textContent = 'Change password';
+      }
       var sevVal = me.notifyMinSeverity || 'warning';
       var sevDropdown = document.getElementById('sev-dropdown');
       sevDropdown.setAttribute('data-value', sevVal);

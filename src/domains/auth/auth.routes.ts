@@ -12,12 +12,17 @@ import {
   deleteOrganizationSchema,
   previewRetentionSchema,
   updateRetentionSchema,
+  setPasswordSchema,
 } from './auth.types';
 
 const router = Router();
 
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
+router.get('/oauth/providers', authController.oauthProviders);
+router.get('/oauth/:provider', authLimiter, authController.oauthAuthorize);
+router.get('/oauth/:provider/callback', authLimiter, authController.oauthCallback);
+router.post('/set-password', authenticate, validate(setPasswordSchema), authController.setPassword);
 router.get('/me', authenticate, authController.me);
 router.get('/retention', authenticate, authController.getRetention);
 router.post('/retention/preview', authenticate, validate(previewRetentionSchema), authController.previewRetention);

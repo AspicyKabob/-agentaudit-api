@@ -48,6 +48,9 @@ export const authService = {
       throw new Error('Invalid credentials');
     }
 
+    if (!organization.password) {
+      throw new AppError(`This account uses ${organization.provider} sign-in. Use the ${organization.provider} button instead.`, 400, { code: 'oauth_account' });
+    }
     const valid = await comparePassword(password, organization.password);
     if (!valid) {
       throw new Error('Invalid credentials');
@@ -166,6 +169,9 @@ export const authService = {
     if (!organization) {
       throw new AppError('Organization not found', 404);
     }
+    if (!organization.password) {
+      throw new AppError('This account has no password. Set one from Settings before confirming this change.', 400, { code: 'no_password' });
+    }
     if (!await comparePassword(password, organization.password)) {
       throw new AppError('Invalid password', 403, { code: 'invalid_password' });
     }
@@ -184,6 +190,9 @@ export const authService = {
 
     if (!organization) {
       throw new Error('Organization not found');
+    }
+    if (!organization.password) {
+      throw new AppError('This account has no password. Set one from Settings before deleting the account.', 400, { code: 'no_password' });
     }
 
     const valid = await comparePassword(password, organization.password);

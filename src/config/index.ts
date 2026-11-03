@@ -164,6 +164,32 @@ export const config = convict({
     default: false,
     env: 'REDIS_ENABLED',
   },
+  githubClientId: {
+    doc: 'GitHub OAuth App client ID. Empty disables GitHub sign-in.',
+    format: String,
+    default: '',
+    env: 'GITHUB_CLIENT_ID',
+  },
+  githubClientSecret: {
+    doc: 'GitHub OAuth App client secret.',
+    format: String,
+    default: '',
+    env: 'GITHUB_CLIENT_SECRET',
+    sensitive: true,
+  },
+  googleClientId: {
+    doc: 'Google OAuth client ID. Empty disables Google sign-in.',
+    format: String,
+    default: '',
+    env: 'GOOGLE_CLIENT_ID',
+  },
+  googleClientSecret: {
+    doc: 'Google OAuth client secret.',
+    format: String,
+    default: '',
+    env: 'GOOGLE_CLIENT_SECRET',
+    sensitive: true,
+  },
   sentryDsn: {
     doc: 'Sentry DSN for error tracking. Leave empty to disable.',
     format: String,

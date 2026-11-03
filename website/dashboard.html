@@ -694,6 +694,25 @@
             <p class="retention-status" id="retention-status" role="status" hidden></p>
           </div>
         </div>
+        <div class="panel" id="panel-account-password" hidden>
+          <div class="panel-header">
+            <span class="panel-title">Account Password</span>
+          </div>
+          <div style="padding:16px 20px;">
+            <p style="font-size:12px;color:var(--text-secondary);margin:0 0 12px;" id="account-password-hint">Your account was created with social sign-in and has no password. Set one to confirm sensitive actions like retention changes or account deletion.</p>
+            <div class="field" id="field-current-password" hidden>
+              <label for="account-current-password">Current password</label>
+              <input id="account-current-password" type="password" autocomplete="current-password" maxlength="128">
+            </div>
+            <div class="field">
+              <label for="account-new-password">New password</label>
+              <input id="account-new-password" type="password" autocomplete="new-password" maxlength="128" minlength="8" placeholder="Min 8 characters">
+            </div>
+            <p class="retention-error" id="account-password-error" role="alert" hidden></p>
+            <p class="retention-status" id="account-password-status" role="status" hidden></p>
+            <button class="btn-dash btn-dash-primary" id="btn-set-password">Set password</button>
+          </div>
+        </div>
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Notification Settings</span>
