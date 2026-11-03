@@ -12,14 +12,30 @@ This runbook covers the AgentAudit public beta deployment on Railway. Keep crede
 
 ## PostgreSQL Backup Policy
 
-Enable Railway native volume backups on the PostgreSQL service:
+Inspect Railway native volume backups on the PostgreSQL service; enabling schedules or creating snapshots requires explicit approval and an eligible Railway plan:
 
 1. Open the PostgreSQL service, then **Backups**.
-2. Enable daily, weekly, and monthly schedules.
-3. Trigger one manual backup before launch and before any potentially destructive migration.
+2. Verify and record the actual daily, weekly, monthly, and manual snapshot settings. Do not enable additional schedules without approving their retention window and cost.
+3. If the plan permits and the operator approves, create a fresh manual backup before a potentially destructive migration; do not treat the old manual snapshot as current recovery coverage.
 4. Record the latest successful backup timestamp in the launch record without copying private dashboard URLs.
 
-Railway currently retains native daily backups for 6 days, weekly backups for 1 month, and monthly backups for 3 months. Native restores are limited to the same Railway project and environment. See [Railway Backups](https://docs.railway.com/volumes/backups) for current provider behavior and limits.
+Railway's current documented native retention is 6 days for daily snapshots, 27 days for weekly snapshots, and 89 days for monthly snapshots. These are provider capabilities, not evidence that any schedule is enabled on this project's volumes. Native restores are limited to the same Railway project and environment. See [Railway Backups](https://docs.railway.com/volumes/backups) for current provider behavior and limits.
+
+The independent logical-backup workflow runs daily with a 30-day pruning target. Read-only review found the latest five runs successful; run `41414677304` completed on 2026-11-02 at 08:40:07 UTC with upload, verification, and pruning steps successful. This is not proof that all historical object versions or native snapshots expired. Do not promise a universal 30-day maximum.
+
+Read-only live Railway review confirmed **No backup schedule** on production Postgres. The Backups tab lists one manual snapshot, **Pre-Security-Patch Backup**, created **2026-08-23 06:31:10.928 UTC**, displayed as **121 MB**. Its presence is not a restore-integrity test. Railway reports that upgrading to Pro is required to create new native backups, configure automatic schedules, or enable point-in-time recovery. No upgrade, backup creation, restore, or deletion was performed.
+
+The production volume inventory returned one volume, `postgres-volume`, attached to Postgres at `/var/lib/postgresql/data`, with 500 MB provisioned and approximately 131 MB used. No additional/unmounted production volumes were returned by that inventory. This is scoped to the production environment, not other environments or external copies. Automated recovery coverage currently relies on the separate GitHub Actions → S3 logical exports, not native schedules.
+
+Read-only AWS review of `agentaudit-backups` in `us-east-1` found **Bucket Versioning disabled**, **Object Lock disabled**, **no lifecycle rules**, **no replication rules**, and bucket **Block all public access on**. The bucket's `postgres/` prefix displayed exactly 30 logical backup objects at 2026-11-03 18:26 UTC, with filenames ranging from `agentaudit-backup-2026-10-05T07-59-17Z.sql.gz` through `agentaudit-backup-2026-11-03T08-51-14Z.sql.gz`. Metadata names only were inspected; backup contents were not downloaded or restored. With Versioning disabled there are no S3 object versions to inspect.
+
+Subsequent approved configuration change on 2026-11-03: lifecycle rule `expire-backups-30d` was created — enabled, scoped to prefix `postgres/`, current objects expire 30 days after creation, and incomplete multipart uploads are deleted after 7 days. Verified in the rule detail view. S3 now independently enforces the 30-day limit even if the GitHub Actions pruning step fails. Expired-object-delete-marker and noncurrent-version actions are absent because Versioning is disabled.
+
+A real-backup restore drill passed on 2026-11-03: the latest S3 object `agentaudit-backup-2026-11-03T08-51-14Z.sql.gz` (719.6 KB gzip, 2.12 MB plain SQL, dumped by pg_dump 18.6) was downloaded via the AWS console, verified with `gunzip -t`, and replayed into an isolated in-memory PGlite engine via `node scripts/restore-drill-pglite.cjs`. All 6,934 statements executed with zero failures; restored tables included Organization (46), ApiKey (31), AuditLog (4956), Alert (16), ComplianceReport (9), EmailDelivery (40), plus `_prisma_migrations`. The restored `RetentionJobState` table was absent, confirming retention migrations are not yet deployed to production. The downloaded dump was deleted after verification. Limitation: PGlite is not managed Railway Postgres — the managed-restore path (pg_restore connectivity, CREATE DATABASE privilege) remains untested; use `scripts/restore-drill.js` against a managed instance for that evidence.
+
+Follow-up resolved on 2026-11-03: the stale `AuditLog` newest date reflects zero usage, not a broken write path. Railway request logs showed no `/audit-logs` traffic at all (only health checks and unmatched bot requests). A live end-to-end smoke test confirmed the full pipeline: register (201) → login → API-key creation (201) → `POST /api/v1/audit-logs` (201, row written at 18:42:19 UTC) → `GET /api/v1/audit-logs` returned the new row → self-serve `DELETE /api/v1/auth/organization` (204) removed the synthetic account and subsequent auth returned 401. AuditLog writes are functioning in production; the gap is genuinely absence of user traffic.
+
+Before enabling age-based audit cleanup, the operator must approve the disposition of the old Railway manual snapshot. A lifecycle rule or additional hard-limit is optional but requires explicit approval before creation. Do not delete snapshots or object versions to satisfy the policy without explicit approval.
 
 ### Optional logical export
 
@@ -46,7 +62,27 @@ Never use production customer data for a drill.
 7. Run `npx prisma migrate status` and the authenticated smoke test against the non-production API.
 8. Record the date, operator, backup timestamp, recovery duration, and result in the evidence log.
 
-Restoring a Railway backup swaps the mounted volume and redeploys the service. It can also remove backups newer than the selected restore point. Review the staged change before deploying it.
+Restoring a Railway backup stages a replacement volume and redeploys the service when applied. The original volume remains unmounted, and newer backups remain on that original volume; they are not automatically deleted. Include these retained copies in the backup inventory and review the staged change before deploying it.
+
+## Retention and Restore Safety Gate
+
+Audit retention preferences support `null`, 7, 30, or 90 days on every plan. Cleanup remains disabled and unscheduled. Before publishing the revised policies, have the owner review the corrected email/backup claims and approve a prominent notice to existing users; do not silently replace earlier retention promises. No notifications have been sent by this work. Production deletion requires explicit approval after a dry run; both `RETENTION_DELETE_ENABLED` and `RetentionJobState.deletionEnabled` must permit it. A saved preference alone is not activation.
+
+A restored database can resurrect deleted accounts, old retention preferences, pending notifications, job leases, and saved traversal cursors. Restoring and immediately exposing the API is not safe:
+
+1. Restore only into an isolated, access-controlled environment with customer traffic, email/webhook delivery, and cleanup scheduling blocked. Never run `scripts/restore-drill.js` against production data: its SQL error diagnostics can include source data, and it creates and drops a database.
+2. Keep the environment deletion switch off. With explicit approval for database state changes, also disable the restored database deletion flag and reset stale leases and traversal progress before any retention run. Restored `dryRunCursor` and `executionCursor` values are not a trustworthy starting point for a new full scan.
+3. Reconcile account deletions and retention changes made after the backup using authoritative incident/support records. Do not infer deleted accounts or newer preferences from an older snapshot. There is currently no implemented out-of-backup deletion ledger; if reliable reconciliation evidence is unavailable, keep the restored database isolated and escalate to the owner.
+4. Run a full, bounded dry-run traversal using the current UTC time, continuing through `limited` results. Verify reconciled preferences, tenant isolation, counts, unchanged quotas, and notification suppression. Dry-run alone does not remove restored data.
+5. Obtain explicit approval for necessary reconciliation/cleanup deletions, perform controlled batches in isolation, and verify expired/deleted data is no longer served before routing customer traffic. Re-enable delivery or scheduling only after checking that restored queues cannot resend old notifications. Record sanitized evidence and check retained backup copies separately.
+
+A local synthetic recovery exercise now passes via `npm run test:retention:restore` and is included in `npm run test:retention`. It creates an in-memory PGlite database, applies repository migrations, archives its PGDATA into an in-memory gzip blob, mutates the source with synthetic post-backup changes, and restores that archive into a separate in-memory database. It verifies exact restored business rows, resurrected account/policy state, stale enabled flags/leases/cursors, manual reconciliation from an outside-the-archive fixture, dry-run non-deletion, both kill switches, bounded re-expiration, retained records, unchanged quotas, and final disabled switches. All source and restored data is synthetic, no remote database or email/webhook service is used, and the archive is not written to disk.
+
+The exercise removed two expired audit logs and three expired alerts after separately reconciling the synthetic deleted organization. It is a local embedded-database test, not a pg_dump/psql restore, S3 object-integrity check, Railway native restore, durable deletion-ledger implementation, or managed PostgreSQL recovery test. S3 configuration evidence and an approved non-production recovery exercise of the actual backup format remain rollout gates, not completed production verification.
+
+### Email delivery retention discrepancy
+
+No scheduled 90-day cleanup exists for `EmailDelivery`. Account deletion removes existing organization-linked rows but may create a new deletion-confirmation delivery record afterward. Public policies now state this limitation rather than claiming automatic removal. A separate email-retention implementation must address deduplication/replay windows, pending retries, deletion-confirmation records, provider-held data, bounded execution, and tests before a 90-day guarantee can be reinstated. Do not include email rows in the audit cleanup engine implicitly.
 
 ## Deploy and Migration Verification
 

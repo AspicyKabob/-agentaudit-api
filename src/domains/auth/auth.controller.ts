@@ -31,7 +31,25 @@ export const authController = {
       notifyWebhook: req.organization!.notifyWebhook,
       notifyEmail: req.organization!.notifyEmail,
       notifyMinSeverity: req.organization!.notifyMinSeverity,
+      retentionDays: req.organization!.retentionDays,
     });
+  }),
+
+  getRetention: asyncHandler(async (req: Request, res: Response) => {
+    res.status(200).json({ retentionDays: req.organization!.retentionDays, cleanupEnabled: false });
+  }),
+
+  previewRetention: asyncHandler(async (req: Request, res: Response) => {
+    const result = await authService.previewRetention(req.organization!.id, req.body.retentionDays);
+    res.status(200).json(result);
+  }),
+
+  updateRetention: asyncHandler(async (req: Request, res: Response) => {
+    const organizationId = req.organization!.id;
+    const { retentionDays, password } = req.body;
+    const result = await authService.updateRetention(organizationId, retentionDays, password);
+    logger.info({ organizationId, retentionDays }, 'Retention preference updated; cleanup disabled');
+    res.status(200).json(result);
   }),
 
   updateProfile: asyncHandler(async (req: Request, res: Response) => {

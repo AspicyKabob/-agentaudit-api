@@ -76,6 +76,7 @@ jest.mock('../../src/db/prisma', () => ({
       delete: jest.fn(),
     },
     alert: {
+      count: jest.fn(),
       findMany: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
@@ -125,6 +126,8 @@ describe('AgentAudit API Full Integration', () => {
       name: 'Test Corp',
       email: 'test@example.com',
       plan: 'free',
+      password: '$2a$10$mockhash',
+      retentionDays: null,
       notifyWebhook: true,
       notifyEmail: true,
       notifyMinSeverity: 'warning',
@@ -150,6 +153,131 @@ describe('AgentAudit API Full Integration', () => {
   });
 
   // ─── Auth ──────────────────────────────────────────────────────────
+
+  describe('Retention settings', () => {
+    it.each([7, 30, 90, null])('saves %s days with password confirmation and no deletion', async (retentionDays) => {
+      mockedPrisma.organization.update.mockResolvedValue({ retentionDays });
+      const res = await request(app).patch('/api/v1/auth/retention')
+        .set('Authorization', `Bearer ${getAuthToken()}`)
+        .send({ retentionDays, password: 'Password123', organizationId: 'other-org' });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ retentionDays, cleanupEnabled: false });
+      expect(mockedPrisma.organization.update).toHaveBeenCalledWith({
+        where: { id: 'org-1' }, data: { retentionDays }, select: { retentionDays: true },
+      });
+      expect(mockedPrisma.auditLog.deleteMany).not.toHaveBeenCalled();
+      expect(mockedPrisma.organization.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it.each([0, 1, 8, 365, -7, 7.5, '30', undefined])('rejects invalid retention %s', async (retentionDays) => {
+      const res = await request(app).patch('/api/v1/auth/retention')
+        .set('Authorization', `Bearer ${getAuthToken()}`)
+        .send({ retentionDays, password: 'Password123' });
+      expect(res.status).toBe(400);
+      expect(mockedPrisma.organization.update).not.toHaveBeenCalled();
+    });
+
+    it('defaults to indefinite retention and exposes it in the profile', async () => {
+      const token = getAuthToken();
+      const res = await request(app).get('/api/v1/auth/retention').set('Authorization', `Bearer ${token}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ retentionDays: null, cleanupEnabled: false });
+      const profile = await request(app).get('/api/v1/auth/me').set('Authorization', `Bearer ${token}`);
+      expect(profile.body.retentionDays).toBeNull();
+    });
+
+    it.each(['free', 'pro', 'business'])('allows %s accounts to save retention', async (plan) => {
+      mockedPrisma.organization.findUnique.mockResolvedValue({ id: 'org-1', plan, password: '$2a$10$mockhash' });
+      mockedPrisma.organization.update.mockResolvedValue({ retentionDays: 7 });
+      const res = await request(app).patch('/api/v1/auth/retention')
+        .set('Authorization', `Bearer ${getAuthToken()}`).send({ retentionDays: 7, password: 'Password123' });
+      expect(res.status).toBe(200);
+      expect(jest.requireMock('bcryptjs').compare).toHaveBeenCalledWith('Password123', '$2a$10$mockhash');
+      expect(res.body).toEqual({ retentionDays: 7, cleanupEnabled: false });
+    });
+
+    it('cannot change retention through the profile endpoint without confirmation', async () => {
+      mockedPrisma.organization.update.mockResolvedValue({ id: 'org-1' });
+      await request(app).patch('/api/v1/auth/me')
+        .set('Authorization', `Bearer ${getAuthToken()}`).send({ retentionDays: 7 });
+      expect(mockedPrisma.organization.update).not.toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ retentionDays: 7 }),
+      }));
+    });
+
+    it('requires password confirmation', async () => {
+      const res = await request(app).patch('/api/v1/auth/retention')
+        .set('Authorization', `Bearer ${getAuthToken()}`).send({ retentionDays: 7 });
+      expect(res.status).toBe(400);
+      expect(mockedPrisma.organization.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects an incorrect password', async () => {
+      const bcrypt = jest.requireMock('bcryptjs');
+      bcrypt.compare.mockResolvedValueOnce(false);
+      const res = await request(app).patch('/api/v1/auth/retention')
+        .set('Authorization', `Bearer ${getAuthToken()}`)
+        .send({ retentionDays: 7, password: 'incorrect' });
+      expect(res.status).toBe(403);
+      expect(mockedPrisma.organization.update).not.toHaveBeenCalled();
+    });
+
+    it('previews tenant-scoped expired logs and linked or standalone alerts without writes', async () => {
+      mockedPrisma.auditLog.count.mockResolvedValue(12);
+      mockedPrisma.alert.count.mockResolvedValue(4);
+      const before = Date.now();
+      const res = await request(app).post('/api/v1/auth/retention/preview')
+        .set('Authorization', `Bearer ${getAuthToken()}`)
+        .send({ retentionDays: 30, organizationId: 'other-org' });
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ retentionDays: 30, auditLogs: 12, alerts: 4, cleanupEnabled: false, approximate: true });
+      const cutoff = new Date(res.body.cutoff);
+      expect(cutoff.getTime()).toBeGreaterThanOrEqual(before - 30 * 86400000);
+      expect(cutoff.getTime()).toBeLessThanOrEqual(Date.now() - 30 * 86400000);
+      expect(mockedPrisma.auditLog.count).toHaveBeenCalledWith({ where: { organizationId: 'org-1', createdAt: { lt: cutoff } } });
+      expect(mockedPrisma.alert.count).toHaveBeenCalledWith({ where: {
+        organizationId: 'org-1', OR: [
+          { auditLog: { is: { organizationId: 'org-1', createdAt: { lt: cutoff } } } },
+          { auditLogId: null, createdAt: { lt: cutoff } },
+        ],
+      } });
+      expect(mockedPrisma.organization.update).not.toHaveBeenCalled();
+      expect(mockedPrisma.auditLog.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it('previews indefinite retention without counting records', async () => {
+      const res = await request(app).post('/api/v1/auth/retention/preview')
+        .set('Authorization', `Bearer ${getAuthToken()}`).send({ retentionDays: null });
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ cutoff: null, auditLogs: 0, alerts: 0, cleanupEnabled: false });
+      expect(mockedPrisma.auditLog.count).not.toHaveBeenCalled();
+      expect(mockedPrisma.alert.count).not.toHaveBeenCalled();
+    });
+
+    it('rejects invalid preview periods', async () => {
+      const res = await request(app).post('/api/v1/auth/retention/preview')
+        .set('Authorization', `Bearer ${getAuthToken()}`).send({ retentionDays: 8 });
+      expect(res.status).toBe(400);
+      expect(mockedPrisma.auditLog.count).not.toHaveBeenCalled();
+    });
+
+    it.each(['free', 'pro', 'business'])('returns the saved preference for %s plans', async (plan) => {
+      mockedPrisma.organization.findUnique.mockResolvedValue({ id: 'org-1', plan, retentionDays: 90 });
+      const res = await request(app).get('/api/v1/auth/retention')
+        .set('Authorization', `Bearer ${getAuthToken()}`);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ retentionDays: 90, cleanupEnabled: false });
+    });
+
+    it.each(['get', 'patch', 'post'])('requires JWT authentication for %s retention access', async (method) => {
+      const path = method === 'post' ? '/api/v1/auth/retention/preview' : '/api/v1/auth/retention';
+      const res = await (request(app) as any)[method](path)
+        .set('X-API-Key', 'aa_testapikey').send({ retentionDays: 7, password: 'Password123' });
+      expect(res.status).toBe(401);
+      expect(mockedPrisma.organization.update).not.toHaveBeenCalled();
+      expect(mockedPrisma.auditLog.count).not.toHaveBeenCalled();
+    });
+  });
 
   describe('Auth', () => {
     it('POST /api/v1/auth/register → 201', async () => {

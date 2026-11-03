@@ -574,6 +574,7 @@
             <a href="#agents">Agents</a>
             <a href="#policies">Policies</a>
             <a href="#reports">Reports</a>
+            <a href="#retention">Data Retention</a>
             <a href="#billing">Billing</a>
           </div>
           <div class="docs-sidebar-group">
@@ -1181,7 +1182,7 @@ Authorization: Bearer &lt;jwt&gt;
           <div class="docs-section" id="reports">
             <span class="docs-section-badge">10 — Reports</span>
             <h2>Reports</h2>
-            <p>Generate downloadable compliance and audit reports for any time window. Reports are created asynchronously — poll <code>GET /api/v1/reports/:id</code> until <code>status</code> is <code>ready</code>, then call the download endpoint.</p>
+            <p>Creating a report saves its settings with status <code>ready</code>; there is no asynchronous generation job to poll. Each download queries currently retained logs in the requested date range and generates the file again. Saved reports are not immutable snapshots. Deletion or retention cleanup can change later downloads of the same report. Download records you need before they expire.</p>
 
             <div class="endpoint-row">
               <span class="method-badge get">GET</span>
@@ -1223,7 +1224,7 @@ Authorization: Bearer &lt;jwt&gt;
 // Response
 {
   "id": "report_...",
-  "status": "pending",
+  "status": "ready",
   "type": "compliance_summary",
   "createdAt": "2026-04-01T09:00:00.000Z"
 }</pre>
@@ -1231,11 +1232,24 @@ Authorization: Bearer &lt;jwt&gt;
             </div>
 
             <div class="callout info">
-              <strong>Tip:</strong> Once <code>status</code> becomes <code>ready</code>, call <code>GET /api/v1/reports/:id/download</code> to receive the file. The response includes the correct <code>Content-Type</code> and <code>Content-Disposition</code> headers for direct browser download.
+              <strong>Tip:</strong> For a report with <code>status: ready</code>, call <code>GET /api/v1/reports/:id/download</code> to receive the file. The response includes the correct <code>Content-Type</code> and <code>Content-Disposition</code> headers for direct browser download.
             </div>
           </div>
 
           <!-- ── Billing ────────────────────────────────────────────── -->
+          <div class="docs-section" id="retention">
+            <span class="docs-section-badge">Data management</span>
+            <h2>Data retention preferences</h2>
+            <p>Available on every plan using JWT Bearer authentication, not API-key authentication. The supported values are <code>null</code> (until account deletion), <code>7</code>, <code>30</code>, and <code>90</code>. Existing accounts default to <code>null</code>. Automatic cleanup is currently disabled: saving a preference does not delete records or start a cleanup job.</p>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/auth/retention</span><span class="desc">Read the saved preference</span></div>
+            <div class="code-block"><pre>{ "retentionDays": null, "cleanupEnabled": false }</pre></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/retention/preview</span><span class="desc">Preview without deleting data</span></div>
+            <p>Send <code>{ "retentionDays": 30 }</code>. The response includes <code>retentionDays</code>, <code>cleanupEnabled</code>, <code>asOf</code>, <code>cutoff</code>, <code>auditLogs</code>, and <code>alerts</code>. Counts are a point-in-time estimate, not a deletion reservation. For indefinite retention, <code>cutoff</code> is <code>null</code> and both counts are zero.</p>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/auth/retention</span><span class="desc">Save with account password confirmation</span></div>
+            <div class="code-block"><pre>{ "retentionDays": 30, "password": "&lt;your-account-password&gt;" }</pre></div>
+            <p>Every update requires the account password. Preview the impact before updating, particularly when shortening retention; the dashboard requires a fresh preview and acknowledgment. Updates are authentication-rate-limited. Unsupported values return 400, missing or expired authentication returns 401, and an incorrect password returns 403. Settings cannot be changed through <code>PATCH /api/v1/auth/me</code>.</p>
+            <p>When cleanup is enabled, creation time in UTC determines eligibility for existing and future logs. Associated alerts expire with their log; standalone alerts expire by their own creation date. Other configuration, billing data, and usage counters are unchanged. Cleanup is batched, not instantaneous. Backups, email delivery records, delivered notifications, and downloaded files are separate. See the <a href="data-retention.html">retention policy</a> for limitations.</p>
+          </div>
           <div class="docs-section" id="billing">
             <span class="docs-section-badge">11 — Billing</span>
             <h2>Billing</h2>
@@ -1289,6 +1303,9 @@ Authorization: Bearer &lt;jwt&gt;
             <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/login</span></div>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/auth/me</span></div>
             <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/auth/me</span><span class="desc">Update profile &amp; notification prefs</span></div>
+            <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/auth/retention</span></div>
+            <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/retention/preview</span></div>
+            <div class="endpoint-row"><span class="method-badge patch">PATCH</span><span class="path">/api/v1/auth/retention</span></div>
             <div class="endpoint-row"><span class="method-badge post">POST</span><span class="path">/api/v1/auth/api-keys</span></div>
             <div class="endpoint-row"><span class="method-badge get">GET</span><span class="path">/api/v1/auth/api-keys</span></div>
             <div class="endpoint-row"><span class="method-badge delete">DELETE</span><span class="path">/api/v1/auth/api-keys/:id</span></div>

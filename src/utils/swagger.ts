@@ -31,6 +31,29 @@ export const swaggerSpec = {
           error: { type: 'string' },
         },
       },
+      RetentionDays: {
+        type: 'integer', nullable: true, enum: [null, 7, 30, 90],
+        description: 'Creation age in UTC days; null retains until account deletion. Available on every plan.',
+      },
+      RetentionPreference: {
+        type: 'object', required: ['retentionDays', 'cleanupEnabled'],
+        properties: {
+          retentionDays: { $ref: '#/components/schemas/RetentionDays' },
+          cleanupEnabled: { type: 'boolean', enum: [false], description: 'Automatic cleanup is currently disabled; saving does not delete data.' },
+        },
+      },
+      RetentionPreview: {
+        allOf: [
+          { $ref: '#/components/schemas/RetentionPreference' },
+          { type: 'object', required: ['asOf', 'cutoff', 'auditLogs', 'alerts', 'approximate'], properties: {
+            asOf: { type: 'string', format: 'date-time' },
+            cutoff: { type: 'string', format: 'date-time', nullable: true },
+            auditLogs: { type: 'integer', minimum: 0 },
+            alerts: { type: 'integer', minimum: 0 },
+            approximate: { type: 'boolean', enum: [true] },
+          } },
+        ],
+      },
       Organization: {
         type: 'object',
         properties: {
@@ -39,6 +62,7 @@ export const swaggerSpec = {
           name: { type: 'string' },
           plan: { type: 'string', enum: ['free', 'pro', 'business', 'enterprise'] },
           apiUsed: { type: 'integer' },
+          retentionDays: { $ref: '#/components/schemas/RetentionDays' },
           createdAt: { type: 'string', format: 'date-time' },
         },
       },
@@ -172,6 +196,46 @@ export const swaggerSpec = {
             content: { 'application/json': { schema: { type: 'object', properties: { accessToken: { type: 'string' }, organization: { $ref: '#/components/schemas/Organization' } } } } },
           },
           '401': { description: 'Invalid credentials' },
+        },
+      },
+    },
+    '/auth/retention': {
+      get: {
+        tags: ['Auth'], summary: 'Read the saved retention preference', security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Preference; automatic cleanup disabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/RetentionPreference' } } } },
+          '401': { description: 'JWT authentication required' },
+        },
+      },
+      patch: {
+        tags: ['Auth'], summary: 'Save a password-confirmed retention preference', security: [{ bearerAuth: [] }],
+        description: 'Preview impact before updating. Applies to existing and future data once cleanup is enabled. Saving neither deletes data nor starts cleanup. Cannot be updated through PATCH /auth/me.',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['retentionDays', 'password'], properties: {
+            retentionDays: { $ref: '#/components/schemas/RetentionDays' },
+            password: { type: 'string', format: 'password', minLength: 1, maxLength: 128, writeOnly: true },
+          },
+        } } } },
+        responses: {
+          '200': { description: 'Preference saved; automatic cleanup disabled', content: { 'application/json': { schema: { $ref: '#/components/schemas/RetentionPreference' } } } },
+          '400': { description: 'Invalid period or password payload' },
+          '401': { description: 'JWT authentication required' },
+          '403': { description: 'Incorrect account password' },
+          '429': { description: 'Too many authentication attempts' },
+        },
+      },
+    },
+    '/auth/retention/preview': {
+      post: {
+        tags: ['Auth'], summary: 'Estimate eligible logs and alerts without deleting', security: [{ bearerAuth: [] }],
+        description: 'Tenant-scoped snapshot, not a deletion reservation. Creation-time UTC cutoff, associated alerts and standalone alerts included. For null retention, cutoff is null and counts are zero.',
+        requestBody: { required: true, content: { 'application/json': { schema: {
+          type: 'object', required: ['retentionDays'], properties: { retentionDays: { $ref: '#/components/schemas/RetentionDays' } },
+        } } } },
+        responses: {
+          '200': { description: 'Approximate impact at asOf', content: { 'application/json': { schema: { $ref: '#/components/schemas/RetentionPreview' } } } },
+          '400': { description: 'Unsupported retention period' },
+          '401': { description: 'JWT authentication required' },
         },
       },
     },
@@ -766,11 +830,16 @@ export const swaggerSpec = {
     '/reports/{id}/download': {
       get: {
         tags: ['Reports'],
-        summary: 'Download a report as JSON',
+        summary: 'Regenerate and download a report in its selected format',
+        description: 'Queries currently retained tenant logs on every download. Saved report settings are not immutable snapshots; deletion or retention cleanup can change later downloads. Download needed data before expiration.',
         security: [{ bearerAuth: [] }],
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: {
-          '200': { description: 'Report file', content: { 'application/json': { schema: { type: 'object' } } } },
+          '200': { description: 'Report regenerated from remaining logs', content: {
+            'application/json': { schema: { type: 'object' } },
+            'text/csv': { schema: { type: 'string' } },
+            'application/pdf': { schema: { type: 'string', format: 'binary' } },
+          } },
           '404': { description: 'Not found' },
         },
       },
