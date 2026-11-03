@@ -18,6 +18,7 @@ model Organization {
   apiQuota      Int      @default(5000)
   apiUsed       Int      @default(0)
   usagePeriodStart DateTime @default(now())
+  retentionDays Int?
   stripeCustomerId     String?
   stripeSubscriptionId String?
   webhookUrl          String?
@@ -196,6 +197,9 @@ model Alert {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   rule         ComplianceRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
   auditLog     AuditLog?      @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([auditLogId])
 }
 
 model RateLimit {
@@ -233,4 +237,16 @@ model EmailDelivery {
   @@index([providerMessageId])
   @@index([status, createdAt])
   @@index([status, nextAttemptAt])
+}
+
+model RetentionJobState {
+  id              String   @id
+  deletionEnabled Boolean  @default(false)
+  leaseOwner      String?
+  leaseExpiresAt  DateTime?
+  lastStartedAt   DateTime?
+  lastSucceededAt DateTime?
+  lastSummary     Json?
+  dryRunCursor    String?
+  executionCursor String?
 }

@@ -6,6 +6,8 @@ import { emailService } from '../../services/email.service';
 import { logger } from '../../utils/logger';
 import { AppError } from '../../utils/errors';
 import { stripe } from '../../utils/stripe';
+import { RetentionDays } from './auth.types';
+import { expiredAlertFilter, retentionCutoff } from '../retention/retention.filters';
 
 export const authService = {
   async register(name: string, email: string, password: string) {
@@ -144,6 +146,35 @@ export const authService = {
         notifyMinSeverity: true,
       },
     });
+  },
+
+  async previewRetention(organizationId: string, retentionDays: RetentionDays) {
+    const asOf = new Date();
+    const cutoff = retentionDays === null ? null : retentionCutoff(retentionDays, asOf);
+    const [auditLogs, alerts] = cutoff === null ? [0, 0] : await prisma.$transaction([
+      prisma.auditLog.count({ where: { organizationId, createdAt: { lt: cutoff } } }),
+      prisma.alert.count({ where: expiredAlertFilter(organizationId, cutoff) }),
+    ]);
+    return { retentionDays, asOf, cutoff, auditLogs, alerts, approximate: true, cleanupEnabled: false };
+  },
+
+  async updateRetention(organizationId: string, retentionDays: RetentionDays, password: string) {
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { password: true },
+    });
+    if (!organization) {
+      throw new AppError('Organization not found', 404);
+    }
+    if (!await comparePassword(password, organization.password)) {
+      throw new AppError('Invalid password', 403, { code: 'invalid_password' });
+    }
+    const updated = await prisma.organization.update({
+      where: { id: organizationId },
+      data: { retentionDays },
+      select: { retentionDays: true },
+    });
+    return { ...updated, cleanupEnabled: false };
   },
 
   async deleteOrganization(organizationId: string, password: string) {

@@ -56,3 +56,18 @@ export const updateProfileSchema = z.object({
 
 export type UpdateProfileBody = z.infer<typeof updateProfileSchema>['body'];
 export type DeleteOrganizationBody = z.infer<typeof deleteOrganizationSchema>['body'];
+
+const retentionDaysSchema = z.union([z.literal(7), z.literal(30), z.literal(90), z.null()]);
+
+export const previewRetentionSchema = z.object({
+  body: z.object({ retentionDays: retentionDaysSchema }),
+});
+
+export const updateRetentionSchema = z.object({
+  body: z.object({
+    retentionDays: retentionDaysSchema,
+    password: z.string().min(1).max(128),
+  }),
+});
+
+export type RetentionDays = z.infer<typeof retentionDaysSchema>;

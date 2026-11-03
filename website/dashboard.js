@@ -170,6 +170,7 @@
   var sectionLoaded = {};
 
   function showSection(name) {
+    if (currentSection === 'settings' && name !== 'settings') invalidateRetentionPreview();
     currentSection = name;
     document.querySelectorAll('.sidebar-item').forEach(function(item) {
       item.classList.toggle('active', item.getAttribute('data-section') === name);
@@ -177,6 +178,7 @@
     document.querySelectorAll('.dashboard-section').forEach(function(sec) {
       sec.classList.toggle('active', sec.id === 'section-' + name);
     });
+    if (name === 'settings') loadRetention();
     // Lazy-load section data (only first visit; explicit refreshes still call directly)
     if (!sectionLoaded[name]) {
       sectionLoaded[name] = true;
@@ -234,12 +236,225 @@
     btn.disabled = false; btn.textContent = 'Save';
   });
 
+  var retention = { loaded: false, busy: false, revision: 0, preview: null, timer: null };
+  var retentionDays = document.getElementById('retention-days');
+  var retentionPassword = document.getElementById('retention-password');
+  var retentionAck = document.getElementById('retention-ack');
+  var retentionPreviewButton = document.getElementById('btn-retention-preview');
+  var retentionSaveButton = document.getElementById('btn-retention-save');
+  var retentionReloadButton = document.getElementById('btn-retention-reload');
+
+  function retentionMessage(id, message) {
+    var el = document.getElementById(id);
+    el.textContent = message;
+    el.hidden = !message;
+  }
+
+  function retentionControls() {
+    var ready = retention.loaded && !retention.busy;
+    retentionDays.disabled = !ready;
+    retentionPreviewButton.disabled = !ready;
+    retentionPassword.disabled = !ready || !retention.preview;
+    retentionAck.disabled = !ready || !retention.preview;
+    retentionSaveButton.disabled = !ready || !retention.preview || !retentionAck.checked || !retentionPassword.value;
+    retentionReloadButton.disabled = retention.busy;
+    document.getElementById('retention-form').setAttribute('aria-busy', String(retention.busy));
+  }
+
+  function invalidateRetentionPreview() {
+    retention.revision++;
+    clearTimeout(retention.timer);
+    retention.preview = null;
+    retentionPassword.value = '';
+    retentionAck.checked = false;
+    document.getElementById('retention-preview').hidden = true;
+    document.getElementById('retention-confirmation').hidden = true;
+    retentionControls();
+  }
+
+  function selectedRetentionDays() {
+    if (retentionDays.value === 'indefinite') return null;
+    if (['7', '30', '90'].indexOf(retentionDays.value) === -1) throw new Error('Choose 7, 30, 90 days, or until account deletion.');
+    return Number(retentionDays.value);
+  }
+
+  function validRetentionResponse(data) {
+    return data && [null, 7, 30, 90].indexOf(data.retentionDays) !== -1 && typeof data.cleanupEnabled === 'boolean';
+  }
+
+  function applyRetentionPreference(data) {
+    if (!validRetentionResponse(data)) throw new Error('The server returned an invalid retention preference. Reload to try again.');
+    retentionDays.value = data.retentionDays === null ? 'indefinite' : String(data.retentionDays);
+    document.getElementById('retention-current').textContent = 'Saved preference: ' + (data.retentionDays === null ? 'until account deletion.' : data.retentionDays + ' days.');
+    document.getElementById('retention-notice').textContent = data.cleanupEnabled
+      ? 'Automatic cleanup is enabled. Saving a preference does not delete data immediately; eligible records are processed separately.'
+      : 'Automatic cleanup is currently disabled. Saving a preference does not delete data now. When cleanup is enabled, your preference will apply to existing and future data.';
+    retention.loaded = true;
+    retentionReloadButton.hidden = true;
+  }
+
+  function retentionTime(value) {
+    return new Date(value).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, ' UTC');
+  }
+
+  function retentionError(err) {
+    if (err.status === 401) return 'Your session has expired. Sign in again to manage retention.';
+    if (err.status === 429) return 'Too many attempts. Wait a few minutes before trying again.';
+    if (err.status === 404) return 'Retention controls are not available on this deployment yet.';
+    return err.message || 'Unable to reach retention settings. Try again.';
+  }
+
+  async function retentionRequest(method, path, body) {
+    var controller = new AbortController();
+    var timer = setTimeout(function() { controller.abort(); }, 15000);
+    try {
+      return await api(method, path, body, controller.signal);
+    } catch (err) {
+      if (controller.signal.aborted) throw new Error('Request timed out. Try again.');
+      throw err;
+    } finally { clearTimeout(timer); }
+  }
+
+  async function loadRetention() {
+    if (retention.busy) return;
+    var base = API;
+    retention.busy = true;
+    retention.loaded = false;
+    invalidateRetentionPreview();
+    retentionMessage('retention-error', '');
+    retentionMessage('retention-status', '');
+    document.getElementById('retention-current').textContent = 'Loading retention preference...';
+    document.getElementById('retention-notice').textContent = 'Loading cleanup status. No changes have been made.';
+    try {
+      var data = await retentionRequest('GET', '/api/v1/auth/retention');
+      if (base === API) applyRetentionPreference(data);
+    } catch (err) {
+      if (base !== API) return;
+      document.getElementById('retention-current').textContent = 'Retention preference unavailable.';
+      document.getElementById('retention-notice').textContent = 'Cleanup status is unavailable. Reload your preference before making changes.';
+      retentionMessage('retention-error', retentionError(err));
+      retentionReloadButton.hidden = false;
+    } finally {
+      retention.busy = false;
+      retentionControls();
+      if (base !== API && currentSection === 'settings') loadRetention();
+    }
+  }
+
+  async function previewRetention() {
+    if (!retention.loaded || retention.busy) return;
+    invalidateRetentionPreview();
+    var days;
+    try { days = selectedRetentionDays(); }
+    catch (err) { retentionMessage('retention-error', retentionError(err)); return; }
+    var revision = retention.revision;
+    var base = API;
+    retention.busy = true;
+    retentionControls();
+    retentionPreviewButton.textContent = 'Loading preview...';
+    retentionMessage('retention-error', '');
+    retentionMessage('retention-status', '');
+    try {
+      var data = await retentionRequest('POST', '/api/v1/auth/retention/preview', { retentionDays: days });
+      if (revision !== retention.revision || base !== API) return;
+      if (!validRetentionResponse(data) || data.retentionDays !== days
+        || !Number.isSafeInteger(data.auditLogs) || data.auditLogs < 0
+        || !Number.isSafeInteger(data.alerts) || data.alerts < 0
+        || !Number.isFinite(Date.parse(data.asOf))
+        || (days === null ? data.cutoff !== null : !Number.isFinite(Date.parse(data.cutoff)))) {
+        throw new Error('The server returned an invalid preview. Please preview again.');
+      }
+      var text = days === null
+        ? 'No audit logs or alerts would expire based on age under this preference.'
+        : 'Approximately ' + data.auditLogs.toLocaleString() + ' audit logs and ' + data.alerts.toLocaleString()
+          + ' alerts would be eligible for deletion if cleanup ran now.\nCutoff: ' + retentionTime(data.cutoff) + '.';
+      retentionMessage('retention-preview', text + '\nSnapshot: ' + retentionTime(data.asOf) + '.\nCounts may change before cleanup runs. Review expires in 5 minutes.');
+      retention.preview = { days: days, reviewedAt: Date.now() };
+      document.getElementById('retention-confirmation').hidden = false;
+      retention.timer = setTimeout(function() {
+        invalidateRetentionPreview();
+        retentionMessage('retention-status', 'Your impact preview expired. Preview again before saving.');
+      }, 300000);
+    } catch (err) {
+      if (revision === retention.revision && base === API) retentionMessage('retention-error', retentionError(err));
+    } finally {
+      retention.busy = false;
+      retentionPreviewButton.textContent = 'Preview impact';
+      retentionControls();
+      if (base !== API && currentSection === 'settings') loadRetention();
+    }
+  }
+
+  document.getElementById('retention-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    if (!retention.loaded || retention.busy) return;
+    var days;
+    try { days = selectedRetentionDays(); }
+    catch (err) { retentionMessage('retention-error', retentionError(err)); return; }
+    if (!retention.preview || retention.preview.days !== days || Date.now() - retention.preview.reviewedAt >= 300000) {
+      invalidateRetentionPreview();
+      retentionMessage('retention-error', 'Preview the impact of this preference before saving.');
+      return;
+    }
+    if (!retentionAck.checked || !retentionPassword.value) {
+      retentionMessage('retention-error', 'Acknowledge the impact and enter your account password to continue.');
+      return;
+    }
+    var body = { retentionDays: days, password: retentionPassword.value };
+    retentionPassword.value = '';
+    retention.busy = true;
+    retentionControls();
+    retentionSaveButton.textContent = 'Saving...';
+    retentionMessage('retention-error', '');
+    retentionMessage('retention-status', '');
+    var base = API;
+    try {
+      var data = await retentionRequest('PATCH', '/api/v1/auth/retention', body);
+      if (base !== API) return;
+      if (!validRetentionResponse(data) || data.retentionDays !== days) throw new Error('Could not verify the saved preference.');
+      applyRetentionPreference(data);
+      invalidateRetentionPreview();
+      retentionMessage('retention-status', data.cleanupEnabled
+        ? 'Preference saved. This action does not delete data immediately.'
+        : 'Preference saved. Automatic cleanup is disabled; no data was deleted by this action.');
+    } catch (err) {
+      if (base !== API) return;
+      if (!err.status || err.status >= 500 || err.status === 401) {
+        retention.loaded = false;
+        invalidateRetentionPreview();
+        retentionReloadButton.hidden = false;
+        document.getElementById('retention-current').textContent = 'Reload to confirm your saved preference.';
+        retentionMessage('retention-error', retentionError(err) + ' The save could not be confirmed. Reload the preference before trying again.');
+      } else {
+        retentionAck.checked = false;
+        retentionMessage('retention-error', retentionError(err));
+      }
+    } finally {
+      body.password = '';
+      retention.busy = false;
+      retentionSaveButton.textContent = 'Save preference';
+      retentionControls();
+      if (base !== API && currentSection === 'settings') loadRetention();
+    }
+  });
+  retentionPreviewButton.addEventListener('click', previewRetention);
+  retentionReloadButton.addEventListener('click', loadRetention);
+  retentionDays.addEventListener('change', function() {
+    invalidateRetentionPreview();
+    retentionMessage('retention-error', '');
+    retentionMessage('retention-status', '');
+  });
+  retentionPassword.addEventListener('input', retentionControls);
+  retentionAck.addEventListener('change', retentionControls);
+
   // ─── Settings: API base URL override ─────────────────────────────
   var apiBaseInput = document.getElementById('api-base-url');
   if (apiBaseInput) apiBaseInput.value = storedBase || '';
 
   document.getElementById('btn-save-api-base').addEventListener('click', function() {
     var val = (apiBaseInput ? apiBaseInput.value.trim() : '');
+    retention.loaded = false;
+    invalidateRetentionPreview();
     if (val) {
       localStorage.setItem('aa_api_base', val);
       API = val.replace(/\/$/, '');
@@ -1481,6 +1696,7 @@
 
   function loadDashboard() {
     loadOverview();
+    if (currentSection === 'settings') loadRetention();
   }
 
   // Handle billing success redirect
