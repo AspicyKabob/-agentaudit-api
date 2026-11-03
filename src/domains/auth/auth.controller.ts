@@ -3,6 +3,12 @@ import { Request, Response } from 'express';
 import { authService } from './auth.service';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { logger } from '../../utils/logger';
+import { config } from '../../config';
+import * as oauth from './oauth.service';
+
+function oauthCallbackUri(provider: string): string {
+  return `${config.get('frontendUrl')}/api/v1/auth/oauth/${provider}/callback`;
+}
 
 export const authController = {
   register: asyncHandler(async (req: Request, res: Response) => {
@@ -32,6 +38,8 @@ export const authController = {
       notifyEmail: req.organization!.notifyEmail,
       notifyMinSeverity: req.organization!.notifyMinSeverity,
       retentionDays: req.organization!.retentionDays,
+      provider: req.organization!.provider,
+      hasPassword: req.organization!.password != null,
     });
   }),
 
@@ -92,6 +100,39 @@ export const authController = {
     await authService.revokeApiKey(organizationId, id);
     logger.info({ organizationId, apiKeyId: id }, 'API key revoked');
     res.status(204).send();
+  }),
+
+  oauthProviders: asyncHandler(async (_req: Request, res: Response) => {
+    res.status(200).json({ providers: oauth.enabledProviders() });
+  }),
+
+  oauthAuthorize: asyncHandler(async (req: Request, res: Response) => {
+    const { provider } = req.params;
+    oauth.assertProviderEnabled(provider);
+    const state = oauth.signState();
+    res.redirect(oauth.authorizeUrl(provider, oauthCallbackUri(provider), state));
+  }),
+
+  oauthCallback: asyncHandler(async (req: Request, res: Response) => {
+    const { provider } = req.params;
+    oauth.assertProviderEnabled(provider);
+    const frontend = config.get('frontendUrl');
+    const fail = (reason: string) => res.redirect(`${frontend}/?oauth_error=${encodeURIComponent(reason)}#oauth`);
+
+    const { code, state, error } = req.query as { code?: string; state?: string; error?: string };
+    if (error) return fail(error);
+    if (!code || !state || !oauth.verifyState(state)) return fail('invalid_state');
+    const profile = await oauth.fetchProfile(provider, code, oauthCallbackUri(provider));
+    const result = await oauth.loginWithProvider(provider, profile);
+    logger.info({ organizationId: result.organization.id, provider }, 'Organization logged in via OAuth');
+    res.redirect(`${frontend}/?oauth_token=${encodeURIComponent(result.accessToken)}&refresh=${encodeURIComponent(result.refreshToken)}#oauth`);
+  }),
+
+  setPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { currentPassword, newPassword } = req.body;
+    const result = await oauth.setPassword(req.organization!.id, currentPassword, newPassword);
+    logger.info({ organizationId: req.organization!.id }, 'Password set');
+    res.status(200).json(result);
   }),
 
   deleteOrganization: asyncHandler(async (req: Request, res: Response) => {

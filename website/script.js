@@ -22,6 +22,49 @@ function isLoggedIn() {
   return !!getToken();
 }
 
+// ─── OAuth handoff + provider buttons ────────────────────────────
+(function handleOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('oauth_token');
+  const oauthError = params.get('oauth_error');
+  if (token) {
+    setToken(token);
+    history.replaceState(null, '', window.location.pathname);
+    window.location.href = '/dashboard.html';
+    return;
+  }
+  if (oauthError) {
+    const errEl = document.getElementById('oauth-error');
+    const msg = {
+      invalid_state: 'Sign-in link expired. Please try again.',
+      oauth_failed: 'Sign-in failed. Please try again.',
+      oauth_no_email: 'Your account has no verified email address.',
+      access_denied: 'Sign-in was cancelled.',
+    }[oauthError] || 'Sign-in failed. Please try again.';
+    if (errEl) errEl.textContent = msg;
+    else showToast?.(msg, 'error');
+    history.replaceState(null, '', window.location.pathname);
+    openModal?.();
+  }
+})();
+
+(async function loadOAuthProviders() {
+  try {
+    const res = await fetch(api('/api/v1/auth/oauth/providers'));
+    if (!res.ok) return;
+    const { providers } = await res.json();
+    if (!Array.isArray(providers) || providers.length === 0) return;
+    const wrap = document.getElementById('oauth-buttons');
+    if (!wrap) return;
+    wrap.querySelectorAll('[data-oauth]').forEach(btn => {
+      const provider = btn.dataset.oauth;
+      if (!providers.includes(provider)) { btn.remove(); return; }
+      btn.href = api(`/api/v1/auth/oauth/${provider}`);
+    });
+    if (wrap.querySelector('[data-oauth]')) wrap.classList.remove('hidden');
+  } catch (_) { /* OAuth buttons stay hidden */ }
+})();
+
 function showEnterpriseModal() {
   const existing = document.getElementById('enterprise-modal');
   if (existing) existing.remove();

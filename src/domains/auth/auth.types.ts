@@ -16,6 +16,13 @@ export const loginSchema = z.object({
   }),
 });
 
+export const setPasswordSchema = z.object({
+  body: z.object({
+    currentPassword: z.string().max(128).optional(),
+    newPassword: z.string().min(8).max(128),
+  }),
+});
+
 export const createApiKeySchema = z.object({
   body: z.object({
     name: z.string().min(1).max(100),

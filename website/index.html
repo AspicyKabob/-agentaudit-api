@@ -693,6 +693,13 @@ response = client.chat_completions_create(
         <button class="modal-tab" data-tab="login">Log In</button>
       </div>
 
+      <div id="oauth-buttons" class="oauth-buttons hidden">
+        <a class="btn btn-full oauth-btn" data-oauth="github" href="#">Continue with GitHub</a>
+        <a class="btn btn-full oauth-btn" data-oauth="google" href="#">Continue with Google</a>
+        <div class="oauth-divider"><span>or</span></div>
+      </div>
+      <p id="oauth-error" class="form-error"></p>
+
       <form id="signup-form">
         <div class="form-group">
           <label for="signup-name">Name</label>
