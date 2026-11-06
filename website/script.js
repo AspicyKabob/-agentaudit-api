@@ -649,9 +649,12 @@ document.querySelectorAll('.fw-tab').forEach(tab => {
 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
+    const href = this.getAttribute('href');
+    if (!href || !href.startsWith('#') || href === '#') return;
+    const target = document.getElementById(href.slice(1));
+    if (!target) return;
     e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 
